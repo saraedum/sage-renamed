@@ -365,8 +365,7 @@ def can_convert_to_singular(R):
              or number_field.all.is_NumberField(base_ring)
              or ( sage.rings.fraction_field.is_FractionField(base_ring) and ( base_ring.base_ring().is_prime_field() or base_ring.base_ring() is ZZ or is_FiniteField(base_ring.base_ring()) ) )
              or base_ring is ZZ
-             or is_IntegerModRing(base_ring)
-             or (is_RationalFunctionField(base_ring) and base_ring.constant_field().is_prime_field()) )
+             or is_IntegerModRing(base_ring) )
 
 
 class Polynomial_singular_repr:

@@ -99,6 +99,9 @@ cdef class FiniteField(Field):
         """
         Field.__init__(self, base, names, normalize, category=_FiniteFields)
 
+    def is_perfect(self):
+        return True
+
     def __repr__(self):
         """
         String representation of this finite field.

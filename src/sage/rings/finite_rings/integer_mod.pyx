@@ -1052,6 +1052,15 @@ cdef class IntegerMod_abstract(FiniteRingElement):
 
     square_root = sqrt
 
+    def is_nth_power(self, n):
+        try:
+            self.nth_root(n)
+        except ValueError as e:
+            if e.message == "no nth root":
+                return False
+            raise
+        return True
+
     def nth_root(self, n, extend = False, all = False, algorithm = None, cunningham = False):
         r"""
         Returns an `n`\th root of ``self``.
