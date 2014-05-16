@@ -33,6 +33,7 @@ EXAMPLES::
 #*****************************************************************************
 
 from sage.categories.morphism import Morphism
+from sage.misc.cachefunc import cached_method
 from sage.categories.map import Map
 from sage.rings.morphism import RingHomomorphism
 
@@ -511,6 +512,7 @@ class FunctionFieldMorphism_polymod(FunctionFieldMorphism):
         f = v[0].parent()['X'](v)
         return f(self._im_gen)
 
+    @cached_method
     def __invert__(self):
         """
         Compute the inverse of this morphism if it exists.
@@ -705,6 +707,7 @@ class FunctionFieldMorphism_rational(FunctionFieldMorphism):
         if x.is_constant(): return self.codomain()(self.codomain().rational_function_field()(x.element()))
         return x.element()(self._im_gen)
 
+    @cached_method
     def __invert__(self):
         """
         Compute the inverse of this morphism if it exists.
@@ -866,6 +869,14 @@ class FunctionFieldDerivation_polymod(FunctionFieldDerivation):
         FunctionFieldDerivation.__init__(self, L)
         self._d = d
 
+    @cached_method
+    def _call_gen(self):
+        f= self.domain().polynomial()
+        x= self.domain().gen()
+        if not f.gcd(f.derivative().is_one()):
+            raise NotImplementedError("derivation only implemented for separable extensions")
+        return - f.map_coefficients(lambda c:self._d(c))(x) / f.derivative()(x)
+
     def _call_(self, x):
         r"""
         Compute the derivative of ``x``.
@@ -890,8 +901,9 @@ class FunctionFieldDerivation_polymod(FunctionFieldDerivation):
         """
         if x.is_zero():
             return self.codomain().zero()
+        return x._x.derivative()(self.domain().gen()) * self._call_gen()
 
-        f = x.minpoly()
-        if not f.gcd(f.derivative()).is_one():
-            raise NotImplementedError("derivations only for separable elements.")
-        return - f.map_coefficients(lambda c:self._d(c))(x) / f.derivative()(x)
+        #f = x.minpoly()
+        #if not f.gcd(f.derivative()).is_one():
+        #    raise NotImplementedError("derivations only for separable elements.")
+        #return - f.map_coefficients(lambda c:self._d(c))(x) / f.derivative()(x)
