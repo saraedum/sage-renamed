@@ -969,6 +969,7 @@ class DevelopingValuation(DiscreteValuation):
                 # G is not a key (we checked that before) but phi==G is; so phi must have less precision than G
                 # this can happen if not all coefficients of G have the same precision
                 # if we drop some precision of G then it will be a key
+                assert not G.base_ring().is_exact()
                 prec = min([c.precision_absolute() for c in phi.list()])
                 g = G.map_coefficients(lambda c:c.add_bigoh(prec))
                 assert self.is_key(g)
