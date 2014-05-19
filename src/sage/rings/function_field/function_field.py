@@ -1557,7 +1557,7 @@ class FunctionField_polymod(FunctionField):
             r = r.polynomial(y)
             assert( r.is_constant() )
             r = r[0]
-            r = r(f.parent().gen())
+            r = r(f.parent().change_ring(self.base()).gen())
             if r.is_squarefree():
                 return s,g,r
             s *= self.base().gen()
