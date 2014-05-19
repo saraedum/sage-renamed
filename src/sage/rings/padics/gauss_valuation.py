@@ -45,7 +45,7 @@ from developing_valuation import DevelopingValuation
 from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 
-class GaussValuation(DevelopingValuation, UniqueRepresentation):
+class GaussValuation(UniqueRepresentation, DevelopingValuation):
     """
     A Gauss valuation on a polynomial ring ``domain``.
 

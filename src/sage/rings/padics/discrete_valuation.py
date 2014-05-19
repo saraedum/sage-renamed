@@ -89,8 +89,10 @@ class DiscretePseudoValuation(Morphism):
             tester.assertEqual(self(x*y),self(x)+self(y))
 
     def __hash__(self):
-        # TODO: Hash for sets seems to be broken
-        return hash(self.domain())
+        raise NotImplementedError
+
+    def __cmp__(self, other):
+        raise NotImplementedError
 
     def is_equivalent(self, f, g):
         return self(f-g)>0
