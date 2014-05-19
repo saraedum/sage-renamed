@@ -875,9 +875,13 @@ class FunctionFieldDerivation_polymod(FunctionFieldDerivation):
         """
         if x.is_zero():
             return self.codomain().zero()
-        return x._x.derivative()(self.domain().gen()) * self._call_gen()
+        return x._x.map_coefficients(self._d) \
+               + x._x.derivative()(self.domain().gen()) * self._call_gen()
 
-        #f = x.minpoly()
-        #if not f.gcd(f.derivative()).is_one():
-        #    raise NotImplementedError("derivations only for separable elements.")
-        #return - f.map_coefficients(lambda c:self._d(c))(x) / f.derivative()(x)
+    def _repr_defn(self):
+        base = self._d._repr_defn()
+        ret = "%s |--> %s"%(self.domain().gen(),self._call_gen())
+        if base:
+            return base + "\n" + ret
+        else:
+            return ret
