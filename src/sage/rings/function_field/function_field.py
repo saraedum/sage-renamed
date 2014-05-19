@@ -116,6 +116,21 @@ class FunctionField(Field):
     def is_perfect(self):
         return False
 
+    @cached_method
+    def _pth_root_generator_rep(self):
+        # compute a representation of the generator y of the field in terms of
+        # powers of y^p
+        v = []
+        yp = self.gen()**self.characteristic()
+        x = self.one()
+        for i in range(self.degree()):
+            v += x.list()
+            x *= yp
+        import sage.matrix.matrix_space
+        MS = sage.matrix.matrix_space.MatrixSpace(self.base_ring(), self.degree())
+        M = MS(v)
+        return self.base_ring().polynomial_ring()(M.solve_left(MS.column_space()([0,1]+[0]*(self.degree()-2))).list())
+
     def _intermediate_fields(self, base):
         r"""
         Return the fields between self and base including both fields themselves.
@@ -493,6 +508,7 @@ class FunctionField_polymod(FunctionField):
         """
         return self._hash
 
+    @cached_method
     def monic_integral_model(self, names):
         """
         Return a function field isomorphic to self, but with defining
@@ -1015,6 +1031,7 @@ class FunctionField_polymod(FunctionField):
         else:
             raise NotImplementedError("Computation of genus over this rational function field not implemented yet")
 
+    @cached_method
     def derivation(self):
         """
         Return a generator of the space of derivations over the constant base
@@ -1064,6 +1081,7 @@ class FunctionField_polymod(FunctionField):
         else:
             return FunctionFieldDerivation_polymod(self, self.base_ring().derivation())
 
+    @cached_method
     def separable_model(self, names):
         """
         Return a function field isomorphic to this field which is separable
@@ -1247,6 +1265,7 @@ class FunctionField_polymod(FunctionField):
 
             return (N,~from_N,from_N)
 
+    @cached_method
     def simple_model(self, base_field=None, name='y'):
         """
         Turn a tower of field extensions into a single simple extension. 
@@ -1546,6 +1565,7 @@ class FunctionField_polymod(FunctionField):
             raise NotImplementedError("only implemented for simple extensions of rational function fields.")
         if self.polynomial().gcd(self.polynomial().derivative()) != 1:
             raise NotImplementedError("only implemented for separable extensions of function fields.")
+        assert self.degree() > 1
         s = self.base().gen()
         g = f
         while True:
@@ -1559,9 +1579,11 @@ class FunctionField_polymod(FunctionField):
             r = r[0]
             r = r(f.parent().change_ring(self.base()).gen())
             if r.is_squarefree():
+                assert r.base_ring() is self.base()
                 return s,g,r
             s *= self.base().gen()
-            g = f(f.parent().gen() - s)
+            print s
+            g = f(f.parent().gen() - s*self.gen())
 
 def is_RationalFunctionField(x):
     """

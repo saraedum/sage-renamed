@@ -27,6 +27,8 @@ include "sage/ext/stdsage.pxi"
 
 from sage.structure.element cimport FieldElement, RingElement, ModuleElement, Element
 
+from sage.misc.cachefunc import cached_in_parent_method
+
 def is_FunctionFieldElement(x):
     """
     Return True if x is any type of function field element.
@@ -541,6 +543,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
 
         raise NotImplementedError("nth_root() not implemented for this n")
 
+    @cached_in_parent_method
     def nth_root(self, n):
         """
         Compute an ``n``-th root of this element in the function field.
@@ -631,20 +634,8 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
             return from_L(to_L(self).pth_root())
         if self.parent().degree() == 1:
             return self.parent()(self.norm().pth_root())
-        # compute a representation of the generator y of the field in terms of
-        # powers of y^p
-        v = []
-        yp = self.parent().gen()**self.parent().characteristic()
-        x = self.parent().one()
-        for i in range(self.parent().degree()):
-            v += x.list()
-            x *= yp
-        import sage.matrix.matrix_space
-        MS = sage.matrix.matrix_space.MatrixSpace(self.parent().base_ring(), self.parent().degree())
-        M = MS(v)
-        y = self.parent().base_ring().polynomial_ring()(M.solve_left(MS.column_space()([0,1]+[0]*(self.parent().degree()-2))).list())
 
-        f = self.element()(y).map_coefficients(lambda c:c.nth_root(self.parent().characteristic()))
+        f = self.element()(self.parent()._pth_root_generator_rep()).map_coefficients(lambda c:c.nth_root(self.parent().characteristic()))
         return self.parent()(f)
 
 cdef class FunctionFieldElement_rational(FunctionFieldElement):
@@ -939,6 +930,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         assert self._x.denominator() == 1
         return self.parent()(self._x.numerator().inverse_mod(f.numerator()))
 
+    @cached_in_parent_method
     def is_nth_power(self, n):
         """
         Return whether this element is an ``n``-th power in the rational

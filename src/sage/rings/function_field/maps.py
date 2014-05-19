@@ -95,32 +95,6 @@ class FunctionFieldDerivation(Map):
         """
         return False
 
-    def domain(self):
-        r"""
-        Return the domain of this derivation.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(QQ)
-            sage: K.derivation().domain()
-            Rational function field in x over Rational Field
-
-        """
-        return self.__field
-
-    def codomain(self):
-        r"""
-        Return the codomain of this derivation.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(QQ)
-            sage: K.derivation().codomain()
-            Rational function field in x over Rational Field
-
-        """
-        return self.__field
-
 class FunctionFieldDerivation_rational(FunctionFieldDerivation):
     r"""
     A derivation of rational function fields over the constant base field.

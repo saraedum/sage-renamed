@@ -943,6 +943,7 @@ class DevelopingValuation(DiscreteValuation):
             sage: eta2=eta1.mac_lane_step(F)[0]
 
         """
+        print "Expanding %s towards %s"%(self,G)
         assert not G.is_constant()
         R = G.parent()
         if R is not self.domain():
