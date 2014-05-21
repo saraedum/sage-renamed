@@ -81,7 +81,6 @@ def generate_example():
     return G
 
 def epp(G, L, uniformizer):
-    global t,x
     vL = pAdicValuation(L, uniformizer)
     R.<x> = L[]
     vLx = GaussValuation(R, vL)
