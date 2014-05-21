@@ -20,7 +20,7 @@ AUTHORS:
 
 from discrete_valuation import DiscreteValuation
 from sage.structure.unique_representation import UniqueRepresentation
-
+from sage.misc.cachefunc import cached_method
 
 def pAdicValuation(R, prime = None):
     """
@@ -742,16 +742,22 @@ class pAdicValuation_int(pAdicValuation_base):
     pass
 
 class pAdicValuation_number_field(pAdicValuation_base):
+    @cached_method
     def uniformizer(self):
-        assert self._prime.is_principal()
-        return self._prime.gen(0)
+        #assert self._prime.is_principal()
+        #return self._prime.gen(0)
+        for g in self._prime.gens():
+            if g.valuation(self._prime) == 1:
+                return g
+        raise NotImplementedError
 
+    @cached_method
     def residue_field(self):
         from sage.rings.all import GF
-        return GF(self.uniformizer().norm().abs(), names=('u',))
+        return GF(self._prime.residue_field().field().order(), names=('u',))
 
     def _repr_(self):
-        return "%s-adic valuation"%(self.uniformizer())
+        return "%s-adic valuation"%(self._prime)
 
     def reduce(self, x):
         if x.parent() is not self.domain():
