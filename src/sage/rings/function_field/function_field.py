@@ -1530,10 +1530,17 @@ class FunctionField_polymod(FunctionField):
         from sage.structure.factorization import Factorization
         if self.degree() == 1:
             g = f.map_coefficients(lambda c:c._x(self.polynomial()[0]), self.base())
-            ret = Factorization([ (F.map_coefficients(lambda c:c, self), e) for F,e in g.factor() ])
+            G = g.factor()
+            ret = Factorization([ (F.map_coefficients(lambda c:c, self), e) for F,e in G ], unit=self(G.unit()))
         elif not f.is_squarefree():
             F = f.squarefree_decomposition()
-            ret = Factorization( [(h,e_h*e_g) for (g,e_g) in F for (h,e_h) in g.factor()], unit=F.unit())
+            ret = []
+            unit = f.parent().one()
+            for g,e_g in F:
+                G = g.factor()
+                unit *= G.unit()
+                ret.extend( [(h,e_h*e_g) for (h,e_h) in G] )
+            ret = Factorization( ret, unit=unit)
         elif not isinstance(self.base_ring(), RationalFunctionField):
             L, from_L, to_L = self.simple_model()
             F = f.map_coefficients(to_L).factor()
@@ -1857,6 +1864,13 @@ class RationalFunctionField(FunctionField):
             (1/t) * (X + (a + 2)*t)^3
             sage: f.factor().prod() == f
             True
+
+        Factoring with strange "contents"::
+
+            sage: K.<x> = FunctionField(GF(3))
+            sage: R.<t> = K[]
+            sage: (x^3*t^3 + x^6).factor()
+
         """
         F, d = self._to_bivariate_polynomial(f)
         fac = F.factor()
@@ -1870,6 +1884,8 @@ class RationalFunctionField(FunctionField):
             c = a.leading_coefficient()
             a = a/c
             unit *= (c**e)
+            if a.is_one():
+                continue
             w.append((a,e))
         from sage.structure.factorization import Factorization
         return Factorization(w, unit=unit)

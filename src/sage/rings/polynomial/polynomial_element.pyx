@@ -1351,6 +1351,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if Q.degree()!=0:
                 h = Q.pth_root()
                 H = h.squarefree_decomposition()
+                unit *= H.unit()**p
                 for Hi,e in H:
                     for j in range(len(factors)):
                         if Hi == factors[j][0]:
