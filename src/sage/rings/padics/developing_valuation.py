@@ -480,7 +480,7 @@ class DevelopingValuation(DiscreteValuation):
             # use the characterization of theorem 9.4 in [ML1936]
             if not f.is_monic():
                 raise NotImplementedError("is_minimal() only implemented for monic polynomials")
-            return list(self.valuations(f))[-1] == self(f)
+            return list(self.valuations(f))[-1] == self(f) and list(self.coefficients(f))[-1].is_constant()
 
         raise NotImplementedError("is_minimal() only implemented for commensurable inductive values")
 
