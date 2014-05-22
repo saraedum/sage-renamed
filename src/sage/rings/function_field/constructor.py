@@ -142,7 +142,7 @@ class FunctionFieldPolymodFactory(UniqueFactory):
             names=polynomial.variable_name()
         if not isinstance(names,tuple):
             names=(names,)
-        return (polynomial,names)
+        return (polynomial,names,polynomial.base_ring())
 
     def create_object(self,version,key,**extra_args):
         """
