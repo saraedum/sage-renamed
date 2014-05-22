@@ -534,7 +534,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
 
         # reduce to the separable case
         if not self.parent().polynomial().gcd(self.parent().polynomial().derivative()).is_one():
-            L,from_L,to_L = self.parent().separable_model(['t','w'])
+            L,from_L,to_L = self.parent().separable_model(names=('t','w'))
             return from_L(to_L(self).is_nth_power(n))
 
         p = self.parent().characteristic()
@@ -605,7 +605,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
 
         # reduce to the separable case
         if not self.parent().polynomial().gcd(self.parent().polynomial().derivative()).is_one():
-            L,from_L,to_L = self.parent().separable_model(['t','w'])
+            L,from_L,to_L = self.parent().separable_model(names=('t','w'))
             return from_L(to_L(self).nth_root(n))
 
         p = self.parent().characteristic()

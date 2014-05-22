@@ -1263,7 +1263,7 @@ class FunctionField_polymod(FunctionField):
             #image = B.solve_right(FreeModule(N,total_degree)([u**n for n in range(total_degree)]))
             #to_N = M.hom([image[L.degree()],image[1]])
 
-            return (N,~from_N,from_N)
+            return N,from_N,~from_N
 
     @cached_method
     def simple_model(self, base_field=None, name='y'):
@@ -1336,16 +1336,14 @@ class FunctionField_polymod(FunctionField):
         if base_field is None:
             base_field = self.rational_function_field()
 
-        v = self.gen()
-
         # the extension is simple already
         if base_field==self.base_field() or base_field==self:
-            return (self,self.hom(self.gen()),self.hom(self.gen()))
+            return (self,self.Hom(self).identity(),self.Hom(self).identity())
 
         # turn a tower of two simple extension L/M/K into a simple extension M/K
-        (M,to_M, from_M) = self._simple_model(name)
+        M, from_M, to_M = self._simple_model(name)
         # recursively simplify the resulting extension M/.../base_field to a simple extension N/base_field
-        (N,M_to_N, N_to_M) = M.simple_model(name=name,base_field=base_field)
+        N, N_to_M, M_to_N = M.simple_model(name=name,base_field=base_field)
 
         return N, from_M*N_to_M, M_to_N*to_M
 
