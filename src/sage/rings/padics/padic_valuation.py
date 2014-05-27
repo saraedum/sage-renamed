@@ -754,7 +754,7 @@ class pAdicValuation_number_field(pAdicValuation_base):
     @cached_method
     def residue_field(self):
         from sage.rings.all import GF
-        return GF(self._prime.residue_field().field().order(), names=('u',))
+        return GF(self._prime.residue_field().order(), names=('u',))
 
     def _repr_(self):
         return "%s-adic valuation"%(self._prime)
@@ -764,4 +764,4 @@ class pAdicValuation_number_field(pAdicValuation_base):
             raise ValueError("x must be in the domain of the valuation")
 
         k = self.domain().residue_field(self._prime)
-        return self.residue_field()(k(x))
+        return self.residue_field()(k(x).polynomial())

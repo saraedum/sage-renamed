@@ -1242,6 +1242,7 @@ class FunctionField_polymod(FunctionField):
             A = v._matrix_over_base(K)
             A = MS.matrix(A)
             minpoly = A.minpoly(name)
+            assert minpoly.base_ring() is K
 
             # v is a primitive element iff the degree of minpoly is the degree of M/K
             if minpoly.degree()!=total_degree:
