@@ -2,80 +2,151 @@ from sage.rings.padics.padic_valuation import pAdicValuation
 from sage.rings.padics.gauss_valuation import GaussValuation
 from sage.rings.padics.function_field_valuation import RationalFunctionFieldValuation
 
-def epp(G, L, uniformizer, shift=None):
-    vL = pAdicValuation(L, uniformizer)
-    R.<x> = L[]
+### A HARD EXAMPLE
+### t^12 + 4*t^9*x + 6*t^6*x^2 + 8*t^6*x + 4*t^3*x^3 + 16*t^3*x^2 + x^4 + 8*x^3 + 64*t^2 + 16*x^2  over  Q2
+### over Q:
+### [ Gauss valuation induced by Valuation on rational function field induced by Gauss valuation induced by 2-adic valuation, v(t^3 + x) = 1, v(t^6 + 2*x*t^3 + 8*t + x^2 + 4*x) = 7/2 ]
+### over Q(sqrt(2)):
+### [ Gauss valuation induced by Valuation on rational function field induced by Gauss valuation induced by Fractional ideal (a)-adic valuation, v(t^3 + x) = 2, v(t^6 + 2*x*t^3 + 8*t + x^2 + 4*x) = 7 ]
+### but this expands to
+### [ Gauss valuation induced by Valuation on rational function field induced by Gauss valuation induced by Fractional ideal (a)-adic valuation, v(t^3 + x) = 2, v(t^6 + 2*x*t^3 + (8*a + 8)*t + x^2 + 4*x) = 15/2 ]
+### over Q(x^2-2*x-2)
+### [ Gauss valuation induced by Valuation on rational function field induced by Gauss valuation induced by Fractional ideal (b)-adic valuation, v(t^3 + x) = 2, v(t^6 + 2*x*t^3 + (120*b + 88)*t + x^2 + (136*b + 100)*x) = 7 ]
+### which expands to
+### [ Gauss valuation induced by Valuation on rational function field induced by Gauss valuation induced by Fractional ideal (b)-adic valuation, v(t^3 + x) = 2, v(t^6 + 2*x*t^3 + (120*b + 88)*t + x^2 + (464*b + 340)*x) = 8 ]
+### which expands to
+### [ Gauss valuation induced by Valuation on rational function field induced by Gauss valuation induced by Fractional ideal (b)-adic valuation, v(t^3 + x) = 2, v(t^6 + 2*x*t^3 + (120*b + 88)*t + x^2 + (464*b + 340)*x) = 8, v(t^12 + 4*x*t^9 + (6*x^2 + 8*x)*t^6 + (4*x^3 + 16*x^2)*t^3 + 64*t^2 + x^4 + 8*x^3 + 16*x^2) = +Infinity ]
+### is it enough to fix the constant?
+### If we let w:= [ Gauss valuation induced by Valuation on rational function field induced by Gauss valuation induced by Fractional ideal (b)-adic valuation, v(t^3 + x) = 2, v(t^6 + 2*x*t^3 + 8*t + x^2 + (136*b + 100)*x) = 7 ]
+### then actually w8.equivalence_decomposition(G(t,x)) = t^12 + 4*x*t^9 + (6*x^2 + 8*x)*t^6 + (4*x^3 + 16*x^2)*t^3 + 64*t^2 + x^4 + 8*x^3 + 16*x^2
+
+###
+### If we let w':= [ Gauss valuation induced by Valuation on rational function field induced by Gauss valuation induced by Fractional ideal (b)-adic valuation, v(t^3 + x) = 2, v(t^6 + 2*x*t^3 + 8*t + x^2 + 4*x) = 7 ]
+### then the constant of t^12 + 4*x*t^9 + (6*x^2 + 8*x)*t^6 + (4*x^3 + 16*x^2)*t^3 + 64*t^2 + x^4 + 8*x^3 + 16*x^2 is 128*t^2
+### but for w the constant is
+### 128*t^2 + ((7424*b + 5376)*x)*t + (742400*b + 543488)*x^2
+### so this is a worse approximation
+
+
+
+
+def hard_example():
+    p = 2
+    K = QQ
+    vK = pAdicValuation(K, p)
+    R.<x> = K[]
+    vKx = GaussValuation(R, vK)
+    Kx.<x> = FunctionField(K)
+    vLxx = RationalFunctionFieldValuation(Kx, vKx)
+    R.<t> = Kx[]
+    x = R(x)
+    v = GaussValuation(R, vLxx)
+    w = v.extension(t^3+x,1)
+    ww = w.extension(w.lift_to_key(w.residue_ring().gen()^2 + w.residue_field().base().gen()), 3)
+    G = ww.lift(ww.residue_ring().gen()^2+ww.residue_field().base().gen()^2)
+    return ww,G
+
+def epp(G, K, L, uniformizer):
+    vL = pAdicValuation(L, L(uniformizer).factor()[0][0])
+    p = vL.residue_field().characteristic()
     vLx = GaussValuation(R, vL)
-
     Lx.<x> = FunctionField(L)
-    if shift is None:
-        shift = Lx.zero()
     vLxx = RationalFunctionFieldValuation(Lx, vLx)
-
     R.<t> = Lx[]
     x = R(x)
+    D = G(t,x).degree()
 
-    v = GaussValuation(R, vLxx)
-    # v = best_linear_approximation(G, vL.domain(), uniformizer)
-    # phi = v.phi()
-    v = GaussValuation(R, vLxx).extension(t+shift, 0, check=False)
-    G = G(t,x)
-    d = G.degree()
-
-    poly = L.polynomial()
-    poly = poly^(d//poly.degree())
-
-    coeffs = list(v.coefficients(G))
-    c = coeffs[0]
-    print "Will improve the constant term %s"%c
-    if c.degree() >= 1:
-        raise NotImplementedError
-    c = c[0]
-
-    if not c.denominator().is_one():
-        raise NotImplementedError
-
-    def additive_error(frm,to=0):
-        assert frm > 0 and frm <= G.degree()
-        assert to >= 0 and to < frm
-        return list(v.valuations(G))[frm] + vL(binomial(frm,to))
-
-    def multiplicative_error(frm,to=0):
-        assert frm > 0 and frm <= G.degree()
-        assert to >= 0 and to < frm
-        return frm-to
-
-    print "The constant term %s has valuation %s"%(c,vLxx(c))
-    assert c.denominator().is_one()
-    vals = list(vLx.valuations(c.numerator()))
-    arg_min = [i for i,vi in enumerate(vals) if vi == min(vals)]
-    assert arg_min
-    print "The error is caused in %s-degrees %s"%(x,arg_min)
-
-    if any([not d.divides(am) for am in arg_min]):
-        print "Done."
-        return
-    arg_min = arg_min[0]
-    print "Let's focus on the first one, i.e., %s"%arg_min
-
-    for i in srange(1,d+1):
-        if not i.divides(arg_min):
-            print "We can not produce %s^%s in degree %s."%(x,arg_min,i)
+    W = vLxx.mac_lane_approximants(G(t,x)) # TODO: this is too expensive, don't do the full mac lane algorithm; break when we see ramification (or factorization?)
+    for w in W:
+        if w.E() == 1:
             continue
-        vd = (vals[arg_min]-additive_error(i))/multiplicative_error(i)
-        print "We can produce %s^%s in degree %s and fix the error if we had an element of valuation %s."%(x,arg_min,i,vd)
-        if vd < 0:
-            print "[not an option]"
-            continue
-        for j in srange(1,d+1):
-            if i==j: continue
-            j_error = additive_error(j)+multiplicative_error(j)*vd
-            if j_error < min(vals):
-                print "...but this would give a worse error of %s from degree %s"%(j_error,j)
-                break
-        else:
-            if i != d:
-                raise NotImplementedError
+
+        while w._base_valuation.E() != 1:
+            w = w._base_valuation
+
+        E = w.E()
+        print "One extension of %s is not weakly unramified. The critical step in MacLane's algorithm produces %s which is ramified with ramification index %s"%(vLxx,w,E)
+        if len(E.factor()) or E.factor()[0][0]!=p:
+            raise NotImplementedError("Abhyankar")
+
+        # If we just took an Eth root of the uniformizer, then the MacLane
+        # algorithm would give a weakly unramified w in this step. In the next
+        # step, we take the w.phi()-adic expansion of G (drop some trailing
+        # terms) multiply it with an equivalence-reciprocal R and factor in
+        # reduction.
+        # Let us assume that the reduction of R*G has degree d.
+        # We want to make sure that the reduction does not factor as linear^d.
+        # I hope (not proven yet) that this can be achieved by modifying the
+        # constant term until it not a d-th power anymore or until any other
+        # coefficient appears in reduction.
+        # To do this, I increase the valuation of the constant term by
+        # modifying the constant term of the constant term of the constant term
+        # of [...] the key polynomial. This process will terminate because
+        # otherwise the constant term of R*G would get arbitrarily large
+        # valuation (and with it the corresponding key polynomial). At the same
+        # time, the field extension does not change anymore (Krasner's Lemma).
+        # Putting this together, there is a sequence of key polynomials of
+        # constant degree (< "effective" degree of R*G) which converge against
+        # a factor of G. But such behaviour would be detected by MacLane's
+        # algorithm, i.e., R*G would factor non-trivially in reduction.
+        d = w.phi().degree()
+
+        w = w._base_valuation
+        #print "We win if %s 
+        valuations = [ val - w(w.phi())*i for i,val in enumerate(w.valuations(G(t,x)))]
+        d = len(valuations)
+        constant = next(w.coefficients(G(t,x)))
+
+
+    if len(W)>1:
+        print "%s factors over the completion as %s"%(G(t,x),W)
+        raise NotImplementedError
+    else:
+        print "%s remains irreducible over the completion"%G(t,x)
+
+        w = W[0]
+        if w.E() == 1:
+            print "%s is weakly unramified."
+            return
+        if not vL.residue_field().characteristic().divides(w.E()):
+            print "%s is only tamely ramified."
+            return
+
+        v = GaussValuation(R, vLxx)
+        shift = R.zero()
+        for s in shift:
+            shift += s
+        v = GaussValuation(R, vLxx).extension(t+shift, 0, check=False)
+
+        constant = list(v.coefficients(G(t,x)))[0]
+        if constant.degree() >= 1:
+            raise NotImplementedError
+
+        if not constant.denominator().is_one():
+            raise NotImplementedError
+
+        constant = constant.numerator()
+        critical_degrees = [i for i,vi in enumerate(list(vLx.valuations(constant))) if vi == vLx(constant)]
+        assert critical_degrees
+        print "The valuation of the constant term is caused in degrees %s"%critical_degrees
+
+        if not all([G.degree().divides(critical_degrees)]):
+            print "Taking any extension of degree %s will work."%w.E()
+            return
+
+        critical_degree = critical_degrees[0]
+        print "Improving valuation in degree %s"%critical_degree
+
+        xpower = critical_degree//G(t,x).degree()
+
+        if len(polys) < xpower+1:
+            print "This is the first time we work on degree %s. Let me change the setup and restart."%critical_degree
+            while len(polys) < xpower+1:
+                R.<a> = K[]
+                polys.append(a^G(t,x).degree())
+                shifts.append(K.zero())
+            return epp(G, K, uniformizer, polys, shifts)
+
             xpower = i//arg_min if arg_min else 0
             if L.degree() != 1 and shift.numerator()[xpower].is_zero():
                 return L, shift+L.gen()^vd*Lx.gen()^xpower

@@ -596,6 +596,7 @@ class DevelopingValuation(DiscreteValuation):
 
         F = self.reduce(f*R)
         F = F.factor()
+        print "%s factors as %s = %s in reduction"%(f0,F.prod(),F)
         unit = F.unit()
 
         F = list(F)
