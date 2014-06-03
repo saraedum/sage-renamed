@@ -1526,6 +1526,16 @@ class FunctionField_polymod(FunctionField):
         return self.relative_vector_space(self.base_field())
 
     def _factor_univariate_polynomial(self, f):
+        r"""
+
+        sage: k = GF(2)
+        sage: K.<x> = FunctionField(k)
+        sage: R.<u> = K[]
+        sage: L.<u> = K.extension(u^3-x)
+        sage: R.<t> = L[]
+        sage: (t^2+u*t).factor()
+
+        """
         from sage.structure.factorization import Factorization
         if self.degree() == 1:
             g = f.map_coefficients(lambda c:c._x(self.polynomial()[0]), self.base())
@@ -1555,11 +1565,12 @@ class FunctionField_polymod(FunctionField):
             F = r.factor()
             if len(F)==1: return Factorization([(f,1)])
             ret = []
-            for (h,e) in L:
+            for (h,e) in F:
                 assert(e==1)
+                h = h(g.parent().gen())
                 h = g.gcd(h)
                 g = g // h
-                ret.append( (h(h.parent().gen()+s), e) )
+                ret.append( (h(h.parent().gen()+s*self.gen()), e) )
             assert(F.unit() == 1)
             ret = Factorization( ret )
 
@@ -1573,8 +1584,8 @@ class FunctionField_polymod(FunctionField):
             raise NotImplementedError("only implemented for separable extensions of function fields.")
         assert self.degree() > 1
         s = self.base().gen()
-        g = f
         while True:
+            g = f(f.parent().gen() - s*self.gen())
             R = PolynomialRing(self.base(), names=('x', 'y'))
             x,y = R.gens()
             P = self.polynomial()(y)
@@ -1586,10 +1597,10 @@ class FunctionField_polymod(FunctionField):
             r = r(f.parent().change_ring(self.base()).gen())
             if r.is_squarefree():
                 assert r.base_ring() is self.base()
+                assert g(g.parent().gen() + s*self.gen()) == f
                 return s,g,r
             s *= self.base().gen()
             print s
-            g = f(f.parent().gen() - s*self.gen())
 
 def is_RationalFunctionField(x):
     """
