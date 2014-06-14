@@ -2,34 +2,6 @@ from sage.rings.padics.padic_valuation import pAdicValuation
 from sage.rings.padics.gauss_valuation import GaussValuation
 from sage.rings.padics.function_field_valuation import RationalFunctionFieldValuation
 
-### A HARD EXAMPLE
-### t^12 + 4*t^9*x + 6*t^6*x^2 + 8*t^6*x + 4*t^3*x^3 + 16*t^3*x^2 + x^4 + 8*x^3 + 64*t^2 + 16*x^2  over  Q2
-### over Q:
-### [ Gauss valuation induced by Valuation on rational function field induced by Gauss valuation induced by 2-adic valuation, v(t^3 + x) = 1, v(t^6 + 2*x*t^3 + 8*t + x^2 + 4*x) = 7/2 ]
-### over Q(sqrt(2)):
-### [ Gauss valuation induced by Valuation on rational function field induced by Gauss valuation induced by Fractional ideal (a)-adic valuation, v(t^3 + x) = 2, v(t^6 + 2*x*t^3 + 8*t + x^2 + 4*x) = 7 ]
-### but this expands to
-### [ Gauss valuation induced by Valuation on rational function field induced by Gauss valuation induced by Fractional ideal (a)-adic valuation, v(t^3 + x) = 2, v(t^6 + 2*x*t^3 + (8*a + 8)*t + x^2 + 4*x) = 15/2 ]
-### over Q(x^2-2*x-2)
-### [ Gauss valuation induced by Valuation on rational function field induced by Gauss valuation induced by Fractional ideal (b)-adic valuation, v(t^3 + x) = 2, v(t^6 + 2*x*t^3 + (120*b + 88)*t + x^2 + (136*b + 100)*x) = 7 ]
-### which expands to
-### [ Gauss valuation induced by Valuation on rational function field induced by Gauss valuation induced by Fractional ideal (b)-adic valuation, v(t^3 + x) = 2, v(t^6 + 2*x*t^3 + (120*b + 88)*t + x^2 + (464*b + 340)*x) = 8 ]
-### which expands to
-### [ Gauss valuation induced by Valuation on rational function field induced by Gauss valuation induced by Fractional ideal (b)-adic valuation, v(t^3 + x) = 2, v(t^6 + 2*x*t^3 + (120*b + 88)*t + x^2 + (464*b + 340)*x) = 8, v(t^12 + 4*x*t^9 + (6*x^2 + 8*x)*t^6 + (4*x^3 + 16*x^2)*t^3 + 64*t^2 + x^4 + 8*x^3 + 16*x^2) = +Infinity ]
-### is it enough to fix the constant?
-### If we let w:= [ Gauss valuation induced by Valuation on rational function field induced by Gauss valuation induced by Fractional ideal (b)-adic valuation, v(t^3 + x) = 2, v(t^6 + 2*x*t^3 + 8*t + x^2 + (136*b + 100)*x) = 7 ]
-### then actually w8.equivalence_decomposition(G(t,x)) = t^12 + 4*x*t^9 + (6*x^2 + 8*x)*t^6 + (4*x^3 + 16*x^2)*t^3 + 64*t^2 + x^4 + 8*x^3 + 16*x^2
-
-###
-### If we let w':= [ Gauss valuation induced by Valuation on rational function field induced by Gauss valuation induced by Fractional ideal (b)-adic valuation, v(t^3 + x) = 2, v(t^6 + 2*x*t^3 + 8*t + x^2 + 4*x) = 7 ]
-### then the constant of t^12 + 4*x*t^9 + (6*x^2 + 8*x)*t^6 + (4*x^3 + 16*x^2)*t^3 + 64*t^2 + x^4 + 8*x^3 + 16*x^2 is 128*t^2
-### but for w the constant is
-### 128*t^2 + ((7424*b + 5376)*x)*t + (742400*b + 543488)*x^2
-### so this is a worse approximation
-
-
-
-
 def hard_example():
     p = 2
     K = QQ
@@ -316,3 +288,69 @@ def maclane(G, L, uniformizer):
 # R.<a> = QQ[]
 # L.<a> = QQ.extension(a^3-3)
 # epp(G, L, a)
+
+# a confusing case
+"""
+sage: R.<t,x> = QQ[]
+sage: G = t^12 + 4*t^9*x + 6*t^6*x^2 + 8*t^6*x + 4*t^3*x^3 + 16*t^3*x^2 + x^4 + 8*x^3 + 64*t^2 + 16*x^2
+sage:
+sage: maclane(G, QQ, 2)
+[ Gauss valuation induced by Valuation on rational function field induced by Gauss valuation induced by 2-adic valuation, v(t^3 + x) = 1, v(t^6 + 2*x*t^3 + 8*t + x^2 + 4*x) = 7/2 ]
+sage:
+sage: R.<a> = QQ[]
+sage: L.<a> = QQ.extension(a^2-2)
+sage: w = maclane(G, L, L.factor(2)[0][0]); w
+[ Gauss valuation induced by Valuation on rational function field induced by Gauss valuation induced by Fractional ideal (a)-adic valuation, v(t^3 + x) = 2, v(t^6 + 2*x*t^3 + (8*a + 8)*t + x^2 + 4*x) = 15/2 ]
+sage: t, x = w.domain().gen(), w.domain().base_ring().rational_function_field().gen()
+sage:
+sage: v = w._base_valuation
+sage: w = v.extension(t^6 + 2*x*t^3 + 8*t + x^2 + 4*x, 7)
+sage: w.reduce(w.equivalence_unit(-w(G(t,x)))*G(t,x)).factor()
+(t + u1)^2
+sage: w.coefficients(G(t,x)).next()
+128*t^2
+sage:
+sage:
+sage: R.<b> = QQ[]
+sage: L.<b> = QQ.extension(b^2-2*b-2)
+sage: w = maclane(G, L, L.factor(2)[0][0]); w
+[ Gauss valuation induced by Valuation on rational function field induced by Gauss valuation induced by Fractional ideal (b)-adic valuation, v(t^3 + x) = 2, v(t^6 + 2*x*t^3 + (120*b + 88)*t + x^2 + (464*b + 340)*x) = 8, v(t^12 + 4*x*t^9 + (6*x^2 + 8*x)*t^6 + (4*x^3 + 16*x^2)*t^3 + 64*t^2 + x^4 + 8*x^3 + 16*x^2) = +Infinity ]
+sage:
+sage: w = w._base_valuation
+sage: t, x = w.domain().gen(), w.domain().base_ring().rational_function_field().gen()
+sage: w.is_key(G(t,x))
+True
+sage: w.reduce(w.equivalence_unit(-w(G(t,x)))*G(t,x)).factor()
+t^2 + u1*t + u1^2 + x*u1 + x^2
+sage: w.coefficients(G(t,x)).next()
+(49920*b + 36608)*t^2 + ((385024*b + 281856)*x)*t + (742400*b + 543488)*x^2
+sage:
+sage: v = w._base_valuation
+sage: w = v.extension(t^6 + 2*x*t^3 + 8*t + x^2 + (464*b + 340)*x, 8)
+sage: w.is_key(G(t,x))
+False
+sage: w.reduce(w.equivalence_unit(-w(G(t,x)))*G(t,x)).factor()
+u1^2
+sage: w.coefficients(G(t,x)).next()
+128*t^2 + ((7424*b + 5376)*x)*t + (742400*b + 543488)*x^2
+
+### [ Gauss valuation induced by Valuation on rational function field induced by Gauss valuation induced by Fractional ideal (a)-adic valuation, v(t^3 + x) = 2, v(t^6 + 2*x*t^3 + 8*t + x^2 + 4*x) = 7 ]
+### but this expands to
+### [ Gauss valuation induced by Valuation on rational function field induced by Gauss valuation induced by Fractional ideal (a)-adic valuation, v(t^3 + x) = 2, v(t^6 + 2*x*t^3 + (8*a + 8)*t + x^2 + 4*x) = 15/2 ]
+### over Q(x^2-2*x-2)
+### [ Gauss valuation induced by Valuation on rational function field induced by Gauss valuation induced by Fractional ideal (b)-adic valuation, v(t^3 + x) = 2, v(t^6 + 2*x*t^3 + (120*b + 88)*t + x^2 + (136*b + 100)*x) = 7 ]
+### which expands to
+### [ Gauss valuation induced by Valuation on rational function field induced by Gauss valuation induced by Fractional ideal (b)-adic valuation, v(t^3 + x) = 2, v(t^6 + 2*x*t^3 + (120*b + 88)*t + x^2 + (464*b + 340)*x) = 8 ]
+### which expands to
+### [ Gauss valuation induced by Valuation on rational function field induced by Gauss valuation induced by Fractional ideal (b)-adic valuation, v(t^3 + x) = 2, v(t^6 + 2*x*t^3 + (120*b + 88)*t + x^2 + (464*b + 340)*x) = 8, v(t^12 + 4*x*t^9 + (6*x^2 + 8*x)*t^6 + (4*x^3 + 16*x^2)*t^3 + 64*t^2 + x^4 + 8*x^3 + 16*x^2) = +Infinity ]
+### is it enough to fix the constant?
+### If we let w:= [ Gauss valuation induced by Valuation on rational function field induced by Gauss valuation induced by Fractional ideal (b)-adic valuation, v(t^3 + x) = 2, v(t^6 + 2*x*t^3 + 8*t + x^2 + (136*b + 100)*x) = 7 ]
+### then actually w8.equivalence_decomposition(G(t,x)) = t^12 + 4*x*t^9 + (6*x^2 + 8*x)*t^6 + (4*x^3 + 16*x^2)*t^3 + 64*t^2 + x^4 + 8*x^3 + 16*x^2
+
+###
+### If we let w':= [ Gauss valuation induced by Valuation on rational function field induced by Gauss valuation induced by Fractional ideal (b)-adic valuation, v(t^3 + x) = 2, v(t^6 + 2*x*t^3 + 8*t + x^2 + 4*x) = 7 ]
+### then the constant of t^12 + 4*x*t^9 + (6*x^2 + 8*x)*t^6 + (4*x^3 + 16*x^2)*t^3 + 64*t^2 + x^4 + 8*x^3 + 16*x^2 is 128*t^2
+### but for w the constant is
+### 128*t^2 + ((7424*b + 5376)*x)*t + (742400*b + 543488)*x^2
+### so this is a worse approximation
+"""
