@@ -5,7 +5,8 @@ AUTHORS:
 
 - William Stein (2010): initial version
 
-- Julian Rueth (2011-09-14): refactored class hierarchy
+- Julian Rueth (2011-09-14, 2014-06-23): refactored class hierarchy; added
+derivation classes
 
 EXAMPLES::
 
@@ -24,7 +25,7 @@ EXAMPLES::
 """
 #*****************************************************************************
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
-#       Copyright (C) 2011 Julian Rueth <julian.rueth@gmail.com>
+#       Copyright (C) 2011-2014 Julian Rueth <julian.rueth@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -39,7 +40,11 @@ from sage.rings.morphism import RingHomomorphism
 
 class FunctionFieldDerivation(Map):
     r"""
-    A base class for derivations of function fields.
+    A base class for derivations on function fields.
+
+    A derivation on `R` is map `R\to R` with
+    `D(\alpha+\beta)=D(\alpha)+D(\beta)` and `D(\alpha\beta)=\beta
+    D(\alpha)+\alpha D(\beta)` for all `\alpha,\beta\in R`.
 
     EXAMPLES::
 
@@ -59,9 +64,13 @@ class FunctionFieldDerivation(Map):
             sage: d = K.derivation() # indirect doctest
 
         """
+        from function_field import is_FunctionField
+        if not is_FunctionField(K):
+            raise ValueError("K must be a function field")
         self.__field = K
         from sage.categories.homset import Hom
-        Map.__init__(self, Hom(K,K))
+        from sage.categories.sets_cat import Sets
+        Map.__init__(self, Hom(K,K,Sets()))
 
     def _repr_type(self):
         r"""
@@ -97,7 +106,14 @@ class FunctionFieldDerivation(Map):
 
 class FunctionFieldDerivation_rational(FunctionFieldDerivation):
     r"""
-    A derivation of rational function fields over the constant base field.
+    A derivation on a rational function field.
+
+    INPUT:
+
+    - ``K`` -- a rational function field
+
+    - ``u`` -- an element of ``K``, the image of the generator of ``K`` under
+      the derivation.
 
     EXAMPLES::
 
@@ -118,6 +134,11 @@ class FunctionFieldDerivation_rational(FunctionFieldDerivation):
             sage: d = K.derivation() # indirect doctest
 
         """
+        from function_field import is_RationalFunctionField
+        if not is_RationalFunctionField(K):
+            raise ValueError("K must be a rational function field")
+        if u.parent() is not K:
+            raise ValueError("u must be an element in K")
         FunctionFieldDerivation.__init__(self, K)
         self._u = u
 
@@ -137,6 +158,8 @@ class FunctionFieldDerivation_rational(FunctionFieldDerivation):
             1
             sage: d(x^3)
             3*x^2
+            sage: d(1/x)
+            -1/x^2
 
         """
         f,g = x.numerator(),x.denominator()
