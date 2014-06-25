@@ -1565,7 +1565,6 @@ class RationalFunctionField(FunctionField):
         """
         return 0
 
-<<<<<<< HEAD
     @cached_method
     def derivation(self):
         """
@@ -1663,4 +1662,3 @@ class RationalFunctionField(FunctionField):
         from_V = MapVectorSpaceToFunctionField(V, self)
         to_V   = MapFunctionFieldToVectorSpace(self, V)
         return (V, from_V, to_V)
->>>>>>> ticket/16523
