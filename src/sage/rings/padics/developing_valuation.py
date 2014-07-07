@@ -176,8 +176,8 @@ class DevelopingValuation(DiscreteValuation):
         try:
             hash(key)
         except TypeError: # not hashable
-            from sage.structure.factory import create_cache_key
-            key = create_cache_key(key)
+            from sage.misc.cachefunc import _cache_key
+            key = _cache_key(key)
 
         if self.equivalence_decomposition.is_in_cache(key):
             F = self.equivalence_decomposition(f)
