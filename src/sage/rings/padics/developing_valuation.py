@@ -591,6 +591,7 @@ class DevelopingValuation(DiscreteValuation):
             f,_ = f.quo_rem(self.phi())
             phi_divides += 1
 
+        print "Constant valuation is %s"%self(f)
         R = self.equivalence_unit(-self(f))
         R_ = self.equivalence_reciprocal(R)
 
