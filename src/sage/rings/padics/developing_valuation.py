@@ -591,7 +591,6 @@ class DevelopingValuation(DiscreteValuation):
             f,_ = f.quo_rem(self.phi())
             phi_divides += 1
 
-        print "Constant valuation is %s"%self(f)
         R = self.equivalence_unit(-self(f))
         R_ = self.equivalence_reciprocal(R)
 
@@ -987,8 +986,10 @@ class DevelopingValuation(DiscreteValuation):
                 else:
                     continue
 
+            print "Determining the valuation for %s"%phi
             w = self.extension(phi, self(phi), check=False)
             NP = w.newton_polygon(G).principal_part()
+            print "Newton-Polygon for v(phi)=%s : %s"%(self(phi),NP)
             # assert len(NP)
             if not NP:
                 q,r = G.quo_rem(phi)
@@ -1013,7 +1014,9 @@ class DevelopingValuation(DiscreteValuation):
 
             for i in range(len(NP.slopes())):
                 slope = NP.slopes()[i]
+                print "Slope = %s"%slope
                 side = NP.sides()[i]
+                print "Left end is %s"%(list(w.coefficients(G))[side[0][0]])
                 new_mu = self(phi) - slope
                 base = self
                 if phi.degree() == base.phi().degree():
