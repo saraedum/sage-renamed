@@ -17,6 +17,8 @@ values of an algebraic field. Duke Mathematical Journal, 2(3), 492-510.
 polynomial rings. Transactions of the American Mathematical Society, 40(3),
 363-395.
 
+TODO: Check that things work out when v is a pseudo-valuation!
+
 """
 #*****************************************************************************
 #       Copyright (C) 2013 Julian Rueth <julian.rueth@fsfe.org>
@@ -410,10 +412,10 @@ class DevelopingValuation(DiscreteValuation):
 
         if not phi.is_monic():
             reason = "phi must be monic"
-        elif not self.is_minimal(phi):
-            reason = "phi must be minimal"
         elif not self.is_equivalence_irreducible(phi):
             reason = "phi must be equivalence irreducible"
+        elif not self.is_minimal(phi):
+            reason = "phi must be minimal"
 
         if explain:
             return reason is None, reason
@@ -455,6 +457,11 @@ class DevelopingValuation(DiscreteValuation):
 
         - ``f`` -- a polynomial in the domain of this valuation
 
+        ALGORITHM:
+
+        When ``f`` :meth:`is_equivalence_irreducible` for this valuation, then
+        Theorem 9.4 of [ML1936'] describes what to do. TODO: what if not?
+
         EXAMPLES::
 
             sage: R.<u> = Qq(4,5)
@@ -466,10 +473,18 @@ class DevelopingValuation(DiscreteValuation):
             sage: w.is_minimal(x + 1)
             False
 
-        REFERENCES:
+        TODO: An example that failed for Stefan:
 
-        .. [ML1936] Mac Lane, S. (1936). A construction for prime ideals as absolute
-        values of an algebraic field. Duke Mathematical Journal, 2(3), 492-510.
+            sage: K = Qp(2,10)
+            sage: R.<x> = K[]
+            sage: vp=pAdicValuation(K)
+            sage: v0 = GaussValuation(R,vp)
+            sage: f=x^5+x^4+2
+            sage: v1 = v0.extension(x,1/4)
+            sage: v2 = v1.extension(x^4+2,5/4)
+            sage: v2.is_minimal(f)
+            False
+
         """
         if f.parent() is not self.domain():
             raise ValueError("f must be in the domain of the valuation")
@@ -480,7 +495,13 @@ class DevelopingValuation(DiscreteValuation):
             # use the characterization of theorem 9.4 in [ML1936]
             if not f.is_monic():
                 raise NotImplementedError("is_minimal() only implemented for monic polynomials")
-            return list(self.valuations(f))[-1] == self(f) and list(self.coefficients(f))[-1].is_constant()
+            if not self.is_equivalence_irreducible(f):
+                raise NotImplementedError("is_minimal() only implemented for equivalence-irreducible polynomials")
+            from gauss_valuation import GaussValuation
+            if isinstance(self,GaussValuation):
+                # TODO: what is correct in this case?
+                return f.is_monic()
+            return list(self.valuations(f))[-1] == self(f) and list(self.coefficients(f))[-1].is_constant() and list(self.valuations(f))[0] == self(f) and self.tau().divides(len(list(self.coefficients(f)))-1)
 
         raise NotImplementedError("is_minimal() only implemented for commensurable inductive values")
 
