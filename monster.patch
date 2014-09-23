@@ -1,0 +1,1181 @@
+
+#################################
+#### MOST PROBABLY OBSOLETE STUFF
+#################################
+
+
+
+
+diff --git a/src/sage/rings/padics/common_conversion.pyx b/src/sage/rings/padics/common_conversion.pyx
+index fd901a3..d5d1581 100644
+--- a/src/sage/rings/padics/common_conversion.pyx
++++ b/src/sage/rings/padics/common_conversion.pyx
+@@ -36,10 +35,12 @@ from sage.rings.infinity import infinity
+ 
+ cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
+ # The following Integer is used so that the functions here don't need to initialize an mpz_t.
+-cdef Integer tmp = PY_NEW(Integer)
++cdef Integer temp = PY_NEW(Integer)
+ 
+ include "sage/libs/pari/decl.pxi"
++include "sage/ext/python.pxi"
+ include "sage/ext/stdsage.pxi"
++include "sage/ext/gmp.pxi"
+ 
+ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
+     """
+@@ -61,7 +62,7 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
+ 
+     - ``x`` -- data defining a new p-adic element: a Python int, an
+       Integer, Rational, an element of Zp or Qp with the same prime, a
+-      PARI p-adic element, or an IntegerMod.
++      PARI p-adic element, a list, a tuple, or an IntegerMod.
+ 
+     - a PowComputer associated to a `p`-adic ring, which determines
+       the prime and the ramification degree.
+@@ -71,17 +72,14 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
+     - a long, giving the valuation of the resulting `p`-adic element.
+       If the input is zero, returns ``maxordp``
+     """
+-    cdef long k, n, p
++    cdef long k, n, p, curterm, shift, f, e = prime_pow.e
+     cdef Integer value
+     cdef GEN pari_tmp
+     if PyInt_Check(x):
+         if x == 0:
+             return maxordp
+-        try:
+-            n = PyInt_AsLong(x)
+-        except OverflowError:
+-            x = Integer(x)
+-        else:
++        n = PyInt_AsLong(x)
++        if n != -1 or PyErr_Occurred() == NULL:
+             if mpz_fits_slong_p(prime_pow.prime.value) == 0:
+                 # x is not divisible by p
+                 return 0
+@@ -90,18 +88,44 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
+             while n % p == 0:
+                 k += 1
+                 n = n / p
+-    if PY_TYPE_CHECK(x, Integer):
++        else:
++            return get_ordp(Integer(x), prime_pow)
++    elif PY_TYPE_CHECK(x, Integer):
+         if mpz_sgn((<Integer>x).value) == 0:
+             return maxordp
+-        k = mpz_remove(tmp.value, (<Integer>x).value, prime_pow.prime.value)
++        k = mpz_remove(temp.value, (<Integer>x).value, prime_pow.prime.value)
+     elif PY_TYPE_CHECK(x, Rational):
+         if mpq_sgn((<Rational>x).value) == 0:
+             return maxordp
+-        k = mpz_remove(tmp.value, mpq_numref((<Rational>x).value), prime_pow.prime.value)
++        k = mpz_remove(temp.value, mpq_numref((<Rational>x).value), prime_pow.prime.value)
+         if k == 0:
+-            k = -mpz_remove(tmp.value, mpq_denref((<Rational>x).value), prime_pow.prime.value)
+-    elif PY_TYPE_CHECK(x, pAdicGenericElement) and (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
++            k = -mpz_remove(temp.value, mpq_denref((<Rational>x).value), prime_pow.prime.value)
++    elif PyList_Check(x) or PyTuple_Check(x):
++        f = prime_pow.f
++        if (e == 1 and len(x) > f) or (e != 1 and len(x) > e):
++            # could reduce modulo the defining polynomial but that isn't currently supported
++            raise ValueError("List too long")
++        k = maxordp
++        shift = 0
++        for a in x:
++            if PyList_Check(a) or PyTuple_Check(a):
++                if e == 1 or f == 1:
++                    raise ValueError("nested lists not allowed for unramified and eisenstein extensions")
++                for b in a:
++                    if PyList_Check(b) or PyTuple_Check(b):
++                        raise ValueError("list nesting too deep")
++                    curterm = get_ordp(b, prime_pow)
++                    k = min(k, curterm + shift)
++            else:
++                curterm = get_ordp(a, prime_pow)
++                k = min(k, curterm + shift)
++            if e != 1: shift += 1
++        # We don't want to multiply by e again.
++        return k
++    elif PY_TYPE_CHECK(x, pAdicGenericElement):
+         k = (<pAdicGenericElement>x).valuation_c()
++        if not (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
++            return k
+     elif PY_TYPE_CHECK(x, pari_gen):
+         pari_tmp = (<pari_gen>x).g
+         if typ(pari_tmp) == t_PADIC:
+@@ -112,11 +136,11 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
+         value = <Integer>x.lift()
+         if mpz_sgn(value.value) == 0:
+             return maxordp
+-        k = mpz_remove(tmp.value, value.value, prime_pow.prime.value)
++        k = mpz_remove(temp.value, value.value, prime_pow.prime.value)
+     else:
+-        raise RuntimeError
++        raise TypeError("Unsupported type")
+     # Should check for overflow
+-    return k * prime_pow.e
++    return k * e
+ 
+ cdef long get_preccap(x, PowComputer_class prime_pow) except? -10000:
+     """
+@@ -138,7 +162,7 @@ cdef long get_preccap(x, PowComputer_class prime_pow) except? -10000:
+ 
+     - ``x`` -- data defining a new p-adic element: an Integer,
+       Rational, an element of Zp or Qp with the same prime, a PARI
+-      p-adic element, or an IntegerMod.
++      p-adic element, a list, a tuple, or an IntegerMod.
+     - ``prime_pow`` -- the PowComputer for the ring into which ``x``
+       is being converted.  This is used to determine the prime and the
+       ramification degree.
+@@ -148,27 +172,43 @@ cdef long get_preccap(x, PowComputer_class prime_pow) except? -10000:
+     - a long, giving the absolute precision modulo which the input is
+       defined.  If the input is exact, returns ``maxordp``
+     """
+-    cdef long k
++    cdef long k, shift, e = prime_pow.e
+     cdef Integer prec
+     cdef GEN pari_tmp
+     if PyInt_Check(x) or PY_TYPE_CHECK(x, Integer) or PY_TYPE_CHECK(x, Rational):
+         return maxordp
+-    elif PY_TYPE_CHECK(x, pAdicGenericElement) and (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
++    elif PyList_Check(x) or PyTuple_Check(x):
++        k = maxordp
++        shift = 0
++        for a in x:
++            if PyList_Check(a) or PyTuple_Check(a):
++                for b in a:
++                    curterm = get_preccap(b, prime_pow)
++                    k = min(k, curterm + shift)
++            else:
++                curterm = get_preccap(a, prime_pow)
++                k = min(k, curterm + shift)
++            if e != 1: shift += 1
++        # We don't want to multiply by e again.
++        return k
++    elif PY_TYPE_CHECK(x, pAdicGenericElement):
+         if (<pAdicGenericElement>x)._is_exact_zero():
+             return maxordp
+         prec = <Integer>x.precision_absolute()
+         k = mpz_get_si(prec.value)
++        if not (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
++            return k
+     elif PY_TYPE_CHECK(x, pari_gen):
+         pari_tmp = (<pari_gen>x).g
+         # since get_ordp has been called typ(x.g) == t_PADIC
+         k = valp(pari_tmp) + precp(pari_tmp)
+     elif sage.rings.finite_rings.integer_mod.is_IntegerMod(x):
+-        k = mpz_remove(tmp.value, (<Integer>x.modulus()).value, prime_pow.prime.value)
+-        if mpz_cmp_ui(tmp.value, 1) != 0:
++        k = mpz_remove(temp.value, (<Integer>x.modulus()).value, prime_pow.prime.value)
++        if mpz_cmp_ui(temp.value, 1) != 0:
+             raise TypeError("cannot coerce from the given integer mod ring (not a power of the same prime)")
+     else:
+         raise RuntimeError
+-    return k * prime_pow.e
++    return k * e
+ 
+ cdef long comb_prec(iprec, long prec) except? -10000:
+     """
+@@ -229,7 +269,7 @@ cdef int _process_args_and_kwds(long *aprec, long *rprec, args, kwds, bint absol
+ 
+     - error status
+     """
+-    if "empty" in kwds:
++    if kwds.has_key("empty"):
+         # For backward compatibility
+         aprec[0] = 0
+         rprec[0] = 0
+@@ -237,13 +277,13 @@ cdef int _process_args_and_kwds(long *aprec, long *rprec, args, kwds, bint absol
+     if len(args) > 2:
+         raise TypeError("too many positional arguments")
+     if len(args) == 2:
+-        if "relprec" in kwds:
++        if kwds.has_key("relprec"):
+             raise TypeError("_call_with_args() got multiple values for keyword argument 'relprec'")
+         relprec = args[1]
+     else:
+         relprec = kwds.get("relprec",infinity)
+     if len(args) >= 1:
+-        if "absprec" in kwds:
++        if kwds.has_key("absprec"):
+             raise TypeError("_call_with_args() got multiple values for keyword argument 'absprec'")
+         absprec = args[0]
+     else:
+
+diff --git a/src/sage/rings/padics/padic_capped_absolute_element.pyx b/src/sage/rings/padics/padic_capped_absolute_element.pyx
+index 912e636..ecbe7d3 100644
+--- a/src/sage/rings/padics/padic_capped_absolute_element.pyx
++++ b/src/sage/rings/padics/padic_capped_absolute_element.pyx
+@@ -24,10 +24,15 @@ AUTHORS:
+ include "sage/libs/linkages/padics/mpz.pxi"
+ include "CA_template.pxi"
+ 
+-from sage.libs.pari.pari_instance cimport PariInstance
+-cdef PariInstance P = sage.libs.pari.pari_instance.pari
++from sage.libs.pari.gen cimport PariInstance
++cdef PariInstance P = sage.libs.pari.all.pari
+ from sage.rings.finite_rings.integer_mod import Mod
+ 
++cdef class PowComputer_(PowComputer_base):
++    def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field):
++        _prec_type = 'capped-rel'
++        PowComputer_base.__init__(self, prime, cache_limit, prec_cap, ram_prec_cap, in_field)
++
+ cdef class pAdicCappedAbsoluteElement(CAElement):
+     """
+     Constructs new element with given parent and value.
+@@ -66,6 +71,11 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
+     """
+     def lift(self):
+         """
++        Returns an integer congruent to this `p`-adic element modulo
++        ``p^self.absprec()``.
++
++        EXAMPLES::
++
+             sage: R = ZpCA(3)
+             sage: R(10).lift()
+             10
+@@ -107,28 +117,18 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
+ 
+         EXAMPLES::
+ 
+-            sage: R = ZpCA(5, 10); a = R(17); pari(a) #indirect doctest
++            sage: R = Zp(5, 10); a = R(17); pari(a) #indirect doctest
+             2 + 3*5 + O(5^10)
++            sage: pari(R(0))
++            0
+             sage: pari(R(0,5))
+             O(5^5)
+-            sage: pari(R(0,5)).debug()
+-            [&=...] PADIC(lg=5):... (precp=0,valp=5):... ... ... ...
+-                p : [&=...] INT(lg=3):... (+,lgefint=3):... ... 
+-              p^l : [&=...] INT(lg=3):... (+,lgefint=3):... ... 
+-                I : [&=...] INT(lg=2):... (0,lgefint=2):... 
+-        """
+-        cdef long val
+-        # Let val be the valuation of self, holder (defined in the
+-        # linkage file) be the unit part.
+-        if mpz_sgn(self.value) == 0:
+-            # Special case for zero: maximal valuation and 0 unit part
+-            val = self.absprec
+-            mpz_set_ui(holder.value, 0)
+-        else:
+-            val = mpz_remove(holder.value, self.value, self.prime_pow.prime.value)
++        """
++        # holder is defined in the linkage file
++        cdef long val = mpz_remove(holder.value, self.value, self.prime_pow.prime.value)
+         return P.new_gen_from_padic(val, self.absprec - val,
+                                     self.prime_pow.prime.value,
+-                                    self.prime_pow.pow_mpz_t_tmp(self.absprec - val),
++                                    self.prime_pow.pow_mpz_t_tmp(self.absprec - val)[0],
+                                     holder.value)
+ 
+     def _integer_(self, Z=None):
+@@ -171,7 +171,7 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
+             raise ValueError, "cannot reduce modulo a negative power of p"
+         cdef long aprec = mpz_get_ui((<Integer>absprec).value)
+         modulus = PY_NEW(Integer)
+-        mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec))
++        mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec)[0])
+         selfvalue = PY_NEW(Integer)
+         mpz_set(selfvalue.value, self.value)
+         return Mod(selfvalue, modulus)
+@@ -181,6 +181,7 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
+         Returns the minimum possible multiplicative order of this element.
+ 
+         OUTPUT:
++
+         the multiplicative order of self.  This is the minimum multiplicative
+         order of all elements of `\mathbb{Z}_p` lifting ``self`` to infinite
+         precision.
+@@ -210,14 +211,14 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
+             mpz_set_ui(ans.value, 1)
+             return ans
+         mpz_init(ppow_minus_one)
+-        mpz_sub_ui(ppow_minus_one, self.prime_pow.pow_mpz_t_tmp(self.absprec), 1)
++        mpz_sub_ui(ppow_minus_one, self.prime_pow.pow_mpz_t_tmp(self.absprec)[0], 1)
+         if mpz_cmp(self.value, ppow_minus_one) == 0:
+             ans = PY_NEW(Integer)
+             mpz_set_ui(ans.value, 2)
+             mpz_clear(ppow_minus_one)
+             return ans
+         # check if self is an approximation to a teichmuller lift:
+-        mpz_powm(ppow_minus_one, self.value, self.prime_pow.prime.value, self.prime_pow.pow_mpz_t_tmp(self.absprec))
++        mpz_powm(ppow_minus_one, self.value, self.prime_pow.prime.value, self.prime_pow.pow_mpz_t_tmp(self.absprec)[0])
+         if mpz_cmp(ppow_minus_one, self.value) == 0:
+             mpz_clear(ppow_minus_one)
+             return self.residue(1).multiplicative_order()
+@@ -225,6 +226,228 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
+             mpz_clear(ppow_minus_one)
+             return infinity
+ 
++    def padded_list(self, n, list_mode = 'simple'):
++        """
++        Returns a list of coefficients of `p` starting with `p^0` up
++        to `p^n` exclusive (padded with zeros if needed)
++
++        INPUT:
++
++        - ``self`` -- a `p`-adic element
++
++        - ``n`` - an integer
++
++        OUTPUT:
++
++        - ``list`` -- the list of coefficients of ``self``
++
++        EXAMPLES::
++
++            sage: R = Zp(7,4,'capped-abs'); a = R(2*7+7**2); a.padded_list(5)
++            [0, 2, 1, 0, 0]
++
++        NOTE:
++
++        this differs from the padded_list method of padic_field_element
++
++        the slice operators throw an error if asked for a slice above
++        the precision, while this function works
++        """
++        if list_mode == 'simple' or list_mode == 'smallest':
++            zero = Integer(0)
++        else:
++            zero = self.parent()(0, 0)
++        L = self.list()
++        return L[:n] + [zero] * (n - len(L))
++
++    def precision_absolute(self):
++        """
++        Returns the absolute precision of ``self``.
++
++        This is the power of the maximal ideal modulo which this
++        element is defined.
++
++        INPUT:
++
++        - ``self`` -- a `p`-adic element
++
++        OUTPUT:
++
++        - ``integer`` -- the absolute precision of ``self``
++
++        EXAMPLES::
++
++            sage: R = Zp(7,4,'capped-abs'); a = R(7); a.precision_absolute()
++            4
++       """
++        cdef Integer ans
++        ans = PY_NEW(Integer)
++        mpz_set_si(ans.value, self.absprec)
++        return ans
++
++    def precision_relative(self):
++        """
++        Returns the relative precision of ``self``.
++
++        This is the power of the maximal ideal modulo which the unit
++        part of ``self`` is defined.
++
++        INPUT:
++
++        - ``self`` -- a `p`-adic element
++
++        OUTPUT:
++
++        - ``integer`` -- the relative precision of ``self``
++
++        EXAMPLES::
++
++            sage: R = Zp(7,4,'capped-abs'); a = R(7); a.precision_relative()
++            3
++       """
++        cdef Integer ans
++        ans = PY_NEW(Integer)
++        mpz_set_si(ans.value, self.absprec - self.valuation_c())
++        return ans
++
++    def residue(self, absprec = 1):
++        r"""
++        Reduces ``self`` modulo `p^\mathrm{absprec}`.
++
++        INPUT:
++
++        - ``absprec`` - a non-negative integer (default: 1)
++
++        OUTPUT:
++
++        ``self`` reduced modulo `p^\mathrm{absprec}` as an element of
++        `\mathbb{Z}/p^\mathrm{absprec}\mathbb{Z}`
++
++        EXAMPLES::
++
++            sage: R = Zp(7,4,'capped-abs')
++            sage: a = R(8)
++            sage: a.residue(1)
++            1
++            sage: a.residue(2)
++            8
++
++        TESTS::
++
++            sage: a.residue(0)
++            0
++            sage: a.residue(-1)
++            Traceback (most recent call last):
++            ...
++            ValueError: cannot reduce modulo a negative power of p
++            sage: a.residue(5)
++            Traceback (most recent call last):
++            ...
++            PrecisionError: Not enough precision known in order to compute residue.
++
++        """
++        if absprec > self.precision_absolute():
++            raise PrecisionError, "Not enough precision known in order to compute residue."
++        elif absprec < 0:
++            raise ValueError, "Cannot reduce modulo a negative power of p."
++        cdef Integer selfvalue
++        selfvalue = PY_NEW(Integer)
++        mpz_set(selfvalue.value, self.value)
++        return Mod(selfvalue, self.parent().prime_pow(absprec))
++
++    def valuation(self, prime=None):
++        """
++        Returns the valuation of ``self``, ie the largest power of `p`
++        dividing ``self``.
++
++        EXAMPLES::
++
++            sage: R = ZpCA(5)
++            sage: R(5^5*1827).valuation()
++            5
++
++        TESTS::
++
++            sage: R(1).valuation()
++            0
++            sage: R(2).valuation()
++            0
++            sage: R(5).valuation()
++            1
++            sage: R(10).valuation()
++            1
++            sage: R(25).valuation()
++            2
++            sage: R(50).valuation()
++            2
++            sage: R(0).valuation()
++            20
++        """
++        # We override this, rather than using the valuation in
++        # padic_generic_element, for speed reasons.
++
++        cdef Integer ans
++        ans = PY_NEW(Integer)
++        mpz_set_ui(ans.value, self.valuation_c())
++        return ans
++
++    cdef long valuation_c(self):
++        """
++        Returns the valuation of ``self``, ie the largest power of `p`
++        dividing ``self``.
++
++        EXAMPLES::
++
++            sage: R = ZpCA(5)
++            sage: a = R(0,6)
++            sage: a.valuation() #indirect doctest
++            6
++        """
++        if mpz_sgn(self.value) == 0:
++            return self.absprec
++        cdef mpz_t tmp
++        cdef long ans
++        mpz_init(tmp)
++        ans = mpz_remove(tmp, self.value, self.prime_pow.prime.value)
++        mpz_clear(tmp)
++        return ans
++
++   # cpdef val_unit(self):
++   #     """
++   #     Returns a 2-tuple, the first element set to the valuation of
++   #     ``self``, and the second to the unit part of ``self``.
++
++   #     If ``self = 0``, then the unit part is ``O(p^0)``.
++
++   #     EXAMPLES::
++
++   #         sage: R = ZpCA(5)
++   #         sage: a = R(75, 6); b = a - a
++   #         sage: a.val_unit()
++   #         (2, 3 + O(5^4))
++   #         sage: b.val_unit()
++   #         (6, O(5^0))
++   #     """
++   #     cdef pAdicCappedAbsoluteElement unit
++   #     cdef Integer val
++   #     cdef unsigned long v
++   #     val = PY_NEW(Integer)
++   #     if mpz_sgn(self.value) == 0:
++   #         unit = self._new_c()
++   #         mpz_set_ui(unit.value, 0)
++   #         unit._set_prec_abs(0)
++   #         mpz_set_ui(val.value, self.absprec)
++   #         return (val, unit)
++   #     elif mpz_divisible_p(self.value, self.prime_pow.prime.value):
++   #         unit = self._new_c()
++   #         v = mpz_remove(unit.value, self.value, self.prime_pow.prime.value)
++   #         unit._set_prec_abs(self.absprec - v)
++   #         mpz_set_ui(val.value, v)
++   #         return (val, unit)
++   #     else:
++   #         mpz_set_ui(val.value, 0)
++   #         return (val, self)
++
+ def make_pAdicCappedAbsoluteElement(parent, x, absprec):
+     """
+     Unpickles a capped absolute element.
+diff --git a/src/sage/rings/padics/padic_capped_relative_element.pyx b/src/sage/rings/padics/padic_capped_relative_element.pyx
+index b187d5d..20369e8 100644
+--- a/src/sage/rings/padics/padic_capped_relative_element.pyx
++++ b/src/sage/rings/padics/padic_capped_relative_element.pyx
+@@ -24,9 +24,15 @@ AUTHORS:
+ include "sage/libs/linkages/padics/mpz.pxi"
+ include "CR_template.pxi"
+ 
+-from sage.libs.pari.pari_instance cimport PariInstance
+-cdef PariInstance P = sage.libs.pari.pari_instance.pari
++from sage.libs.pari.gen cimport PariInstance
++cdef PariInstance P = sage.libs.pari.all.pari
+ from sage.rings.finite_rings.integer_mod import Mod
++from sage.rings.padics.pow_computer cimport PowComputer_class
++
++cdef class PowComputer_(PowComputer_base):
++    def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field):
++        _prec_type = 'capped-rel'
++        PowComputer_base.__init__(self, prime, cache_limit, prec_cap, ram_prec_cap, in_field)
+ 
+ cdef class pAdicCappedRelativeElement(CRElement):
+     """
+@@ -157,16 +163,15 @@ cdef class pAdicCappedRelativeElement(CRElement):
+                 mpz_set_ui(ans.value, 0)
+             else:
+                 mpz_set(ans.value, self.unit)
+-                mpz_mul(ans.value, ans.value, self.prime_pow.pow_mpz_t_tmp(self.ordp))
++                mpz_mul(ans.value, ans.value, self.prime_pow.pow_mpz_t_tmp(self.ordp)[0])
+             return ans
+         else:
+             ansr = PY_NEW(Rational)
+             if self.relprec == 0:
+                 mpq_set_si(ansr.value, 0, 1)
+-                return self
+             else:
+                 mpz_set(mpq_numref(ansr.value), self.unit)
+-                mpz_set(mpq_denref(ansr.value), self.prime_pow.pow_mpz_t_tmp(-self.ordp))
++                mpz_set(mpq_denref(ansr.value), self.prime_pow.pow_mpz_t_tmp(-self.ordp)[0])
+             return ansr
+ 
+     def _pari_(self):
+@@ -190,24 +195,19 @@ cdef class pAdicCappedRelativeElement(CRElement):
+ 
+         EXAMPLES::
+ 
+-            sage: R = Zp(5, 10); a = R(17); pari(a) #indirect doctest
+-            2 + 3*5 + O(5^10)
+-            sage: pari(R(0))
+-            0
+-            sage: pari(R(0,5))
+-            O(5^5)
+-            sage: pari(R(0,5)).debug()
+-            [&=...] PADIC(lg=5):... (precp=0,valp=5):... ... ... ...
+-                p : [&=...] INT(lg=3):... (+,lgefint=3):... ... 
+-              p^l : [&=...] INT(lg=3):... (+,lgefint=3):... ... 
+-                I : [&=...] INT(lg=2):... (0,lgefint=2):... 
++           sage: R = Zp(5, 10); a = R(17); pari(a) #indirect doctest
++           2 + 3*5 + O(5^10)
++           sage: pari(R(0))
++           0
++           sage: pari(R(0,5))
++           O(5^5)
+         """
+         if exactzero(self.ordp):
+             return P.new_gen_from_int(0)
+         else:
+             return P.new_gen_from_padic(self.ordp, self.relprec,
+                                         self.prime_pow.prime.value,
+-                                        self.prime_pow.pow_mpz_t_tmp(self.relprec),
++                                        self.prime_pow.pow_mpz_t_tmp(self.relprec)[0],
+                                         self.unit)
+     def _integer_(self, Z=None):
+         """
+@@ -224,33 +224,54 @@ cdef class pAdicCappedRelativeElement(CRElement):
+         return self.lift_c()
+ 
+     def residue(self, absprec=1):
+-        """
+-        Reduces this element modulo `p^{\mbox{absprec}}`.
++        r"""
++        Reduces ``self`` modulo `p^\mathrm{absprec}`.
+ 
+         INPUT:
+ 
+-        - ``absprec`` - an integer (default: ``1``)
++        - ``absprec`` - a non-negative integer (default: 1)
+ 
+         OUTPUT:
+ 
+-        Element of `\ZZ/(p^{\mbox{absprec}} \ZZ)` -- the reduction modulo
+-        `p^{\mbox{absprec}}`
++        ``self`` reduced modulo `p^\mathrm{absprec}` as an element of
++        `\mathbb{Z}/p^\mathrm{absprec}\mathbb{Z}`
+ 
+         EXAMPLES::
+ 
+-            sage: R = Zp(7,4,'capped-rel'); a = R(8); a.residue(1)
++            sage: R = Zp(7,4)
++            sage: a = R(8)
++            sage: a.residue(1)
+             1
+-            sage: R = Qp(7,4,'capped-rel'); a = R(8); a.residue(1)
++            sage: a.residue(2)
++            8
++
++            sage: K = Qp(7,4)
++            sage: a = K(8)
++            sage: a.residue(1)
+             1
+-            sage: a.residue(6)
++            sage: a.residue(2)
++            8
++            sage: b = K(1/7)
++            sage: b.residue()
+             Traceback (most recent call last):
+             ...
+-            PrecisionError: Not enough precision known in order to compute residue.
+-            sage: b = a/7
+-            sage: b.residue(1)
++            ValueError: Element must have non-negative valuation in order to compute residue.
++
++        TESTS::
++
++            sage: R = Zp(7,4)
++            sage: a = R(8)
++            sage: a.residue(0)
++            0
++            sage: a.residue(-1)
+             Traceback (most recent call last):
+             ...
+-            ValueError: Element must have non-negative valuation in order to compute residue.
++            ValueError: Cannot reduce modulo a negative power of p.
++            sage: a.residue(5)
++            Traceback (most recent call last):
++            ...
++            PrecisionError: Not enough precision known in order to compute residue.
++
+         """
+         cdef Integer selfvalue, modulus
+         cdef long aprec
+@@ -259,18 +280,19 @@ cdef class pAdicCappedRelativeElement(CRElement):
+         if absprec > self.precision_absolute():
+             raise PrecisionError, "Not enough precision known in order to compute residue."
+         elif absprec < 0:
+-            raise ValueError, "cannot reduce modulo a negative power of p"
++            raise ValueError, "Cannot reduce modulo a negative power of p."
+         aprec = mpz_get_ui((<Integer>absprec).value)
+         if self.ordp < 0:
+             raise ValueError, "Element must have non-negative valuation in order to compute residue."
+         modulus = PY_NEW(Integer)
+-        mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec))
++        mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec)[0])
+         selfvalue = PY_NEW(Integer)
+         if self.relprec == 0:
+             mpz_set_ui(selfvalue.value, 0)
+         else:
+             # Need to do this better.
+-            mpz_mul(selfvalue.value, self.prime_pow.pow_mpz_t_tmp(self.ordp), self.unit)
++            mpz_mul(selfvalue.value, self.prime_pow.pow_mpz_t_tmp(self.ordp)[0], self.unit)
++            mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec)[0])
+         return Mod(selfvalue, modulus)
+ 
+ def unpickle_pcre_v1(R, unit, ordp, relprec):
+diff --git a/src/sage/rings/padics/padic_fixed_mod_element.pyx b/src/sage/rings/padics/padic_fixed_mod_element.pyx
+index 7a647d3..4ecfbfd 100644
+--- a/src/sage/rings/padics/padic_fixed_mod_element.pyx
++++ b/src/sage/rings/padics/padic_fixed_mod_element.pyx
+@@ -40,22 +45,21 @@ cdef class pAdicFixedModElement(FMElement):
+ 
+     - ``relprec`` -- ignored; for compatibility with other `p`-adic rings
+ 
+-    .. NOTE::
++    NOTES::
+ 
+-        The following types are currently supported for x:
++    The following types are currently supported for x:
+ 
+-        - Integers
+-        - Rationals -- denominator must be relatively prime to `p`
+-        - FixedMod `p`-adics
+-        - Elements of ``IntegerModRing(p^k)`` for ``k`` less than or equal
+-          to the modulus
++    - Integers
++    - Rationals -- denominator must be relatively prime to `p`
++    - FixedMod `p`-adics
++    - Elements of ``IntegerModRing(p^k)`` for ``k` less than or equal to the
++      modulus
+ 
+-        The following types should be supported eventually:
++    The following types should be supported eventually:
+ 
+-        - Finite precision `p`-adics
+-        - Lazy `p`-adics
+-        - Elements of local extensions of THIS `p`-adic ring that actually
+-          lie in `\ZZ_p`
++    - Finite precision p-adics
++    - Lazy p-adics
++    - Elements of local extensions of THIS `p`-adic ring that actually lie in `\ZZ_p`
+ 
+     EXAMPLES::
+ 
+@@ -111,17 +115,17 @@ cdef class pAdicFixedModElement(FMElement):
+         sage: R(R(5))
+         5 + O(5^20)
+ 
+-    .. TODO:: doctests for converting from other types of `p`-adic rings
++    # todo: doctests for converting from other types of p-adic rings
+     """
+     def lift(self):
+         r"""
+-        Return an integer congruent to ``self`` modulo the precision.
++        Return an integer congruent to this element modulo the precision.
+ 
+         .. WARNING::
+ 
+             Since fixed modulus elements don't track their precision,
+             the result may not be correct modulo
+-            `i^{\mathrm{prec_cap}}` if the element was defined by
++            `i^{\mbox{prec_cap}}` if the element was defined by
+             constructions that lost precision.
+ 
+         EXAMPLES::
+@@ -167,51 +171,33 @@ cdef class pAdicFixedModElement(FMElement):
+ 
+     cdef pari_gen _to_gen(self):
+         """
+-        Convert ``self`` to an equivalent pari element.
++        Converts this element to an equivalent pari element.
+ 
+         EXAMPLES::
+ 
+-            sage: R = ZpFM(5, 10); a = R(17); pari(a) # indirect doctest
++            sage: R = ZpFM(5, 10); a = R(17); pari(a) #indirect doctest
+             2 + 3*5 + O(5^10)
+             sage: pari(R(0))
+             O(5^10)
+             sage: pari(R(0,5))
+             O(5^10)
+-            sage: pari(R(0)).debug()
+-            [&=...] PADIC(lg=5):... (precp=0,valp=10):... ... ... ...
+-                p : [&=...] INT(lg=3):... (+,lgefint=3):... ... 
+-              p^l : [&=...] INT(lg=3):... (+,lgefint=3):... ... 
+-                I : [&=...] INT(lg=2):... (0,lgefint=2):... 
+-
+-        This checks that :trac:`15653` is fixed::
+-
+-            sage: x = polygen(ZpFM(3,10))
+-            sage: (x^3 + x + 1)._pari_().poldisc()
+-            2 + 3 + 2*3^2 + 3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + O(3^10)
+         """
+-        cdef long val
+-        # Let val be the valuation of self, holder (defined in the
+-        # linkage file) be the unit part.
+-        if mpz_sgn(self.value) == 0:
+-            # Special case for zero: maximal valuation and 0 unit part
+-            val = self.prime_pow.prec_cap
+-            mpz_set_ui(holder.value, 0)
+-        else:
+-            val = mpz_remove(holder.value, self.value, self.prime_pow.prime.value)
++        # holder is defined in the linkage file
++        cdef long val = mpz_remove(holder.value, self.value, self.prime_pow.prime.value)
+         return P.new_gen_from_padic(val, self.prime_pow.prec_cap - val,
+                                     self.prime_pow.prime.value,
+-                                    self.prime_pow.pow_mpz_t_tmp(self.prime_pow.prec_cap - val),
++                                    self.prime_pow.pow_mpz_t_tmp(self.prime_pow.prec_cap - val)[0],
+                                     holder.value)
+ 
+     def _integer_(self, Z=None):
+         """
+-        Return an integer congruent to ``self`` modulo the precision.
++        Returns an integer congruent to this element modulo the precision.
+ 
+         .. WARNING::
+ 
+             Since fixed modulus elements don't track their precision,
+             the result may not be correct modulo
+-            `p^{\mathrm{prec_cap}}` if the element was defined by
++            `p^{\mbox{prec_cap}}` if the element was defined by
+             constructions that lost precision.
+ 
+         EXAMPLES::
+@@ -221,38 +207,9 @@ cdef class pAdicFixedModElement(FMElement):
+         """
+         return self.lift_c()
+ 
+-    def residue(self, absprec=1):
+-        r"""
+-        Reduce ``self`` mod `p^{\mathrm{absprec}}`.
+-
+-        INPUT:
+-
+-        - ``absprec`` -- an integer (default: 1)
+-
+-        OUTPUT:
+-
+-        element of ``Z/(p^prec Z)`` -- ``self`` reduced mod ``p^prec``
+-
+-        EXAMPLES::
+-
+-            sage: R = Zp(7,4,'fixed-mod'); a = R(8); a.residue(1)
+-            1
+-        """
+-        cdef Integer selfvalue, modulus
+-        if not PY_TYPE_CHECK(absprec, Integer):
+-            absprec = Integer(absprec)
+-        if mpz_sgn((<Integer>absprec).value) < 0:
+-            raise ValueError, "cannot reduce modulo a negative power of p"
+-        cdef long aprec = mpz_get_ui((<Integer>absprec).value)
+-        modulus = PY_NEW(Integer)
+-        mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec))
+-        selfvalue = PY_NEW(Integer)
+-        mpz_set(selfvalue.value, self.value)
+-        return Mod(selfvalue, modulus)
+-
+     def multiplicative_order(self):
+         r"""
+-        Return the minimum possible multiplicative order of ``self``.
++        Returns the minimum possible multiplicative order of this element.
+ 
+         OUTPUT:
+ 
+@@ -260,7 +217,7 @@ cdef class pAdicFixedModElement(FMElement):
+         minimum multiplicative order of all elements of `\ZZ_p` lifting this
+         element to infinite precision.
+ 
+-         EXAMPLES::
++        EXAMPLES::
+ 
+             sage: R = ZpFM(7, 6)
+             sage: R(1/3)
+@@ -285,13 +242,13 @@ cdef class pAdicFixedModElement(FMElement):
+             mpz_set_ui(ans.value, 1)
+             return ans
+         mpz_init(tmp)
+-        mpz_sub_ui(tmp, self.prime_pow.pow_mpz_t_top(), 1)
++        mpz_sub_ui(tmp, self.prime_pow.pow_mpz_t_top()[0], 1)
+         if mpz_cmp(self.value, tmp) == 0:
+             ans = PY_NEW(Integer)
+             mpz_set_ui(ans.value, 2)
+             return ans
+         # check if self is an approximation to a teichmuller lift:
+-        mpz_powm(tmp, self.value, self.prime_pow.prime.value, self.prime_pow.pow_mpz_t_top())
++        mpz_powm(tmp, self.value, self.prime_pow.prime.value, self.prime_pow.pow_mpz_t_top()[0])
+         if mpz_cmp(tmp, self.value) == 0:
+             mpz_clear(tmp)
+             return self.residue(1).multiplicative_order()
+@@ -299,6 +256,291 @@ cdef class pAdicFixedModElement(FMElement):
+             mpz_clear(tmp)
+             return infinity
+ 
++    def padded_list(self, n, list_mode = 'simple'):
++        """
++        Returns a list of coefficients of p starting with $p^0$ up to
++        $p^n$ exclusive (padded with zeros if needed)
++
++        INPUT::
++
++            - self -- a p-adic element
++            - n -- an integer
++
++        OUTPUT::
++
++            - list -- the list of coefficients of self
++
++        EXAMPLES::
++
++            sage: R = Zp(7,4,'fixed-mod'); a = R(2*7+7**2); a.padded_list(5)
++            [0, 2, 1, 0, 0]
++
++        NOTE::
++
++            For elements with positive valuation, this function will
++            return a list with leading 0s, unlike for field elements.
++
++            The slice operators throw an error if asked for a slice
++            above the precision, while this function works
++        """
++        if list_mode == 'simple' or list_mode == 'smallest':
++            zero = Integer(0)
++        else:
++            zero = self.parent()(0)
++        L = self.list()
++        return L[:n] + [zero] * (n - len(L))
++
++    def precision_absolute(self):
++        """
++        Returns the absolute precision of self.
++
++        INPUT::
++
++            - self -- a p-adic element
++
++        OUTPUT::
++
++            - integer -- the absolute precision of self
++
++        EXAMPLES::
++
++            sage: R = Zp(7,4,'fixed-mod'); a = R(7); a.precision_absolute()
++            4
++        """
++        return self.parent().precision_cap()
++
++    def precision_relative(self):
++        r"""
++        Returns the relative precision of self
++
++        INPUT::
++
++            - self -- a p-adic element
++
++        OUTPUT::
++
++            - integer -- the relative precision of self
++
++        EXAMPLES::
++
++            sage: R = Zp(7,4,'fixed-mod'); a = R(7); a.precision_relative()
++            3
++            sage: a = R(0); a.precision_relative()
++            0
++        """
++        cdef unsigned long diff
++        cdef Integer ans
++        ans = PY_NEW(Integer)
++        diff = self.prime_pow.prec_cap - self.valuation_c()
++        mpz_set_si(ans.value, diff)
++        return ans
++
++    def residue(self, absprec=1):
++        r"""
++        Reduces ``self`` modulo `p^\mathrm{absprec}`.
++
++        INPUT:
++
++        - ``absprec`` - a non-negative integer (default: 1)
++
++        OUTPUT:
++
++        ``self`` reduced modulo `p^\mathrm{absprec}` as an element of
++        `\mathbb{Z}/p^\mathrm{absprec}\mathbb{Z}`
++
++        EXAMPLES::
++
++            sage: R = Zp(7,4,'fixed-mod')
++            sage: a = R(8)
++            sage: a.residue(1)
++            1
++            sage: a.residue(2)
++            8
++
++        TESTS::
++
++            sage: R = Zp(7,4,'fixed-mod')
++            sage: a = R(8)
++            sage: a.residue(0)
++            0
++            sage: a.residue(-1)
++            Traceback (most recent call last):
++            ...
++            ValueError: Cannot reduce modulo a negative power of p.
++            sage: a.residue(5)
++            Traceback (most recent call last):
++            ...
++            PrecisionError: Not enough precision known in order to compute residue.
++
++        """
++        cdef Integer selfvalue, modulus
++        selfvalue = PY_NEW(Integer)
++        modulus = PY_NEW(Integer)
++        mpz_set(selfvalue.value, self.value)
++        cdef unsigned long aprec
++        if not PY_TYPE_CHECK(absprec, Integer):
++            absprec = Integer(absprec)
++        if absprec > self.precision_absolute():
++            raise PrecisionError, "Not enough precision known in order to compute residue."
++        elif absprec < 0:
++            raise ValueError, "Cannot reduce modulo a negative power of p."
++        else:
++            aprec = mpz_get_ui((<Integer>absprec).value)
++        if aprec > self.prime_pow.prec_cap:
++            sig_on()
++            mpz_pow_ui(modulus.value, self.prime_pow.prime.value, aprec)
++            sig_off()
++        else:
++            mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec)[0])
++        return Mod(selfvalue, modulus)
++
++    #def square_root(self):
++    #    r"""
++    #    Returns the square root of this p-adic number
++
++    #    INPUT:
++    #        self -- a p-adic element
++    #    OUTPUT:
++    #        p-adic element -- the square root of this p-adic number
++
++    #        The square root chosen is the one whose reduction mod p is in
++    #        the range [0, p/2).
++
++    #        Note that because this is a fixed modulus ring, garbage digits
++    #        may be introduced, if either
++    #        (a) the valuation of the input is positive, or
++    #        (b) p = 2.
++
++    #        If no square root exists, a ValueError is raised.
++    #        (This may be changed later to return an element of an extension
++    #        field.)
++
++    #    EXAMPLES:
++    #        sage: R = Zp(3,20,'fixed-mod')
++    #        sage: R(0).square_root()
++    #            O(3^20)
++    #        sage: R(1).square_root()
++    #            1 + O(3^20)
++    #        sage: R(2).square_root()
++    #        Traceback (most recent call last):
++    #        ...
++    #        ValueError: element is not a square
++    #        sage: R(4).square_root() == R(-2)
++    #            True
++    #        sage: R(9).square_root()
++    #            3 + O(3^20)
++    #        sage: R2 = Zp(2,20,'fixed-mod')
++    #        sage: R2(0).square_root()
++    #            O(2^20)
++    #        sage: R2(1).square_root()
++    #            1 + O(2^20)
++    #        sage: R2(4).square_root()
++    #            2 + O(2^20)
++    #        sage: R2(9).square_root() == R2(3) or R2(9).square_root() == R2(-3)
++    #            True
++    #        sage: R2(17).square_root()
++    #            1 + 2^3 + 2^5 + 2^6 + 2^7 + 2^9 + 2^10 + 2^13 + 2^16 + 2^17 + O(2^20)
++    #        sage: R3 = Zp(5,20,'fixed-mod', 'terse')
++    #        sage: R3(0).square_root()
++    #            0 + O(5^20)
++    #        sage: R3(1).square_root()
++    #            1 + O(5^20)
++    #        sage: R3(-1).square_root() == R3.teichmuller(2) or R3(-1).square_root() == R3.teichmuller(3)
++    #            True
++    #    """
++    #    #todo: make more efficient
++    #    try:
++    #        # use pari
++    #        return self.parent()(pari(self).sqrt())
++    #    except PariError:
++    #        # todo: should eventually change to return an element of
++    #        # an extension field
++    #        raise ValueError, "element is not a square"
++
++    def valuation(self, prime=None):
++        """
++        Returns the valuation of self.
++
++        If self is zero, the valuation returned is the precision of the ring.
++
++        INPUT::
++
++            - self -- a p-adic element
++
++        OUTPUT::
++
++            - integer -- the valuation of self.
++
++        EXAMPLES::
++
++            sage: R = Zp(17, 4,'fixed-mod')
++            sage: a = R(2*17^2)
++            sage: a.valuation()
++            2
++            sage: R = Zp(5, 4,'fixed-mod')
++            sage: R(0).valuation()
++            4
++            sage: R(1).valuation()
++            0
++            sage: R(2).valuation()
++            0
++            sage: R(5).valuation()
++            1
++            sage: R(10).valuation()
++            1
++            sage: R(25).valuation()
++            2
++            sage: R(50).valuation()
++            2
++        """
++        cdef Integer ans
++        ans = PY_NEW(Integer)
++        mpz_set_si(ans.value, self.valuation_c())
++        return ans
++
++    cdef long valuation_c(self):
++        """
++        Returns the valuation of self.
++
++        EXAMPLES::
++
++            sage: R = ZpFM(5, 5); R(0).valuation() #indirect doctest
++            5
++        """
++        if mpz_sgn(self.value) == 0:
++            return self.prime_pow.prec_cap
++        cdef mpz_t tmp
++        cdef long ans
++        mpz_init(tmp)
++        ans = mpz_remove(tmp, self.value, self.prime_pow.prime.value)
++        mpz_clear(tmp)
++        return ans
++
++    cpdef val_unit(self):
++        """
++        Returns a 2-tuple, the first element set to the valuation of
++        self, and the second to the unit part of self.
++
++        If self == 0, then the unit part is O(p^self.parent().precision_cap()).
++
++        EXAMPLES::
++
++            sage: R = ZpFM(5,5)
++            sage: a = R(75); b = a - a
++            sage: a.val_unit()
++            (2, 3 + O(5^5))
++            sage: b.val_unit()
++            (5, O(5^5))
++        """
++        cdef Integer val
++        cdef pAdicFixedModElement unit
++        if mpz_sgn(self.value) == 0:
++            return (self.parent().precision_cap(), self)
++        val = PY_NEW(Integer)
++        unit = self._new_c()
++        mpz_set_ui(val.value, mpz_remove(unit.value, self.value, self.prime_pow.prime.value))
++        return (val, unit)
++
+ def make_pAdicFixedModElement(parent, value):
+     """
+     Unpickles a fixed modulus element.
+@@ -311,4 +553,3 @@ def make_pAdicFixedModElement(parent, value):
+         2*5^2 + 3*5^3 + O(5^20)
+     """
+     return unpickle_fme_v2(pAdicFixedModElement, parent, value)
+-

@@ -22,6 +22,7 @@ AUTHORS:
 
 from padic_extension_generic import pAdicExtensionGeneric
 from sage.rings.finite_rings.constructor import GF
+from sage.misc.cachefunc import cached_method
 
 class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
     """
@@ -49,7 +50,7 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
         #    self._PQR = pqr.PolynomialQuotientRing_field(poly.parent(), poly, name = names)
         #else:
         #    self._PQR = pqr.PolynomialQuotientRing_domain(poly.parent(), poly, name = names)
-        pAdicExtensionGeneric.__init__(self, poly, prec, print_mode, names, element_class)
+        pAdicExtensionGeneric.__init__(self, poly.base_ring(), poly, prec, print_mode, names, element_class)
         self._res_field = GF(self.prime_pow.pow_Integer_Integer(poly.degree()), name = names[1], modulus = poly.change_ring(poly.base_ring().residue_field()))
 
     def _repr_(self, do_latex = False):
@@ -71,8 +72,8 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
                     return "\\mathbf{Z}_{%s^{%s}}" % (self.prime(), self.degree())
             else:
                 raise NotImplementedError
-        return "Unramified Extension of %s in %s defined by %s"%(
-            self.ground_ring(), self.variable_name(), self.modulus())
+        return "Unramified Extension in %s defined by %s of %s"%(
+            self.variable_name(), self.modulus(), self.ground_ring())
 
     def ramification_index(self, K = None):
         """
@@ -195,6 +196,7 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
             return True
         raise NotImplementedError
 
+    @cached_method
     def gen(self, n=0):
         """
         Returns a generator for this unramified extension.

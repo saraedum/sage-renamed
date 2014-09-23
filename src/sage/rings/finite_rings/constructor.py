@@ -400,6 +400,16 @@ class FiniteFieldFactory(UniqueFactory):
             ((9, ('a',), x^2 + 2*x + 2, None, '{}', 3, 2, True), {})
             sage: GF.create_key_and_extra_args(9, 'a', foo='value')
             ((9, ('a',), x^2 + 2*x + 2, None, "{'foo': 'value'}", 3, 2, True), {'foo': 'value'})
+
+        TESTS:
+
+        Check that the uniqueness works now::
+
+            sage: F1=GF(25,impl='givaro',conway=True,prefix='z')
+            sage: F2=GF(25,impl=None,conway=True,prefix='z')
+            sage: F1 is F2
+            True
+
         """
         from sage.structure.proof.all import WithProof, arithmetic
         if proof is None: proof = arithmetic()
@@ -416,6 +426,8 @@ class FiniteFieldFactory(UniqueFactory):
                     modulus = None
                 p = integer.Integer(order)
                 n = integer.Integer(1)
+                if impl is None:
+                    impl = "modn"
             elif arith.is_prime_power(order):
                 if not names is None: name = names
                 name = normalize_names(1,name)
@@ -478,6 +490,14 @@ class FiniteFieldFactory(UniqueFactory):
                     modulus = modulus.change_variable_name('x')
                 else:
                     raise TypeError("wrong type for modulus parameter")
+
+                if impl is None:
+                    if order < zech_log_bound:
+                        impl = 'givaro'
+                    elif p == 2:
+                        impl = 'ntl'
+                    else:
+                        impl = 'pari_ffelt'
             else:
                 raise ValueError("the order of a finite field must be a prime power.")
 
@@ -586,13 +606,6 @@ class FiniteFieldFactory(UniqueFactory):
                         raise ValueError("the degree of the modulus does not equal the degree of the field.")
                 if name is None:
                     raise TypeError("you must specify the generator name.")
-                if impl is None:
-                    if order < zech_log_bound:
-                        impl = 'givaro'
-                    elif p == 2:
-                        impl = 'ntl'
-                    else:
-                        impl = 'pari_ffelt'
                 if impl == 'givaro':
                     if 'repr' in kwds:
                         repr = kwds['repr']

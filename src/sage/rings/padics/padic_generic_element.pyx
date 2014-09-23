@@ -44,6 +44,24 @@ from sage.structure.element import coerce_binop
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
 
 cdef class pAdicGenericElement(LocalGenericElement):
+    def vector(self, base = None):
+        if base is None:
+            base = self.parent().base()
+        if base is self.parent():
+            return [self]
+        else:
+            ret = self._vector_impl()
+            from sage.misc.flatten import flatten
+            return flatten([c.vector(base) for c in ret])
+
+    def polynomial(self):
+        from sage.rings.all import PolynomialRing
+        base = self.parent().base_ring()
+        return PolynomialRing(base,names=(self.parent().variable_name(),))(self.vector(base))
+
+    def _vector_impl(self):
+        raise NotImplementedError("not implemented for `%s` which is a `%s` in `%s`"%(self,type(self),self.parent()))
+
     def __richcmp__(left, right, int op):
         """
         Comparison.
@@ -171,6 +189,11 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     cdef bint _set_prec_both(self, long absprec, long relprec) except -1:
         return 0
+
+    def residue(self, n = 1):
+        if n != 1:
+            raise NotImplementedError
+        return self.parent().residue_field()(self[0])
 
     #def _pari_(self):
     #    """
@@ -2360,3 +2383,38 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         """
         raise NotImplementedError
+
+    def matrix(self, base = None):
+        """
+        If ``base`` is ``None``, return the element, as a `1\times 1` matrix.
+
+        If ``base`` is not ``None``, then ``base`` must be either a field that
+        embeds into the field where the element is defined or a morphism into
+        that field, in which case this function returns the matrix of
+        multiplication on the power basis, where we view the parent
+        field as a field over ``base``.
+
+        INPUT:
+
+            ``base`` -- field or morphism or ``None`` (default: ``None``)
+
+        EXAMPLES::
+
+            sage: K = ZpCR(3,5)
+            sage: K.zero().matrix()
+            [0]
+            sage: K(3).matrix()
+            [3 + O(3^6)]
+
+        """
+        from sage.matrix.all import matrix
+
+        if base is None or base is self.parent():
+            return matrix(self.parent(),1,1,[self])
+        else:
+            raise NotImplementedError
+
+    def is_squarefree(self):
+        if self.is_unit():
+            return True
+        return self.valuation() <= 1

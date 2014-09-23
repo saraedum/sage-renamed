@@ -25,6 +25,9 @@ from sage.misc.latex import latex
 from sage.rings.integer import Integer
 
 class EisensteinExtensionGeneric(pAdicExtensionGeneric):
+    """
+    TODO: this is only for Eisenstein over Qp/Zp.
+    """
     def __init__(self, poly, prec, print_mode, names, element_class):
         """
         Initializes self.
@@ -35,8 +38,49 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
             sage: S.<x> = A[]
             sage: B.<t> = A.ext(x^2+7) #indirect doctest
         """
-        pAdicExtensionGeneric.__init__(self, poly, prec, print_mode, names, element_class)
+        pAdicExtensionGeneric.__init__(self, poly.base_ring(), poly, prec, print_mode, names, element_class)
         #self._precompute()
+
+    def _isomorphic_ring(self):
+        from sage.categories.homset import Hom
+        return self, Hom(self,self).identity(), Hom(self,self).identity()
+
+
+    def eisenstein_polynomial(self):
+        return self.modulus()
+
+    def _compute_shift_seed(self, premodulus, base):
+        from sage.symbolic.expression import is_Expression
+        if is_Expression(premodulus):
+            # Here we assume that the output of coeffs is sorted in increasing order by exponent:
+            coeffs = premodulus.coeffs()
+            preseed = premodulus / coeffs[-1][0]
+            preseed -= preseed.variables()[0]**coeffs[-1][1]
+            preseed /= base.prime() # here we assume that the base is unramified over Qp
+            shift_seed = -preseed.polynomial(base)
+        else: # a polynomial
+            if not premodulus.is_monic():
+                preseed = premodulus / premodulus.leading_coefficient()
+            else:
+                preseed = premodulus
+            preseed = preseed[:preseed.degree()]
+            if base.is_fixed_mod():
+                shift_seed = -preseed.change_ring(base)
+                shift_seed = shift_seed.parent()([a >> 1 for a in shift_seed.list()])
+            else:
+                if base.e() == 1:
+                    try:
+                        preseed *= 1/base.prime()
+                        shift_seed = -preseed.change_ring(base)
+                    except TypeError:
+                        # give up on getting more precision
+                        shift_seed = -preseed.change_ring(base)
+                        shift_seed /= base.uniformizer()
+                else:
+                    # give up on getting more precision
+                    shift_seed = -preseed.change_ring(base)
+                    shift_seed /= base.uniformizer()
+        return shift_seed
 
     def _repr_(self, do_latex = False):
         """
@@ -249,6 +293,10 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
             't'
         """
         return self.variable_name()
+
+    def _isomorphic_ring(self):
+        from sage.categories.homset import Hom
+        return self, Hom(self,self).identity(), Hom(self,self).identity()
 
 #     def has_pth_root(self):
 #         raise NotImplementedError

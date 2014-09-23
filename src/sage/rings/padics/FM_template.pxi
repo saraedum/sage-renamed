@@ -83,7 +83,10 @@ cdef class FMElement(pAdicTemplateElement):
             4*5^2 + 2*5^3 + O(5^5)
         """
         cconstruct(self.value, self.prime_pow)
-        cconv(self.value, x, self.prime_pow.prec_cap, 0, self.prime_pow)
+        if PY_TYPE_CHECK(x,FMElement) and x.parent() is self.parent():
+            cshift(self.value, (<FMElement>x).value, 0, 0, self.prime_pow, False)
+        else:
+            cconv(self.value, x, self.prime_pow.prec_cap, 0, self.prime_pow)
 
     cdef FMElement _new_c(self):
         """
@@ -485,7 +488,7 @@ cdef class FMElement(pAdicTemplateElement):
             True
         """
         cdef bint iszero = ciszero(self.value, self.prime_pow)
-        if absprec is None:
+        if absprec is None or absprec is infinity:
             return iszero
         if not PY_TYPE_CHECK(absprec, Integer):
             absprec = Integer(absprec)

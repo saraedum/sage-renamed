@@ -57,7 +57,8 @@ class LocalGeneric(CommutativeRing):
             category = CompleteDiscreteValuationRings()
         if default_category is not None:
             category = check_default_category(default_category, category)
-        Parent.__init__(self, base, names=(names,), normalize=False, category=category, element_constructor=element_class)
+        if not isinstance(names, tuple): names = (names,)
+        Parent.__init__(self, base, names=names, normalize=False, category=category, element_constructor=element_class)
 
     def is_capped_relative(self):
         """

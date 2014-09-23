@@ -32,7 +32,9 @@ Integer = sage.rings.integer.Integer
 Polynomial_generic_domain = sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_domain
 Polynomial_integer_dense = sage.rings.polynomial.polynomial_integer_dense_ntl.Polynomial_integer_dense_ntl
 
-class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomial_padic):
+class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
+    __hash__ = None
+
     def __init__(self, parent, x=None, check=True, is_gen=False, construct = False, absprec = infinity, relprec = infinity):
         """
         TESTS::
@@ -145,6 +147,9 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
             self._normalized = True
             if not absprec is infinity or not relprec is infinity:
                 self._adjust_prec_info(absprec, relprec)
+
+        if self.degree() == -1 and self._valbase is infinity:
+            self._list = []
 
     def _new_constant_poly(self, a, P):
         """
@@ -312,8 +317,12 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
              13^2 + O(13^9),
              0,
              2 + O(13^7)]
-         """
+            sage: R.zero().list()
+            []
+            sage: R(K(0,2)).list()
+            [O(13^2)]
 
+        """
         if self._list is None:
             self._comp_list()
         return list(self._list)
@@ -335,11 +344,16 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
 
             sage: K = Zp(13,7)
             sage: R.<t> = K[]
-            sage: a = 13^7*t^3 + K(169,4)*t - 13^4
-            sage: a.content()
+            sage: f = 13^7*t^3 + K(169,4)*t - 13^4
+            sage: f.content()
             13^2 + O(13^9)
             sage: R(0).content()
             0
+            sage: f = R(K(0,3)); f
+            (O(13^3))
+            sage: f.content()
+            O(13^3)
+
             sage: P.<x> = ZZ[]
             sage: f = x + 2
             sage: f.content()
@@ -351,9 +365,26 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
             1 + O(2^10)
             sage: (2*fp).content()
             2 + O(2^11)
+
+        Over a field, the content is the base ring's one unless it is zero::
+
+            sage: K = Qp(13,7)
+            sage: R.<t> = K[]
+            sage: f = 13^7*t^3 + K(169,4)*t - 13^4
+            sage: f.content()
+            1 + O(13^7)
+            sage: f = R.zero()
+            sage: f.content()
+            0
+            sage: f = R(K(0,3))
+            sage: f.content()
+            O(13^3)
+
         """
+        if self.is_zero():
+            return self[0]
         if self.base_ring().is_field():
-            raise TypeError("ground ring is a field.  Answer is only defined up to units.")
+            return self.base_ring().one()
         if self._normalized:
             return self.base_ring()(self.base_ring().prime_pow(self._valbase))
         if self._valaddeds is None:
@@ -418,7 +449,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
                     None if self._list is None else [self.base_ring()(0)]
                     * start + self._list[start:stop]), construct = True)
         else:
-            if n >= len(self._relprecs):
+            if n >= len(self._relprecs) or n<0:
                 return self.base_ring()(0)
             if not self._list is None:
                 return self._list[n]
@@ -585,21 +616,52 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
             sage: a = t^4 + K(13,5)*t^2 + 13
             sage: K(13,7) * a
             (13 + O(13^7))*t^4 + (13^2 + O(13^6))*t^2 + (13^2 + O(13^8))
-        """
-        return None
-        # The code below has never been tested and is somehow subtly broken.
 
+        """
         if self._valaddeds is None:
             self._comp_valaddeds()
-        if left != 0:
-            val, unit = left.val_unit()
-            left_rprec = left.precision_relative()
-            relprecs = [min(left_rprec + self._valaddeds[i], self._relprecs[i]) for i in range(len(self._relprecs))]
-        elif left._is_exact_zero():
-            return Polynomial_padic_capped_relative_dense(self.parent(), [])
+
+        if left._is_exact_zero():
+            return self.parent().zero()
         else:
-            return Polynomial_padic_capped_relative_dense(self.parent(), (self._poly.parent()(0), self._valbase + left.valuation(), self._valaddeds, False, self._valaddeds, None), construct = True)
-        return Polynomial_padic_capped_relative_dense(self.parent(), (self._poly._rmul_(unit), self._valbase + val, relprecs, False, self._valaddeds, None), construct = True)
+            val = left.valuation()
+            if left.is_zero():
+                ret = self._poly.parent().zero()
+            else:
+                ret = self._poly._rmul_(left.unit_part().lift())
+
+            # the absolute precisions after multiplication are given like this:
+            # aprecs = [ min (self._aprecs[i] + val, self._val[i] + left.precisions_absolute()) ]
+            # this expands to
+            # aprecs = [ min (self._relprecs[i] + self._valbase + val, self._valaddeds[i] + self._valbase + val + left.precision_relative()) ]
+            # to turn them into relative precisions, we need to subtract the new base valuation
+            # aprecs = [ min (self._relprecs[i] + self._valbase + val  - self._valbase - val, self._valaddeds[i] + self._valbase + val + left.precision_relative() - self._valbase - val) ]
+            # this simplifies to:
+            relprecs = [ min( self._relprecs[i], self._valaddeds[i] + left.precision_relative() ) for i in range(len(self._relprecs)) ]
+
+            return Polynomial_padic_capped_relative_dense(self.parent(), (ret, self._valbase + val, relprecs, False, self._valaddeds, None), construct = True)
+
+    def _test_mul(self, **options):
+        """
+
+        sage: K = Qp(13, 7)
+        sage: R.<T> = K[]
+        sage: T._test_mul()
+
+        """
+        self = self.parent()
+        # TODO: move something like this to the appropriate place
+        K = self.base_ring()
+
+        tester = self._tester(**options)
+        scalars = [ K.random_element() for i in range(tester._max_runs) ]
+        polys = [ self.random_element() for i in range(tester._max_runs) ]
+
+        for s,p in zip(scalars, polys):
+            mul1 = s*p
+            mul2 = self(s)*p
+            tester.assertEqual(mul1, mul2)
+            tester.assertEqual(str(mul1), str(mul2))
 
     def _neg_(self):
         """
@@ -939,8 +1001,44 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
             zzpoly = self._poly.rescale(Integer(a))
         return Polynomial_padic_capped_relative_dense(self.parent(), (zzpoly, self._valbase, relprec, False, valadded, None), construct = True)
 
+    @coerce_binop
     def quo_rem(self, right):
-        return self._quo_rem_naive(right)
+        if self.degree() + 1 != len(self.list()):
+            raise ValueError("polynomial must not have leading zero coefficients")
+        if right.degree() + 1 != len(right.list()):
+            raise ValueError("polynomial must not have leading zero coefficients")
+
+        q,r = self._quo_rem_hensel(right)
+
+        # the implementation of _quo_rem_hensel does not care too much about
+        # precision issues, in particular it may throw away leading zero
+        # coefficients of r
+        self_ = q*right + r
+        r = r.list()
+        K = self.parent().base_ring()
+        zeros = 0
+        for i in range(self.degree()+1):
+            if self_[i].precision_absolute() <= self[i].precision_absolute():
+                if i >= len(r):
+                    zeros += 1
+            else:
+                if i >= len(r):
+                    r.extend([K.zero()]*zeros)
+                    zeros = 0
+                    r.append(K(0,self[i].precision_absolute()))
+                else:
+                    r[i] = r[i].add_bigoh(self[i].precision_absolute())
+
+        r = self.parent()(r)
+
+        self_ = q*right + r
+        assert self == self_
+        # we did not gain any precision or loose too much of it
+        assert all([c_.precision_absolute() <= c.precision_absolute() for c,c_ in zip(self.list(),self_.list())]), "too much precision: %s =?= %s * %s + %s = %s"%(self,right,q,r,self_)
+
+        return self._quo_rem_hensel(right)
+
+        return q,r
 
     def _quo_rem_naive(self, right):
         """
@@ -958,59 +1056,6 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
             quo = quo + a * (x ** (f.degree() - g.degree()))
             f = f - a * (x ** (f.degree() - g.degree())) * g
         return (quo, f)
-
-    #def gcd(self, right):
-    #    raise NotImplementedError
-
-    #def lcm(self, right):
-    #    raise NotImplementedError
-
-    @coerce_binop
-    def xgcd(self, right):
-        """
-        Extended gcd of ``self`` and ``other``.
-
-        INPUT:
-
-        - ``other`` -- an element with the same parent as ``self``
-
-        OUTPUT:
-
-        Polynomials ``g``, ``u``, and ``v`` such that ``g = u*self + v*other``
-
-        .. WARNING::
-
-            The computations are performed using the standard Euclidean
-            algorithm which might produce mathematically incorrect results in
-            some cases. See :trac:`13439`.
-
-        EXAMPLES::
-
-            sage: R.<x> = Qp(3,3)[]
-            sage: f = x + 1
-            sage: f.xgcd(f^2)
-            ((1 + O(3^3))*x + (1 + O(3^3)), (1 + O(3^3)), 0)
-
-        In these examples the results are incorrect, see :trac:`13439`::
-
-            sage: R.<x> = Qp(3,3)[]
-            sage: f = 3*x + 7
-            sage: g = 5*x + 9
-            sage: f.xgcd(f*g) # not tested - currently we get the incorrect result ((O(3^2))*x^2 + (O(3))*x + (1 + O(3^3)), (3^-2 + 2*3^-1 + O(3))*x, (3^-2 + 3^-1 + O(3)))
-            ((3 + O(3^4))*x + (1 + 2*3 + O(3^3)), (1 + O(3^3)), 0)
-
-            sage: R.<x> = Qp(3)[]
-            sage: f = 490473657*x + 257392844/729
-            sage: g = 225227399/59049*x - 8669753175
-            sage: f.xgcd(f*g) # not tested - currently we get the incorrect result ((O(3^18))*x^2 + (O(3^9))*x + (1 + O(3^20)), (3^-5 + 2*3^-1 + 3 + 2*3^2 + 3^4 + 2*3^6 + 3^7 + 3^8 + 2*3^9 + 2*3^11 + 3^13 + O(3^15))*x, (3^5 + 2*3^6 + 2*3^7 + 3^8 + 3^9 + 3^13 + 2*3^14 + 3^17 + 3^18 + 3^20 + 3^21 + 3^23 + 2*3^24 + O(3^25)))
-            ((3^3 + 3^5 + 2*3^6 + 2*3^7 + 3^8 + 2*3^10 + 2*3^11 + 3^12 + 3^13 + 3^15 + 2*3^16 + 3^18 + O(3^23))*x + (2*3^-6 + 2*3^-5 + 3^-3 + 2*3^-2 + 3^-1 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 3^6 + 2*3^7 + 2*3^8 + 2*3^9 + 2*3^10 + 3^11 + O(3^14)), (1 + O(3^20)), 0)
-
-        """
-        from sage.misc.stopgap import stopgap
-        stopgap("Extended gcd computations over p-adic fields are performed using the standard Euclidean algorithm which might produce mathematically incorrect results in some cases.", 13439)
-
-        from sage.rings.polynomial.polynomial_element_generic import Polynomial_generic_field
-        return Polynomial_generic_field.xgcd(self,right)
 
     #def discriminant(self):
     #    raise NotImplementedError

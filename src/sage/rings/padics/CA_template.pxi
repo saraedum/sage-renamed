@@ -84,7 +84,10 @@ cdef class CAElement(pAdicTemplateElement):
             self.absprec = aprec
         else:
             self.absprec = min(aprec, val + rprec)
-            cconv(self.value, x, self.absprec, 0, self.prime_pow)
+            if PY_TYPE_CHECK(x,CAElement) and x.parent() is self.parent():
+                cshift(self.value, (<CAElement>x).value, 0, self.absprec, self.prime_pow, True)
+            else:
+                cconv(self.value, x, self.absprec, 0, self.prime_pow)
 
     cdef CAElement _new_c(self):
         """
@@ -204,12 +207,23 @@ cdef class CAElement(pAdicTemplateElement):
             5 + O(13^4)
             sage: R(12) + R(1)
             13 + O(13^4)
+
+        TESTS:
+
+        This fails if we use ``creduce_small`` instead of ``creduce`` in the
+        implementation below::
+
+            sage: R = Zp(5, 10, 'capped-abs')
+            sage: a = R(5^9)
+            sage: b = a>>9
+            sage: a + b
+            1 + O(5)
         """
         cdef CAElement right = _right
         cdef CAElement ans = self._new_c()
         ans.absprec = min(self.absprec, right.absprec)
         cadd(ans.value, self.value, right.value, ans.absprec, ans.prime_pow)
-        creduce_small(ans.value, ans.value, ans.absprec, ans.prime_pow)
+        creduce(ans.value, ans.value, ans.absprec, ans.prime_pow)
         return ans
 
     cpdef ModuleElement _sub_(self, ModuleElement _right):

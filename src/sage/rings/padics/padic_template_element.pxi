@@ -23,10 +23,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from cpython.tuple cimport *
 from cpython.int cimport *
 include "sage/libs/pari/decl.pxi"
 
 import sage.rings.finite_rings.integer_mod
+from sage.rings.finite_rings import element_base
 from sage.libs.pari.gen cimport gen as pari_gen
 cdef extern from "convert.h":
     cdef void t_INT_to_ZZ( mpz_t value, GEN g )
@@ -103,10 +105,18 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
                 t_INT_to_ZZ((<Integer>x).value, pari_tmp)
             elif typ(pari_tmp) == t_FRAC:
                 x = Rational(x)
+        elif PY_TYPE_CHECK(x, pAdicGenericElement):
+            if not ((<pAdicGenericElement>x)._is_base_elt(self.prime_pow.prime) or x.parent() is self.parent()):
+                raise NotImplementedError("conversion between padic extensions not implemented")
+        elif sage.rings.finite_rings.element_base.is_FiniteFieldElement(x) and x.parent() is self.parent().residue_field():
+            x = x.polynomial().list()
+            if absprec > 1:
+                absprec = 1
         elif not (PY_TYPE_CHECK(x, Integer) or \
                   PY_TYPE_CHECK(x, Rational) or \
-                  PY_TYPE_CHECK(x, pAdicGenericElement) or \
                   PY_TYPE_CHECK(x, pari_gen) or \
+                  PyList_Check(x) or \
+                  PyTuple_Check(x) or \
                   sage.rings.finite_rings.integer_mod.is_IntegerMod(x)):
             x = Rational(x)
         val = get_ordp(x, self.prime_pow)
@@ -365,6 +375,12 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
                 n -= self.valuation()
         return L[:n] + [zero] * (n - len(L))
 
+    def _ext_p_list(self, pos):
+        if pos:
+            return self.unit_part().list('simple')
+        else:
+            return self.unit_part().list('smallest')
+
     cpdef pAdicTemplateElement unit_part(self):
         """
         Returns the unit part of this element.
@@ -393,6 +409,18 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
 
         """
         return self.prime_pow.prime == p and self.prime_pow.deg == 1
+
+    def _prime_pow(self):
+        """
+        Provides access to this element's ``prime_pow``.
+
+        EXAMPLES::
+
+            sage: R = ZpCR(5,5)
+            sage: R(1)._prime_pow()
+            PowComputer for 5
+        """
+        return self.prime_pow
 
 cdef Integer exact_pow_helper(long *ansrelprec, long relprec, _right, PowComputer_class prime_pow):
     """

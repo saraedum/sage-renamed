@@ -190,6 +190,15 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
         """
         return self._polynomial._latex_(self.parent().variable_name())
 
+    def _vector_(self):
+        parent = self.parent().vector_space()
+        entries = self.lift().list()
+
+        if len(entries) > parent.dimension():
+            raise NotImplementedError
+
+        return parent(entries + [self.parent().base().base_ring().zero()]*(parent.dimension()-len(entries)))
+
     def _pari_(self):
         """
         Pari representation of this quotient element.
@@ -618,6 +627,17 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             [ 0  1  0]
             [ 0  0  1]
             [ 5 -2  0]
+
+        TESTS:
+
+            Check that :trac:`13662` has been resolved::
+
+            sage: R.<x> = Zp(3,2)[]
+            sage: S.<xbar> = R.quo(x^2)
+            sage: xbar.matrix()
+            [         0 1 + O(3^2)]
+            [         0          0]
+
         """
         # Multiply each power of field generator on the right by this
         # element, then return the matrix whose rows are the
@@ -631,7 +651,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             a = R(1)
             d = R.degree()
             for _ in xrange(d):
-                v += (a*self).list()
+                v += (a*self).list()[:d] # over inexact rings, the list may contain more than d entries
                 a *= x
             S = R.base_ring()
             import sage.matrix.matrix_space

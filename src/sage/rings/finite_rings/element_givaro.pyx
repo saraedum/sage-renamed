@@ -476,7 +476,7 @@ cdef class Cache_givaro(SageObject):
                 e_entry = e[i] % self.characteristic()
                 res = self.objectptr.initi(res, int(e_entry))
                 to_add = make_FiniteField_givaroElement(self, res)
-                ret = ret + to_add*self.parent.gen()**i
+                ret = ret + to_add*self.parent._cache.gen()**i # temporary hack - revert me
             return ret
 
         else:

@@ -52,10 +52,12 @@ cdef class PowComputer_class(SageObject):
             sage: PC.pow_Integer_Integer(2)
             9
         """
+        mpz_init(self.temp_m)
         self.prime = prime
         self.in_field = in_field
         self.cache_limit = cache_limit
         self.prec_cap = prec_cap
+        self.ram_prec_cap = ram_prec_cap
 
     def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly=None, shift_seed=None):
         """
@@ -445,6 +447,33 @@ cdef class PowComputer_base(PowComputer_class):
         self.f = 1
         self.ram_prec_cap = prec_cap
         (<PowComputer_class>self)._initialized = 1
+
+    def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly=None, shift_seed=None):
+        """
+        Initialization.
+
+        TESTS::
+
+            sage: PC = PowComputer(5, 7, 10)
+            sage: PC(3)
+            125
+
+        """
+        PowComputer_class.__init__(self, prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly, shift_seed)
+
+        cdef Py_ssize_t i
+        cdef Integer x
+
+        mpz_set_ui(self.small_powers[0], 1)
+        if cache_limit > 0:
+            mpz_set(self.small_powers[1], prime.value)
+        for i from 2 <= i <= cache_limit:
+            mpz_mul(self.small_powers[i], self.small_powers[i - 1], prime.value)
+        mpz_pow_ui(self.top_power, prime.value, prec_cap)
+        self.deg = 1
+        self.e = 1
+        self.f = 1
+        self.ram_prec_cap = prec_cap
 
     def __dealloc__(self):
         """

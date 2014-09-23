@@ -503,6 +503,8 @@ def _single_variate(base_ring, name, sparse, implementation):
     import sage.rings.polynomial.polynomial_ring as m
     name = normalize_names(1, name)
     key = (base_ring, name, sparse, implementation if not sparse else None)
+    from sage.misc.cachefunc import _cache_key
+    key = _cache_key(key)
     R = _get_from_cache(key)
     if not R is None:
         return R

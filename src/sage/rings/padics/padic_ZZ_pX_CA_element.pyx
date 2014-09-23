@@ -241,6 +241,15 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
 
             sage: W(gp('5 + O(5^2)'))
             w^5 + 2*w^7 + 4*w^9 + O(w^10)
+
+        Check that :trac:`13612` has been fixed::
+
+            sage: R = ZpCA(3)
+            sage: S.<a> = R[]
+            sage: W.<a> = R.extension(a^2+1)
+            sage: W(W.residue_field().zero())
+            O(3)
+
         """
         pAdicZZpXElement.__init__(self, parent)
         cdef long aprec, rprec, ctx_prec
@@ -352,7 +361,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             # Should only reach here if x is not in F_p
             z = parent.gen()
             poly = x.polynomial().list()
-            x = sum([poly[i].lift() * (z ** i) for i in range(len(poly))])
+            x = sum([poly[i].lift() * (z ** i) for i in range(len(poly))], parent.zero())
             if 1 < aprec:
                 aprec = 1
         cdef pAdicZZpXCAElement _x
@@ -1886,11 +1895,13 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
 
     def matrix_mod_pn(self):
         """
-        Returns the matrix of right multiplication by the element on
-        the power basis `1, x, x^2, \ldots, x^{d-1}` for this
-        extension field.  Thus the *rows* of this matrix give the
-        images of each of the `x^i`.  The entries of the matrices are
-        ``IntegerMod`` elements, defined modulo ``p^(self.absprec() / e)``.
+        Returns the matrix of right multiplication by the element on the power
+        basis `1, x, x^2, \ldots, x^{d-1}` for this extension field.
+
+        OUTPUT:
+
+        A square matrix; the *rows* of this matrix give the images of each of
+        the `x^i`. The entries of the matrices are IntegerMod elements.
 
         EXAMPLES::
 
@@ -1899,71 +1910,66 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
             sage: a = (3+w)^7
-            sage: a.matrix_mod_pn()
-            [2757  333 1068  725 2510]
-            [  50 1507  483  318  725]
-            [ 500   50 3007 2358  318]
-            [1590 1375 1695 1032 2358]
-            [2415  590 2370 2970 1032]
+            sage: a.matrix_mod_pn() # known bug too much precision in the current output
+            [257 333 443 100  10]
+            [ 50 257 483 318 100]
+            [500  50 507 483 318]
+            [340 125 445 407 483]
+            [540 590 495 470 407]
+
+        The entries of the returned matrix may not be accurate to full
+        precision. This is an inherent problem when trying to return the matrix
+        over a single IntegerMod ring since the rows would need to be accurate
+        to different precisions. In the following example, the ``3`` in the
+        matrix is known to precision ``O(3^2)`` whereas the other entries are
+        known to precision ``O(3)``::
+
+            sage: K = ZpCA(3,5)
+            sage: R.<a> = K[]
+            sage: L.<a> = K.extension(a^2 - 3)
+            sage: t = a.add_bigoh(2); t
+            a + O(a^2)
+            sage: t.matrix_mod_pn()
+            [0 1]
+            [3 0]
+
+        TESTS:
+
+        Check that :trac:`13659` has been fixed::
+
+            sage: K = ZpCA(3,3)
+            sage: R.<a> = K[]
+            sage: L.<a> = K.extension(a^2 - 3)
+            sage: L(3).matrix_mod_pn()
+            [3 0]
+            [0 3]
+
         """
-        from sage.matrix.all import matrix
-        # this may be the wrong precision when ram_prec_cap is not divisible by e.
-        R = IntegerModRing(self.prime_pow.pow_Integer(self.prime_pow.capdiv(self.absprec)))
         n = self.prime_pow.deg
+        from sage.matrix.all import matrix
+        if self._is_exact_zero():
+            from sage.rings.integer_ring import IntegerRing
+            return matrix(IntegerRing(), n, n)
+
+        # the absolute precision of self
+        prec = self.precision_absolute()
+        # if we are in an Eisenstein extension, then the absolute precision of
+        # x^i*self exceeds this precision
+        prec += self.prime_pow.e - 1
+        prec = min(prec, self.parent().precision_cap())
+
+        R = IntegerModRing(self.prime_pow.pow_Integer(self.prime_pow.capdiv(prec)))
+
         L = []
-        cdef ntl_ZZ_pX cur = <ntl_ZZ_pX>self._ntl_rep()
-        cur.c.restore_c()
-        cdef ZZ_pX_Modulus_c* m = self.prime_pow.get_modulus_capdiv(self.absprec)
-        cdef ZZ_pX_c x
-        ZZ_pX_SetX(x)
-        cdef Py_ssize_t i, j
+        cur = self
+        x = self.parent().gen()
         zero = int(0)
         for i from 0 <= i < n:
-            curlist = cur.list()
-            L.extend(curlist + [zero]*(n - len(curlist)))
-            ZZ_pX_MulMod_pre(cur.x, cur.x, x, m[0])
-        return matrix(R, n, n,  L)
-
-#     def matrix(self, base = None):
-#         """
-#         If base is None, return the matrix of right multiplication by
-#         the element on the power basis `1, x, x^2, \ldots, x^{d-1}`
-#         for this extension field.  Thus the \emph{rows} of this matrix
-#         give the images of each of the `x^i`.
-
-#         If base is not None, then base must be either a field that
-#         embeds in the parent of self or a morphism to the parent of
-#         self, in which case this function returns the matrix of
-#         multiplication by self on the power basis, where we view the
-#         parent field as a field over base.
-
-#         INPUT:
-
-#             - base -- field or morphism
-#         """
-#         raise NotImplementedError
-
-#     def multiplicative_order(self, prec=None):
-#         """
-#         Returns the multiplicative order of self, ie the smallest
-#         positive n so that there is an exact p-adic element congruent
-#         to self modulo self's precision that is an nth root of unity.
-
-#         Note: unlike the case for Qp and Zp, it is possible to have
-#         non-teichmuller elements with finite orders.  This can happen
-#         only if (p-1) divides the ramification index (see the
-#         documentation on __pow__).
-
-#         INPUT:
-
-#             - self -- a p-adic element
-#             - prec -- an integer
-
-#         OUTPUT:
-
-#             - integer -- the multiplicative order of self
-#         """
-#         raise NotImplementedError
+            curlist = cur._ntl_rep_abs()[0].list()
+            L.extend(curlist)
+            L.extend([zero]*(n - len(curlist)))
+            cur *= x
+        return matrix(R, n, n, L)
 
     def teichmuller_list(self):
         r"""

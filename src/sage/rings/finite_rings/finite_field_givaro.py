@@ -508,7 +508,7 @@ class FiniteField_givaro(FiniteField):
                 return self._polynomial
             except AttributeError:
                 pass
-        quo = (-(self.gen()**(self.degree()))).integer_representation()
+        quo = (-(self._cache.gen()**(self.degree()))).integer_representation() # temporary hack - revert this
         b   = int(self.characteristic())
 
         ret = []

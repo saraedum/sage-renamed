@@ -179,6 +179,15 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
             sage: W(gp('2 + O(5^2)'))
             2 + O(w^25)
+
+        Check that :trac:`13612` has been fixed::
+
+            sage: R = ZpFM(3)
+            sage: S.<a> = R[]
+            sage: W.<a> = R.extension(a^2+1)
+            sage: W(W.residue_field().zero())
+            O(3^20)
+
         """
         pAdicZZpXElement.__init__(self, parent)
         ZZ_pX_construct(&self.value)
@@ -222,6 +231,11 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
                 x = x.lift()
             else:
                 raise TypeError, "cannot coerce from the given integer mod ring (not a power of the same prime)"
+        elif x in parent.residue_field():
+            # Should only reach here if x is not in F_p
+            z = parent.gen()
+            poly = x.polynomial().list()
+            x = sum([poly[i].lift() * (z ** i) for i in range(len(poly))], parent.zero())
         elif PY_TYPE_CHECK(x, ntl_ZZ_p):
             ctx_prec = ZZ_remove(tmp_z, (<ntl_ZZ>x.modulus()).x, self.prime_pow.pow_ZZ_tmp(1)[0])
             if ZZ_IsOne(tmp_z):

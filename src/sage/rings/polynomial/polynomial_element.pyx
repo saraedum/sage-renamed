@@ -2016,6 +2016,73 @@ cdef class Polynomial(CommutativeAlgebraElement):
             2*x - 1
         """
         return self.__mod__(other)
+    def _quo_rem_naive(self, right):
+        """
+        Naive quotient with remainder operating on padic polynomials as their coefficient lists
+        """
+        if right == 0:
+            raise ZeroDivisionError, "cannot divide by a polynomial indistinguishable from 0"
+        P = self.parent()
+        F = list(self); G = list(right);
+        fdeg = self.degree()
+        gdeg = right.degree()
+        Q = [0 for i in range(fdeg-gdeg+1)]
+        j=1
+        while fdeg >= gdeg:
+            a = F[-j]
+            if a!=0:
+                for i in range(fdeg-gdeg,fdeg+1):
+                    F[i] -= a * G[i-(fdeg-gdeg)]
+                Q[fdeg-gdeg] += a
+            j+=1; fdeg-=1;
+        ret = P(Q), P(F)
+        assert ret[0]*right + P(F) == self
+        return ret
+
+    def _quo_rem_hensel(self, right):
+        if right.is_zero():
+            raise ZeroDivisionError("cannot divide by a polynomial indistinguishable from 0.")
+        if not right.leading_coefficient().is_unit():
+            raise ValueError("Hensel quotient with remainder only applicable for polynomials with invertible leading coefficient.")
+
+        if right.degree() > self.degree():
+            return self.parent().zero(),self
+        elif right.degree() == self.degree():
+            q = self.parent()( self.leading_coefficient()*right.leading_coefficient().inverse_of_unit() )
+        else:
+            def reverse(poly):
+                x = list(reversed(poly.list()))
+                while x and x[-1].is_zero(): x.pop()
+                return poly.parent()(x)
+
+            f = reverse(self)
+            g = reverse(right)
+            h = self.parent()(right.leading_coefficient().inverse_of_unit())
+            s = h
+
+            k = 1
+            while k < self.degree() - right.degree() + 1:
+                e = self.parent().one() - g*h
+                h = (h + s*e).truncate(2*k)
+                d = (s*g - 1).truncate(2*k)
+                s = (s*(1-d)).truncate(2*k)
+                k <<= 1
+
+            #from sage.misc.all import save
+            #save((self,right,f,g,h),"/tmp/sr")
+            h = h#.truncate(self.degree() - right.degree() + 1)
+            #assert (h*g).truncate(self.degree() - right.degree() + 1).is_one()
+            q = (f*h).truncate(self.degree() - right.degree() + 1)
+            q = q.truncate(q.degree()+1)
+            q = reverse(q)
+            q <<= (self.degree() - right.degree() - q.degree())
+
+        r = self - right*q
+        r = r.truncate(r.degree()+1)
+
+        # check correctness of the output
+        assert r.degree() < right.degree() and q*right + r == self, "incorrect quo_rem: %s =?= %s * %s + %s = %s"%(self,right,q,r,q*right + r)
+        return q, r
 
     def _is_atomic(self):
         """
@@ -3498,6 +3565,60 @@ cdef class Polynomial(CommutativeAlgebraElement):
             pari.set_real_precision(n)  # restore precision
         return Factorization(F, unit)
 
+    @coerce_binop
+    def gcd(self, other):
+        """
+        Compute a greatest common divisor of ``self`` and ``other``.
+
+        INPUT:
+
+            - ``other`` -- a polynomial in the same ring as ``self``
+
+        OUTPUT:
+
+            A greatest common divisor of ``self`` and ``other`` as a polynomial
+            in the same ring as ``self``. Over a field, the return value will
+            be a monic polynomial.
+
+        .. NOTE::
+
+            The actual algorithm for computing greatest common divisors depends
+            on the base ring underlying the polynomial ring. If the base ring
+            defines a method ``_gcd_univariate_polynomial``, then this method
+            will be called (see examples below).
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: (2*x^2).gcd(2*x)
+            x
+            sage: R.zero().gcd(0)
+            0
+            sage: (2*x).gcd(0)
+            x
+
+            One can easily add gcd functionality to new rings by providing a
+            method ``_gcd_univariate_polynomial``::
+
+            sage: R.<x> = QQ[]
+            sage: S.<y> = R[]
+            sage: h1 = y*x
+            sage: h2 = y^2*x^2
+            sage: h1.gcd(h2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Univariate Polynomial Ring in x over Rational Field does not provide a gcd implementation for univariate polynomials
+            sage: T.<x,y> = QQ[]
+            sage: R._gcd_univariate_polynomial = lambda f,g: S(T(f).gcd(g))
+            sage: h1.gcd(h2)
+            x*y
+            sage: del R._gcd_univariate_polynomial
+
+        """
+        if hasattr(self.base_ring(), '_gcd_univariate_polynomial'):
+            return self.base_ring()._gcd_univariate_polynomial(self, other)
+        else:
+            raise NotImplementedError("%s does not provide a gcd implementation for univariate polynomials"%self.base_ring())
     def splitting_field(self, names, map=False, **kwds):
         """
         Compute the absolute splitting field of a given polynomial.
@@ -5977,6 +6098,66 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return self.parent().variable_name()
 
+    @coerce_binop
+    def xgcd(self, other):
+        r"""
+        Compute an extended gcd for ``self`` and ``other``.
+
+        INPUT:
+
+            - ``other`` -- a polynomial in the same ring as ``self``
+
+        OUTPUT:
+
+            A tuple ``(r,s,t)`` where ``r`` is a greatest common divisor of
+            ``self`` and ``other``, and ``s`` and ``t`` are such that ``r =
+            s*self + t*other`` holds.
+
+        .. NOTE::
+
+            The actual algorithm for computing the extended gcd depends on the
+            base ring underlying the polynomial ring. If the base ring defines
+            a method ``_xgcd_univariate_polynomial``, then this method will be
+            called (see examples below).
+
+        EXAMPLES::
+
+            sage: R.<x> = QQbar[]
+            sage: (2*x^2).gcd(2*x)
+            x
+            sage: R.zero().gcd(0)
+            0
+            sage: (2*x).gcd(0)
+            x
+
+        One can easily add xgcd functionality to new rings by providing a
+        method ``_xgcd_univariate_polynomial``::
+
+            sage: R.<x> = QQ[]
+            sage: S.<y> = R[]
+            sage: h1 = y*x
+            sage: h2 = y^2*x^2
+            sage: h1.xgcd(h2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Univariate Polynomial Ring in x over Rational Field does not provide an xgcd implementation for univariate polynomials
+            sage: T.<x,y> = QQ[]
+            sage: def poor_xgcd(f,g):
+            ...       ret = S(T(f).gcd(g))
+            ...       if ret == f: return ret,S.one(),S.zero()
+            ...       if ret == g: return ret,S.zero(),S.one()
+            ...       raise NotImplementedError
+            sage: R._xgcd_univariate_polynomial = poor_xgcd
+            sage: h1.xgcd(h2)
+            (x*y, 1, 0)
+            sage: del R._xgcd_univariate_polynomial
+
+        """
+        if hasattr(self.base_ring(), '_xgcd_univariate_polynomial'):
+            return self.base_ring()._xgcd_univariate_polynomial(self, other)
+        else:
+            raise NotImplementedError("%s does not provide an xgcd implementation for univariate polynomials"%self.base_ring())
+
     def variables(self):
         """
         Returns the tuple of variables occurring in this polynomial.
@@ -6260,6 +6441,65 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     cdef _inplace_truncate(self, long prec):
         return self.truncate(prec)
+
+    def is_nth_power(self, n):
+        """
+        Return whether this polynomial is an ``n``-th power in the polynomial ring.
+
+        INPUT:
+
+        - ``n`` -- an integer
+
+        EXAMPLES::
+
+            sage: R.<x> = GF(3)[]
+            sage: x.is_nth_power(1)
+            True
+            sage: x.is_nth_power(2)
+            False
+            sage: (x^3).is_nth_power(3)
+            True
+            sage: R(2).is_nth_power(-3)
+            True
+
+        """
+        if n == 0:
+            return self.is_one()
+        if n < 0:
+            return self.is_unit() and (~(self[0])).is_nth_power(-n)
+        return all([n.divides(e) for e in self.exponents()]) and all([c.is_nth_power(n) for c in self.coefficients()])
+
+    def nth_root(self, n):
+        """
+        Return a polynomial ``a`` such that this polynomial equals ``a^n``.
+
+        INPUT:
+
+        - ``n`` -- an integer
+
+        EXAMPLES::
+
+            sage: R.<x> = GF(3)[]
+            sage: x.nth_root(1)
+            x
+            sage: x.nth_root(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: element is not an n-th power.
+            sage: (x^3).nth_root(3)
+            x
+            sage: R(2).nth_root(-3)
+            2
+
+        """
+        if not self.is_nth_power(n):
+            raise ValueError("element is not an n-th power.")
+
+        if n < 0:
+            return self.parent()(self[0].nth_root(-n))
+        if n == 0:
+            return self.parent().one()
+        return self.parent()([c.nth_root(n) for c in self.coeffs()[::n]])
 
     def is_squarefree(self):
         """

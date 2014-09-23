@@ -204,7 +204,7 @@ class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGener
     An implementation of the `p`-adic integers with capped relative
     precision.
     """
-    def __init__(self, p, prec, print_mode, names):
+    def __init__(self, p, prec, print_mode, names, implementation = None):
         """
         Initialization.
 
@@ -289,11 +289,41 @@ class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGener
             return "\\ZZ_{%s}" % self.prime()
         return "%s-adic Ring with capped relative precision %s"%(self.prime(), self.precision_cap())
 
+    def _factor_univariate_polynomial(self, f):
+        """
+        Computes the factorization of ``f`` into irreducible polynomials.
+
+        INPUT:
+
+            - ``f`` -- a univariate polynomial defined over this ring
+
+        OUTPUT:
+
+        A factorization of ``f`` into irreducible factors over this ring
+
+        ..SEEALSO ::
+
+            :meth:`sage.rings.polynomial.polynomial_element.Polynomial.factor`
+
+        EXAMPLES::
+
+            sage: R.<x> = ZpCR(13,5)[]
+            sage: (x^2 + 1).factor()
+            ((1 + O(13^5))*x + (5 + 5*13 + 13^2 + 5*13^4 + O(13^5))) * ((1 + O(13^5))*x + (8 + 7*13 + 11*13^2 + 12*13^3 + 7*13^4 + O(13^5)))
+
+        """
+        from sage.rings.padics.factory import ZpCA
+        m = min([x.precision_absolute() for x in f.list()])
+        R = ZpCA(self.prime(), prec = m)
+        F = f.change_ring(R).factor()
+        from sage.structure.factorization import Factorization
+        return Factorization([(a.change_ring(self), b) for (a, b) in F], unit=self(F.unit()))
+
 class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGeneric):
     r"""
     An implementation of the `p`-adic integers with capped absolute precision.
     """
-    def __init__(self, p, prec, print_mode, names):
+    def __init__(self, p, prec, print_mode, names, implementation = None):
         """
         Initialization.
 
@@ -384,7 +414,7 @@ class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
     r"""
     An implementation of the `p`-adic integers using fixed modulus.
     """
-    def __init__(self, p, prec, print_mode, names):
+    def __init__(self, p, prec, print_mode, names, implementation = None):
         """
         Initialization
 
@@ -501,7 +531,7 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
 
     """
 
-    def __init__(self, p, prec, print_mode, names):
+    def __init__(self, p, prec, print_mode, names, implementation = None):
         """
         Initialization.
 

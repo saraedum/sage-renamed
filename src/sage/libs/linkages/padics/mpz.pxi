@@ -27,6 +27,7 @@ cdef extern from "mpz_pylong.h":
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
+from sage.rings.padics.common_conversion cimport cconv_mpz_t_out_shared, cconv_mpz_t_shared, cconv_mpq_t_out_shared, cconv_mpq_t_shared, cconv_shared
 import sage.rings.finite_rings.integer_mod
 
 cdef Integer holder = PY_NEW(Integer)
@@ -601,33 +602,7 @@ cdef int cconv(mpz_t out, x, long prec, long valshift, PowComputer_class prime_p
 
     - ``prime_pow`` -- a PowComputer for the ring.
     """
-    if PY_TYPE_CHECK(x, pari_gen):
-        x = x.sage()
-    if PY_TYPE_CHECK(x, pAdicGenericElement) or sage.rings.finite_rings.integer_mod.is_IntegerMod(x):
-        x = x.lift()
-    if PY_TYPE_CHECK(x, Integer):
-        if valshift > 0:
-            mpz_divexact(out, (<Integer>x).value, prime_pow.pow_mpz_t_tmp(valshift))
-            mpz_mod(out, out, prime_pow.pow_mpz_t_tmp(prec))
-        elif valshift < 0:
-            raise RuntimeError("Integer should not have negative valuation")
-        else:
-            mpz_mod(out, (<Integer>x).value, prime_pow.pow_mpz_t_tmp(prec))
-    elif PY_TYPE_CHECK(x, Rational):
-        if valshift == 0:
-            mpz_invert(out, mpq_denref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(prec))
-            mpz_mul(out, out, mpq_numref((<Rational>x).value))
-        elif valshift < 0:
-            mpz_divexact(out, mpq_denref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(-valshift))
-            mpz_invert(out, out, prime_pow.pow_mpz_t_tmp(prec))
-            mpz_mul(out, out, mpq_numref((<Rational>x).value))
-        else:
-            mpz_invert(out, mpq_denref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(prec))
-            mpz_divexact(holder.value, mpq_numref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(valshift))
-            mpz_mul(out, out, holder.value)
-        mpz_mod(out, out, prime_pow.pow_mpz_t_tmp(prec))
-    else:
-        raise NotImplementedError("No conversion defined")
+    return cconv_shared(out, x, prec, valshift, prime_pow)
 
 cdef inline long cconv_mpz_t(mpz_t out, mpz_t x, long prec, bint absolute, PowComputer_class prime_pow) except -2:
     """

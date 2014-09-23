@@ -20,24 +20,15 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-#*****************************************************************************
-#       Copyright (C) 2007-2013 David Roe <roed.math@gmail.com>
-#                               William Stein <wstein@gmail.com>
-#
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
-#
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
 from sage.rings.infinity import infinity
-from sage.structure.element cimport ModuleElement, RingElement, CommutativeRingElement
+from sage.structure.element cimport ModuleElement, RingElement, PrincipalIdealDomainElement
 from sage.structure.element import coerce_binop
 
-cdef class LocalGenericElement(CommutativeRingElement):
+cdef class LocalGenericElement(PrincipalIdealDomainElement):
     #cpdef ModuleElement _add_(self, ModuleElement right):
     #    raise NotImplementedError
+
+    __hash__ = None
 
     cpdef RingElement _div_(self, RingElement right):
         r"""
@@ -309,6 +300,14 @@ cdef class LocalGenericElement(CommutativeRingElement):
             sage: a.slice(None, 5, None)
             2*5^2 + 2*5^3 + O(5^5)
 
+        Test that :trac:`13300` is fixed::
+
+            sage: K=Qp(3,5)
+            sage: R.<a> = K[]
+            sage: L.<a> = K.extension(a^2+a-1)
+            sage: a[0:2]
+             a + O(3^2)
+
         """
         if i is None:
             i = self.valuation()
@@ -344,6 +343,8 @@ cdef class LocalGenericElement(CommutativeRingElement):
         # construct the return value
         ans = self.parent().zero()
         for c in self.list()[start:stop:k]:
+            if isinstance(c, list):
+                c = sum([cc * self.parent().gen()**i for i,cc in enumerate(c)])
             ans += ppow * c
             ppow *= pk
 

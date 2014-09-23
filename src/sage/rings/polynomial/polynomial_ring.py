@@ -310,6 +310,9 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             else:
                 self._Karatsuba_threshold = 8
 
+    def _cache_key(self):
+        return self.base_ring(), self.is_sparse(), self.variable_name()
+
     def __reduce__(self):
         import sage.rings.polynomial.polynomial_ring_constructor
         return (sage.rings.polynomial.polynomial_ring_constructor.PolynomialRing,

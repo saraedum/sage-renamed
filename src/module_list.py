@@ -1772,6 +1772,52 @@ ext_modules = [
               libraries = ["ntl", "gmp", "gmpxx", "m"],
               language='c++'),
 
+    Extension('sage.rings.padics.pow_computer_flint',
+              sources = ['sage/rings/padics/pow_computer_flint.pyx'],
+              libraries = ["csage", "flint", "gmpxx", "gmp", "ntl"],
+              language='c++',
+              include_dirs = [SAGE_INC + 'flint/'],
+              depends = flint_depends),
+
+    Extension('sage.rings.padics.qadic_flint_CR',
+              sources = ['sage/rings/padics/qadic_flint_CR.pyx'],
+              include_dirs = [SAGE_INC + 'flint/'],
+              depends = flint_depends,
+              libraries = ["csage", "flint"]),
+
+    Extension('sage.rings.padics.qadic_flint_CA',
+              sources = ['sage/rings/padics/qadic_flint_CA.pyx'],
+              include_dirs = [SAGE_INC + 'flint/'],
+              depends = flint_depends,
+              libraries = ["csage", "flint"]),
+
+    Extension('sage.rings.padics.qadic_flint_FM',
+              sources = ['sage/rings/padics/qadic_flint_FM.pyx'],
+              include_dirs = [SAGE_INC + 'flint/'],
+              depends = flint_depends,
+              libraries = ["csage", "flint"]),
+
+    Extension('sage.rings.padics.padic_laurent_element',
+              sources = ['sage/rings/padics/padic_laurent_element.pyx'],
+              language='c++'),
+
+    Extension('sage.rings.padics.padic_laurent_CR_element',
+              sources = ['sage/rings/padics/padic_laurent_CR_element.pyx'],
+              language='c++'),
+
+    Extension('sage.rings.padics.padic_laurent_CA_element',
+              sources = ['sage/rings/padics/padic_laurent_CA_element.pyx'],
+              language='c++'),
+
+    Extension('sage.rings.padics.padic_laurent_FM_element',
+              sources = ['sage/rings/padics/padic_laurent_FM_element.pyx'],
+              language='c++'),
+
+    Extension('sage.rings.padics.padic_general_element',
+              sources = ['sage/rings/padics/padic_general_element.pyx'],
+              language='c++'),
+
+
         ################################
         ##
         ## sage.rings.polynomial
