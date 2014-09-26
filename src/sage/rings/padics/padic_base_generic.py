@@ -137,7 +137,9 @@ class pAdicBaseGeneric(pAdicGeneric):
 
         EXAMPLES::
 
-            sage: R = Zp(5, 15, print_mode='digits'); S = Zp(5, 44, print_max_terms=4); R.is_isomorphic(S)
+            sage: R = Zp(5, 15, print_mode='digits')
+            sage: S = Zp(5, 44)
+            sage: R.is_isomorphic(S)
             True
         """
         return isinstance(ring, pAdicBaseGeneric) and self.prime() == ring.prime() and self.is_field() == ring.is_field()

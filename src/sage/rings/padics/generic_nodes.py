@@ -271,7 +271,7 @@ class pAdicFixedModRingGeneric(pAdicRingGeneric, FixedModGeneric):
             sage: (t + 1).gcd( (t - 1) * (t + 1) )
             (1 + O(3^20))*t + (1 + O(3^20))
             sage: (t^3).gcd( t^5 )
-            (1 + O(3^20))*t^3
+            (1 + O(3^20))*t^3 + (O(3^20))*t^2 + (O(3^20))*t + (O(3^20))
 
         Also works over extensions::
 
@@ -355,7 +355,7 @@ class pAdicFixedModRingGeneric(pAdicRingGeneric, FixedModGeneric):
             sage: (t + 1).xgcd( (t - 1) * (t + 1) )
             ((1 + O(3^20))*t + (1 + O(3^20)), 20, (1 + O(3^20)), 0)
             sage: (t^3).xgcd( t^5 )
-            ((1 + O(3^20))*t^3, 20, (1 + O(3^20)), 0)
+            ((1 + O(3^20))*t^3 + (O(3^20))*t^2 + (O(3^20))*t + (O(3^20)), 20, (1 + O(3^20)), 0)
 
         Also works over extensions::
 
@@ -443,7 +443,7 @@ class pAdicCappedAbsoluteRingGeneric(pAdicRingGeneric, CappedAbsoluteGeneric):
             sage: (t + 1).gcd( (t - 1) * (t + 1) )
             (1 + O(3^20))*t + (1 + O(3^20))
             sage: (t^3).gcd( t^5 )
-            (1 + O(3^20))*t^3
+            (1 + O(3^20))*t^3 + (O(3^20))*t^2 + (O(3^20))*t + (O(3^20))
 
         Also works over extensions::
 
@@ -503,7 +503,7 @@ class pAdicCappedAbsoluteRingGeneric(pAdicRingGeneric, CappedAbsoluteGeneric):
             sage: (t + 1).xgcd( (t - 1) * (t + 1) )
             ((1 + O(3^20))*t + (1 + O(3^20)), (1 + O(3^20)), 0)
             sage: (t^3).xgcd( t^5 )
-            ((1 + O(3^20))*t^3, (1 + O(3^20)), 0)
+            ((1 + O(3^20))*t^3 + (O(3^20))*t^2 + (O(3^20))*t + (O(3^20)), (1 + O(3^20)), 0)
 
         Also works over extensions::
 

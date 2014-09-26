@@ -175,7 +175,7 @@ class GeneralExtensionGeneric(pAdicExtensionGeneric):
             sage: K = Qp(3,5)
             sage: R.<a> = K[]
             sage: L.<a> = K.extension(a + 1); L
-            Trivial extension in a defined by (1 + O(3^5))*a + (1 + O(3^5)) of 3-adic Field with capped relative precision 5
+            Trivial extension in a defined by (1 + O(3^5))*a + 1 + O(3^5) of 3-adic Field with capped relative precision 5
             sage: L.implementation_ring() # indirect doctest
             3-adic Field with capped relative precision 5
             sage: a == -1
