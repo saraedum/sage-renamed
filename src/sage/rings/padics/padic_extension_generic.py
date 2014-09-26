@@ -65,7 +65,13 @@ class pAdicExtensionGeneric(pAdicGeneric):
         """
         # Far more functionality needs to be added here later.
         if isinstance(R, pAdicExtensionGeneric) and R.fraction_field() is self:
-            return True
+            if self._implementation == 'NTL':
+                return True
+            elif R._prec_type() == 'capped-abs':
+                from sage.rings.padics.qadic_flint_CA import pAdicCoercion_CA_frac_field as coerce_map
+            elif R._prec_type() == 'capped-rel':
+                from sage.rings.padics.qadic_flint_CR import pAdicCoercion_CR_frac_field as coerce_map
+            return coerce_map(R, self)
 
     def __cmp__(self, other):
         """

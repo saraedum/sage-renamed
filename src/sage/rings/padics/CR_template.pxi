@@ -2038,7 +2038,7 @@ cdef class pAdicConvert_QQ_CR(Morphism):
             sage: g == f
             True
             sage: g(1/6)
-            1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19 + O(5^20) 
+            1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19 + O(5^20)
             sage: g(1/6) == f(1/6)
             True
         """
@@ -2142,8 +2142,8 @@ cdef class pAdicCoercion_CR_frac_field(RingHomomorphism_coercion):
         sage: K = R.fraction_field()
         sage: K.coerce_map_from(R)
         Ring Coercion morphism:
-          From: Unramified Extension in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20)) of 3-adic Ring with capped relative precision 20
-          To:   Unramified Extension in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20)) of 3-adic Field with capped relative precision 20
+          From: Unramified Extension in a defined by (1 + O(3^20))*x^3 + (2 + O(3^20))*x + 1 + O(3^20) of 3-adic Ring with capped relative precision 20
+          To:   Unramified Extension in a defined by (1 + O(3^20))*x^3 + (2 + O(3^20))*x + 1 + O(3^20) of 3-adic Field with capped relative precision 20
     """
     def __init__(self, R, K):
         """
@@ -2234,6 +2234,58 @@ cdef class pAdicCoercion_CR_frac_field(RingHomomorphism_coercion):
             cshift(ans.unit, x.unit, 0, rprec, x.prime_pow, reduce)
         return ans
 
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = Zp(5).coerce_map_from(ZZ)
+            sage: g = copy(f)   # indirect doctest
+            sage: g
+            Ring Coercion morphism:
+              From: Integer Ring
+              To:   5-adic Ring with capped relative precision 20
+            sage: g == f
+            True
+            sage: g is f
+            False
+            sage: g(5)
+            5 + O(5^21)
+            sage: g(5) == f(5)
+            True
+
+        """
+        _slots['_zero'] = self._zero
+        _slots['_section'] = self._section
+        return RingHomomorphism_coercion._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = Zp(5).coerce_map_from(ZZ)
+            sage: g = copy(f)   # indirect doctest
+            sage: g
+            Ring Coercion morphism:
+              From: Integer Ring
+              To:   5-adic Ring with capped relative precision 20
+            sage: g == f
+            True
+            sage: g is f
+            False
+            sage: g(5)
+            5 + O(5^21)
+            sage: g(5) == f(5)
+            True
+
+        """
+        self._zero = _slots['_zero']
+        self._section = _slots['_section']
+        RingHomomorphism_coercion._update_slots(self, _slots)
+
     def section(self):
         """
         Returns a map back to the ring that converts elements of
@@ -2259,8 +2311,8 @@ cdef class pAdicConvert_CR_frac_field(Morphism):
         sage: K = R.fraction_field()
         sage: f = R.convert_map_from(K); f
         Generic morphism:
-          From: Unramified Extension in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20)) of 3-adic Field with capped relative precision 20
-          To:   Unramified Extension in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20)) of 3-adic Ring with capped relative precision 20
+          From: Unramified Extension in a defined by (1 + O(3^20))*x^3 + (2 + O(3^20))*x + 1 + O(3^20) of 3-adic Field with capped relative precision 20
+          To:   Unramified Extension in a defined by (1 + O(3^20))*x^3 + (2 + O(3^20))*x + 1 + O(3^20) of 3-adic Ring with capped relative precision 20
     """
     def __init__(self, K, R):
         """
@@ -2349,6 +2401,42 @@ cdef class pAdicConvert_CR_frac_field(Morphism):
             ans.relprec = rprec
             cshift(ans.unit, x.unit, 0, rprec, x.prime_pow, reduce)
         return ans
+
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = Zp(5).convert_map_from(QQ)
+            sage: g = copy(f)   # indirect doctest
+            sage: g == f
+            True
+            sage: g(1/6)
+            1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19 + O(5^20)
+            sage: g(1/6) == f(1/6)
+            True
+        """
+        _slots['_zero'] = self._zero
+        return Morphism._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = Zp(5).convert_map_from(QQ)
+            sage: g = copy(f)   # indirect doctest
+            sage: g == f
+            True
+            sage: g(1/6)
+            1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19 + O(5^20)
+            sage: g(1/6) == f(1/6)
+            True
+        """
+        self._zero = _slots['_zero']
+        Morphism._update_slots(self, _slots)
 
 def unpickle_cre_v2(cls, parent, unit, ordp, relprec):
     """
