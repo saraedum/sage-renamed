@@ -252,7 +252,7 @@ class DevelopingValuation(DiscreteValuation):
             sage: v = GaussValuation(S)
             sage: f = 3*x + 2
             sage: h = v.equivalence_reciprocal(f); h
-            (2 + 3 + 3^2 + 3^3 + 3^4 + O(3^5))
+            2 + 3 + 3^2 + 3^3 + 3^4 + O(3^5)
             sage: v.is_equivalent(f*h, 1)
             True
 

@@ -402,7 +402,7 @@ class pAdicValuation_base(UniqueRepresentation, DiscreteValuation):
             sage: R.<x>=k[]
             sage: G = x^2 + 1
             sage: v.montes_factorization(G)
-            ((1 + O(5^4))*x + (2 + 5 + 2*5^2 + 5^3 + O(5^4))) * ((1 + O(5^4))*x + (3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4)))
+            ((1 + O(5^4))*x + 2 + 5 + 2*5^2 + 5^3 + O(5^4)) * ((1 + O(5^4))*x + 3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4))
 
         REFERENCES:
 
@@ -458,15 +458,15 @@ class pAdicValuation_base(UniqueRepresentation, DiscreteValuation):
 
             sage: G = x^2 + 1
             sage: v.mac_lane_approximants(G)
-            [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x + (1 + O(2^10))) = 1/2 ]]
+            [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x + 1 + O(2^10)) = 1/2 ]]
             sage: v.mac_lane_approximants(G, precision_cap = infinity)
-            [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x + (1 + O(2^10))) = 1/2, v((1 + O(2^10))*x^2 + (1 + O(2^10))) = +Infinity ]]
+            [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x + 1 + O(2^10)) = 1/2, v((1 + O(2^10))*x^2 + 1 + O(2^10)) = +Infinity ]]
 
             sage: G = x^4 + 2*x^3 + 2*x^2 - 2*x + 2
             sage: v.mac_lane_approximants(G)
             [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x) = 1/4 ]]
             sage: v.mac_lane_approximants(G,infinity)
-            [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x) = 1/4, v((1 + O(2^10))*x^4 + (2 + O(2^11))*x^3 + (2 + O(2^11))*x^2 + (2 + 2^2 + 2^3 + 2^4 + 2^5 + 2^6 + 2^7 + 2^8 + 2^9 + 2^10 + O(2^11))*x + (2 + O(2^11))) = +Infinity ]]
+            [[ Gauss valuation induced by 2-adic valuation, v((1 + O(2^10))*x) = 1/4, v((1 + O(2^10))*x^4 + (2 + O(2^11))*x^3 + (2 + O(2^11))*x^2 + (2 + 2^2 + 2^3 + 2^4 + 2^5 + 2^6 + 2^7 + 2^8 + 2^9 + 2^10 + O(2^11))*x + 2 + O(2^11)) = +Infinity ]]
 
         The factorization of primes in the Gaussian integers can be read off
         the Mac Lane approximants::
@@ -496,21 +496,21 @@ class pAdicValuation_base(UniqueRepresentation, DiscreteValuation):
             sage: R.<x>=k[]
             sage: G = x^2 + 1
             sage: v1,v2 = v.mac_lane_approximants(G); v1,v2
-            ([ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + O(5^4))) = 1 ], [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + O(5^4))) = 1 ])
+            ([ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + 2 + O(5^4)) = 1 ], [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + 3 + O(5^4)) = 1 ])
             sage: w1, w2 = v.mac_lane_approximants(G,precision_cap=2); w1,w2
-            ([ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + 5 + 2*5^2 + O(5^4))) = 3 ], [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + 3*5 + 2*5^2 + O(5^4))) = 3 ])
+            ([ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + 2 + 5 + 2*5^2 + O(5^4)) = 3 ], [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + 3 + 3*5 + 2*5^2 + O(5^4)) = 3 ])
 
         Note how the latter give a better approximation to the factors of `x^2 + 1`::
 
             sage: v1.phi() * v2.phi() - G
-            (O(5^4))*x^2 + (5 + O(5^4))*x + (5 + O(5^4))
+            (5 + O(5^4))*x + 5 + O(5^4)
             sage: w1.phi() * w2.phi() - G
-            (O(5^4))*x^2 + (5^3 + O(5^4))*x + (5^3 + O(5^4))
+            (5^3 + O(5^4))*x + 5^3 + O(5^4)
 
         In this example, the process stops with a factorization of `x^2 + 1`::
 
             sage: v.mac_lane_approximants(G, precision_cap=infinity)
-            [[ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + 5 + 2*5^2 + 5^3 + O(5^4))) = +Infinity ], [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4))) = +Infinity ]]
+            [[ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + 2 + 5 + 2*5^2 + 5^3 + O(5^4)) = +Infinity ], [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + 3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4)) = +Infinity ]]
 
         This obviously cannot happen over the rationals where we only get an
         approximate factorization::

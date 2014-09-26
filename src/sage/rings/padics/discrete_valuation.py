@@ -83,7 +83,7 @@ class DiscretePseudoValuation(Morphism):
             if self(x) is infinity:
                 tester.assertFalse(x.is_unit())
 
-        S = self.domain().some_elements()
+        S = list(self.domain().some_elements())
         from sage.combinat.cartesian_product import CartesianProduct
         for x,y in tester.some_elements(CartesianProduct(S,S)):
             tester.assertEqual(self(x*y),self(x)+self(y))

@@ -332,7 +332,7 @@ class GaussValuation(DevelopingValuation, UniqueRepresentation):
             sage: F = v.reduce(f); F
             x^2 + 2*x + 1
             sage: g = v.lift(F); g
-            (1 + O(3^5))*x^2 + (2 + O(3^5))*x + (1 + O(3^5))
+            (1 + O(3^5))*x^2 + (2 + O(3^5))*x + 1 + O(3^5)
             sage: v.is_equivalent(f,g)
             True
 
@@ -411,9 +411,9 @@ class GaussValuation(DevelopingValuation, UniqueRepresentation):
             sage: S.<x> = Qp(3,5)[]
             sage: v = GaussValuation(S)
             sage: v.equivalence_unit(2)
-            (3^2 + O(3^7))
+            3^2 + O(3^7)
             sage: v.equivalence_unit(-2)
-            (3^-2 + O(3^3))
+            3^-2 + O(3^3)
 
         """
         ret = self._base_valuation.domain().one()
