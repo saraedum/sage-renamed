@@ -613,7 +613,8 @@ class DevelopingValuation(DiscreteValuation):
 
         F = self.reduce(f*R)
         F = F.factor()
-        print "%s factors as %s = %s in reduction"%(f0,F.prod(),F)
+        from sage.misc.misc import verbose
+        verbose("%s factors as %s = %s in reduction"%(f0,F.prod(),F),caller_name="equivalence_decomposition")
         unit = F.unit()
 
         F = list(F)
@@ -961,7 +962,8 @@ class DevelopingValuation(DiscreteValuation):
             sage: eta2=eta1.mac_lane_step(F)[0]
 
         """
-        print "Expanding %s towards %s"%(self,G)
+        from sage.misc.misc import verbose
+        verbose("Expanding %s towards %s"%(self,G),caller_name="mac_lane_step")
         assert not G.is_constant()
         R = G.parent()
         if R is not self.domain():
@@ -1003,10 +1005,10 @@ class DevelopingValuation(DiscreteValuation):
                 else:
                     continue
 
-            print "Determining the valuation for %s"%phi
+            verbose("Determining the valuation for %s"%phi,level=2,caller_name="mac_lane_step")
             w = self.extension(phi, self(phi), check=False)
             NP = w.newton_polygon(G).principal_part()
-            print "Newton-Polygon for v(phi)=%s : %s"%(self(phi),NP)
+            verbose("Newton-Polygon for v(phi)=%s : %s"%(self(phi),NP),level=2,caller_name="mac_lane_step")
             # assert len(NP)
             if not NP:
                 q,r = G.quo_rem(phi)
@@ -1031,9 +1033,9 @@ class DevelopingValuation(DiscreteValuation):
 
             for i in range(len(NP.slopes())):
                 slope = NP.slopes()[i]
-                print "Slope = %s"%slope
+                verbose("Slope = %s"%slope,level=3,caller_name="mac_lane_step")
                 side = NP.sides()[i]
-                print "Left end is %s"%(list(w.coefficients(G))[side[0][0]])
+                verbose("Left end is %s"%(list(w.coefficients(G))[side[0][0]]),level=3,caller_name="mac_lane_step")
                 new_mu = self(phi) - slope
                 base = self
                 if phi.degree() == base.phi().degree():

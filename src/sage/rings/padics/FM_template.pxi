@@ -367,6 +367,13 @@ cdef class FMElement(pAdicTemplateElement):
             3 + 5 + O(5^20)
             sage: a >> 3
             3 + 5 + O(5^20)
+
+        TODO: A bug which happened without the True below::
+
+            sage: R = ZpFM(3, 20)
+            sage: R(3)<<19
+            O(3^20)
+
         """
         if shift < 0:
             return self._rshift_c(-shift)
@@ -376,7 +383,7 @@ cdef class FMElement(pAdicTemplateElement):
         if shift >= self.prime_pow.prec_cap:
             csetzero(ans.value, ans.prime_pow)
         else:
-            cshift(ans.value, self.value, shift, ans.prime_pow.prec_cap, ans.prime_pow, False)
+            cshift(ans.value, self.value, shift, ans.prime_pow.prec_cap, ans.prime_pow, True)
         return ans
 
     cdef pAdicTemplateElement _rshift_c(self, long shift):
@@ -410,7 +417,7 @@ cdef class FMElement(pAdicTemplateElement):
         if shift >= self.prime_pow.prec_cap:
             csetzero(ans.value, ans.prime_pow)
         else:
-            cshift(ans.value, self.value, -shift, ans.prime_pow.prec_cap, ans.prime_pow, False)
+            cshift(ans.value, self.value, -shift, ans.prime_pow.prec_cap, ans.prime_pow, True)
         return ans
 
     def add_bigoh(self, absprec):

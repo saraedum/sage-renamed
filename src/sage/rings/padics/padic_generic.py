@@ -77,7 +77,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: Rx.zero().factor()
             Traceback (most recent call last):
             ...
-            ValueError: factorization of 0 not defined
+            ArithmeticError: factorization of 0 not defined
 
             sage: K = Qp(3)
             sage: R.<x> = K[]
@@ -85,7 +85,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: f.factor()
             Traceback (most recent call last):
             ...
-            ValueError: f must be integral
+            ValueError: G must be integral
 
         """
         from sage.structure.factorization import Factorization
@@ -575,7 +575,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: S = ZpFM(3,1)
             sage: R.<t> = S[]
             sage: S._pAdicGeneric__xgcd_univariate_polynomial_fixed(t,t)
-            ((1 + O(3))*t, 1, (1 + O(3))*t, 1, (1 + O(3)), 0)
+            ((1 + O(3))*t + (O(3)), 1, (1 + O(3))*t + (O(3)), 1, (1 + O(3)), 0)
 
         Gcd computation might result in a loss of precision, especially if the
         leading coefficients of the input polynomials have positive valuation::
@@ -597,7 +597,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: S = ZpFM(3,2)
             sage: g = f.change_ring(S)
             sage: S._pAdicGeneric__xgcd_univariate_polynomial_fixed(g,g.derivative())
-            ((1 + O(3^2))*t^2 + (1 + O(3^2))*t + (1 + O(3^2)), 1, (3 + O(3^2))*t^2 + (3 + O(3^2))*t + (3 + O(3^2)), 2, (2*3 + O(3^2))*t + (2*3 + O(3^2)), (1 + O(3^2))*t^2)
+            ((1 + O(3^2))*t^2 + (1 + O(3^2))*t + (1 + O(3^2)), 1, (3 + O(3^2))*t^2 + (3 + O(3^2))*t + (3 + O(3^2)), 2, (2*3 + O(3^2))*t + (2*3 + O(3^2)), (1 + O(3^2))*t^2 + (O(3^2))*t + (O(3^2)))
 
         The meaning of this result is the following: ``g`` divides ``f`` and
         ``f.derivative()``, at least if we reduce them mod `p`. At the same
@@ -611,7 +611,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: S = ZpFM(3,15)
             sage: g = f.change_ring(S)
             sage: S._pAdicGeneric__xgcd_univariate_polynomial_fixed(g,g.derivative())
-            ((1 + O(3^15))*t + (2 + 2*3 + O(3^15)), 10, (3^5 + O(3^15))*t + (2*3^5 + 2*3^6 + O(3^15)), 15, (3 + 3^2 + 3^6 + 2*3^7 + 2*3^9 + 2*3^10 + 2*3^11 + 3^13 + O(3^15))*t + (3^5 + 2*3^7 + 2*3^8 + 2*3^9 + 3^11 + 3^12 + 3^13 + O(3^15)), (2 + 3 + 2*3^2 + 2*3^3 + 2*3^4 + 3^5 + 2*3^7 + 2*3^11 + 3^12 + 2*3^13 + 3^14 + O(3^15))*t^2 + (1 + 3 + 2*3^4 + 3^7 + 2*3^8 + 3^9 + 3^10 + 2*3^11 + 2*3^12 + 2*3^13 + O(3^15))*t)
+            ((1 + O(3^15))*t + (2 + 2*3 + O(3^15)), 10, (3^5 + O(3^15))*t + (2*3^5 + 2*3^6 + O(3^15)), 15, (3 + 3^2 + 3^6 + 2*3^7 + 2*3^9 + 2*3^10 + 2*3^11 + 3^13 + O(3^15))*t + (3^5 + 2*3^7 + 2*3^8 + 2*3^9 + 3^11 + 3^12 + 3^13 + O(3^15)), (2 + 3 + 2*3^2 + 2*3^3 + 2*3^4 + 3^5 + 2*3^7 + 2*3^11 + 3^12 + 2*3^13 + 3^14 + O(3^15))*t^2 + (1 + 3 + 2*3^4 + 3^7 + 2*3^8 + 3^9 + 3^10 + 2*3^11 + 2*3^12 + 2*3^13 + O(3^15))*t + (O(3^15)))
 
         But, by construction, the gcd is of course at least of degree one,
         independent of the precision::
@@ -619,7 +619,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: S = ZpFM(3,30)
             sage: g = f.change_ring(S)
             sage: S._pAdicGeneric__xgcd_univariate_polynomial_fixed(g,g.derivative())
-            ((1 + O(3^30))*t + (2 + 2*3 + O(3^30)), 25, (3^5 + O(3^30))*t + (2*3^5 + 2*3^6 + O(3^30)), 30, (3 + 3^2 + 3^6 + 2*3^7 + 2*3^9 + 2*3^10 + 2*3^13 + 3^15 + 3^16 + 3^17 + 3^18 + 2*3^19 + 2*3^20 + 3^21 + 3^22 + 3^23 + 2*3^24 + 2*3^28 + O(3^30))*t + (3^5 + 2*3^7 + 2*3^8 + 2*3^9 + 3^11 + 3^12 + 3^13 + 3^15 + 2*3^16 + 3^17 + 3^18 + 3^23 + 2*3^25 + 2*3^26 + 2*3^27 + 3^29 + O(3^30)), (2 + 3 + 2*3^2 + 2*3^3 + 2*3^4 + 3^5 + 2*3^7 + 2*3^10 + 2*3^11 + 2*3^13 + 3^14 + 3^15 + 3^16 + 3^17 + 3^20 + 3^21 + 3^22 + 2*3^24 + 2*3^25 + 2*3^26 + 2*3^28 + O(3^30))*t^2 + (1 + 3 + 2*3^4 + 3^7 + 2*3^8 + 3^9 + 2*3^10 + 3^11 + 2*3^15 + 2*3^16 + 2*3^17 + 3^18 + 2*3^19 + 3^20 + 3^21 + 2*3^23 + 3^24 + 3^27 + 2*3^28 + 2*3^29 + O(3^30))*t)
+            ((1 + O(3^30))*t + (2 + 2*3 + O(3^30)), 25, (3^5 + O(3^30))*t + (2*3^5 + 2*3^6 + O(3^30)), 30, (3 + 3^2 + 3^6 + 2*3^7 + 2*3^9 + 2*3^10 + 2*3^13 + 3^15 + 3^16 + 3^17 + 3^18 + 2*3^19 + 2*3^20 + 3^21 + 3^22 + 3^23 + 2*3^24 + 2*3^28 + O(3^30))*t + (3^5 + 2*3^7 + 2*3^8 + 2*3^9 + 3^11 + 3^12 + 3^13 + 3^15 + 2*3^16 + 3^17 + 3^18 + 3^23 + 2*3^25 + 2*3^26 + 2*3^27 + 3^29 + O(3^30)), (2 + 3 + 2*3^2 + 2*3^3 + 2*3^4 + 3^5 + 2*3^7 + 2*3^10 + 2*3^11 + 2*3^13 + 3^14 + 3^15 + 3^16 + 3^17 + 3^20 + 3^21 + 3^22 + 2*3^24 + 2*3^25 + 2*3^26 + 2*3^28 + O(3^30))*t^2 + (1 + 3 + 2*3^4 + 3^7 + 2*3^8 + 3^9 + 2*3^10 + 3^11 + 2*3^15 + 2*3^16 + 2*3^17 + 3^18 + 2*3^19 + 3^20 + 3^21 + 2*3^23 + 3^24 + 3^27 + 2*3^28 + 2*3^29 + O(3^30))*t + (O(3^30)))
 
         In some cases the input precision might not be sufficient to provide a
         result::
@@ -637,7 +637,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
             sage: S = ZpFM(3,6)
             sage: S._pAdicGeneric__xgcd_univariate_polynomial_fixed(f.change_ring(S), g.change_ring(S))
-            ((1 + O(3^6))*t + (3 + 2*3^3 + 3^5 + O(3^6)), 3, (1 + O(3^6))*t + (3 + 2*3^3 + 3^5 + O(3^6)), 3, (3^5 + O(3^6))*t^3 + (2*3^4 + 2*3^5 + O(3^6))*t^2 + (3^2 + 3^3 + 2*3^4 + 2*3^5 + O(3^6))*t + (2 + 3 + 2*3^2 + 3^3 + O(3^6)), (3^5 + O(3^6))*t)
+            ((1 + O(3^6))*t + (3 + 2*3^3 + 3^5 + O(3^6)), 3, (1 + O(3^6))*t + (3 + 2*3^3 + 3^5 + O(3^6)), 3, (3^5 + O(3^6))*t^3 + (2*3^4 + 2*3^5 + O(3^6))*t^2 + (3^2 + 3^3 + 2*3^4 + 2*3^5 + O(3^6))*t + (2 + 3 + 2*3^2 + 3^3 + O(3^6)), (3^5 + O(3^6))*t + (O(3^6)))
 
         Again, a further increase of the precision can decrease the degree of the greatest common divisor::
 
@@ -1496,12 +1496,12 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: k = Qp(5)
             sage: R.<x> = k[]
             sage: l.<w> = k.extension(x^2-5); l
-            Eisenstein Extension of 5-adic Field with capped relative precision 20 in w defined by (1 + O(5^20))*x^2 + (O(5^21))*x + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + 4*5^10 + 4*5^11 + 4*5^12 + 4*5^13 + 4*5^14 + 4*5^15 + 4*5^16 + 4*5^17 + 4*5^18 + 4*5^19 + 4*5^20 + O(5^21))
+            Eisenstein Extension of 5-adic Field with capped relative precision 20 in w defined by (1 + O(5^20))*x^2 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + 4*5^10 + 4*5^11 + 4*5^12 + 4*5^13 + 4*5^14 + 4*5^15 + 4*5^16 + 4*5^17 + 4*5^18 + 4*5^19 + 4*5^20 + O(5^21)
 
             sage: F = list(Qp(19)['x'](cyclotomic_polynomial(5)).factor())[0][0]
             sage: L = Qp(19).extension(F, names='a')
             sage: L
-            Unramified Extension of 19-adic Field with capped relative precision 20 in a defined by (1 + O(19^20))*x^2 + (5 + 2*19 + 10*19^2 + 14*19^3 + 7*19^4 + 13*19^5 + 5*19^6 + 12*19^7 + 8*19^8 + 4*19^9 + 14*19^10 + 6*19^11 + 5*19^12 + 13*19^13 + 16*19^14 + 4*19^15 + 17*19^16 + 8*19^18 + 4*19^19 + O(19^20))*x + (1 + O(19^20))
+            Unramified Extension in a defined by (1 + O(19^20))*x^2 + (5 + 2*19 + 10*19^2 + 14*19^3 + 7*19^4 + 13*19^5 + 5*19^6 + 12*19^7 + 8*19^8 + 4*19^9 + 14*19^10 + 6*19^11 + 5*19^12 + 13*19^13 + 16*19^14 + 4*19^15 + 17*19^16 + 8*19^18 + 4*19^19 + O(19^20))*x + 1 + O(19^20) of 19-adic Field with capped relative precision 20
         """
         from sage.rings.padics.factory import ExtensionFactory
         if print_mode is None:
@@ -1811,13 +1811,13 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: R.<x> = K[]
             sage: f = x^4+2*x^3+2*x^2-2*x+2
             sage: L = K.splitting_field(f); L
-            Two step extension in ('x', 'x') defined by (1 + O(2^3))*x^12 + (2 + O(2^4))*x^11 + (2^2 + O(2^4))*x^10 + (2^3 + O(2^4))*x^9 + (2^2 + O(2^4))*x^8 + (2 + 2^2 + O(2^4))*x^7 + (2^2 + 2^3 + O(2^4))*x^4 + (2 + O(2^4))*x^3 + (2^2 + 2^3 + O(2^4))*x^2 + (2^2 + O(2^4))*x + 2 + O(2^4) and (1 + O(2^3))*x^2 + (1 + O(2^3))*x + (1 + O(2^3)) of 2-adic Field with capped relative precision 3
+            Two step extension in ('u2', 'pi12') defined by (1 + O(2^3))*pi12^12 + (2 + O(2^4))*pi12^11 + (2^2 + O(2^4))*pi12^10 + (2^3 + O(2^4))*pi12^9 + (2^2 + O(2^4))*pi12^8 + (2 + 2^2 + O(2^4))*pi12^7 + (2^2 + 2^3 + O(2^4))*pi12^4 + (2 + O(2^4))*pi12^3 + (2^2 + 2^3 + O(2^4))*pi12^2 + (2^2 + O(2^4))*pi12 + 2 + O(2^4) and (1 + O(2^3))*u2^2 + (1 + O(2^3))*u2 + 1 + O(2^3) of 2-adic Field with capped relative precision 3
             sage: roots = f.change_ring(L).roots(multiplicities=False)
             sage: [f(r) for r in roots]
-            [O(x^45), O(x^43), O(x^42), O(x^42)]
+            [O(pi12^45), O(pi12^43), O(pi12^42), O(pi12^42)]
 
             sage: L = K.splitting_field(f, simplify=False); L
-            Unramified extension in a2 defined by (1 + O(pi^36))*x^2 + (pi^4 + pi^7 + pi^8 + pi^10 + O(pi^12))*x + pi^6 + pi^7 + pi^8 + pi^13 + O(pi^15) of Totally ramified extension in a3 defined by (1 + O(a4^12))*x^3 + (a4 + a4^4 + a4^5 + a4^9 + a4^10 + a4^11 + O(a4^12))*x^2 + (a4^2 + a4^4 + a4^6 + a4^10 + O(a4^13))*x + a4^3 + a4^4 + a4^7 + a4^8 + a4^10 + a4^13 + O(a4^14) of Eisenstein Extension in a4 defined by (1 + O(2^3))*x^4 + (2 + O(2^4))*x^3 + (2 + O(2^4))*x^2 + (2 + 2^2 + 2^3 + O(2^4))*x + (2 + O(2^4)) of 2-adic Field with capped relative precision 3
+            Unramified extension in a2 defined by (1 + O(pi^36))*a2^2 + (pi^4 + pi^7 + pi^8 + pi^10 + O(pi^12))*a2 + pi^6 + pi^7 + pi^8 + pi^13 + O(pi^15) of Totally ramified extension in a3 defined by (1 + O(a4^12))*a3^3 + (a4 + a4^4 + a4^5 + a4^9 + a4^10 + a4^11 + O(a4^12))*a3^2 + (a4^2 + a4^4 + a4^6 + a4^10 + O(a4^13))*a3 + a4^3 + a4^4 + a4^7 + a4^8 + a4^10 + a4^13 + O(a4^14) of Eisenstein Extension of 2-adic Field with capped relative precision 3 in a4 defined by (1 + O(2^3))*a4^4 + (2 + O(2^4))*a4^3 + (2 + O(2^4))*a4^2 + (2 + 2^2 + 2^3 + O(2^4))*a4 + 2 + O(2^4)
             sage: roots = f.change_ring(L).roots(multiplicities=False)
             sage: [f(r) for r in roots]
             [O(pi^21), O(pi^19), O(pi^18), O(pi^18)]
@@ -1880,7 +1880,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
     def frobenius_endomorphism(self, n=1):
         """
         INPUT:
-                     
+
         -  ``n`` -- an integer (default: 1)
 
         OUTPUT:
@@ -1892,21 +1892,21 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
             sage: K.<a> = Qq(3^5)
             sage: Frob = K.frobenius_endomorphism(); Frob
-            Frobenius endomorphism on Unramified Extension of 3-adic Field ... lifting a |--> a^3 on the residue field
+            Frobenius endomorphism on Unramified Extension in a defined by (1 + O(3^20))*x^5 + (2 + O(3^20))*x + 1 + O(3^20) of 3-adic Field with capped relative precision 20 lifting a |--> a^3 on the residue field
             sage: Frob(a) == a.frobenius()
             True
 
-        We can specify a power:: 
+        We can specify a power::
 
             sage: K.frobenius_endomorphism(2)
-            Frobenius endomorphism on Unramified Extension of 3-adic Field ... lifting a |--> a^(3^2) on the residue field
+            Frobenius endomorphism on Unramified Extension in a defined by (1 + O(3^20))*x^5 + (2 + O(3^20))*x + 1 + O(3^20) of 3-adic Field with capped relative precision 20 lifting a |--> a^(3^2) on the residue field
 
         The result is simplified if possible::
 
             sage: K.frobenius_endomorphism(6)
-            Frobenius endomorphism on Unramified Extension of 3-adic Field ... lifting a |--> a^3 on the residue field
+            Frobenius endomorphism on Unramified Extension in a defined by (1 + O(3^20))*x^5 + (2 + O(3^20))*x + 1 + O(3^20) of 3-adic Field with capped relative precision 20 lifting a |--> a^3 on the residue field
             sage: K.frobenius_endomorphism(5)
-            Identity endomorphism of Unramified Extension of 3-adic Field ...
+            Identity endomorphism of Unramified Extension in a defined by (1 + O(3^20))*x^5 + (2 + O(3^20))*x + 1 + O(3^20) of 3-adic Field with capped relative precision 20
 
         Comparisons work::
 

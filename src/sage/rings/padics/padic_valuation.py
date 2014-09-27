@@ -425,6 +425,8 @@ class pAdicValuation_base(UniqueRepresentation, DiscreteValuation):
             raise ValueError("G must be defined over the domain of this valuation")
         if not G.is_monic():
             raise ValueError("G must be monic")
+        if not all([self(c)>=0 for c in G.coefficients()]):
+            raise ValueError("G must be integral")
 
         from sage.rings.all import infinity
         # W contains approximate factors of G
