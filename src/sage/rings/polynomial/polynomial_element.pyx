@@ -1264,6 +1264,73 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self.base_ring()._squarefree_decomposition_univariate_polynomial(self)
         raise NotImplementedError("square-free decomposition not implemented for this polynomial")
 
+    def is_nth_power(self, n):
+        """
+        Return whether this polynomial is an ``n``-th power in the polynomial ring.
+
+        INPUT:
+
+        - ``n`` -- an integer
+
+        EXAMPLES::
+
+            sage: R.<x> = GF(3)[]
+            sage: x.is_nth_power(1)
+            True
+            sage: x.is_nth_power(2)
+            False
+            sage: (x^3).is_nth_power(3)
+            True
+            sage: R(2).is_nth_power(-3)
+            True
+
+        """
+        if n == 0:
+            return self.is_one()
+        if n < 0:
+            return self.is_unit() and (~(self[0])).is_nth_power(-n)
+        return all([n.divides(e) for e in self.exponents()]) and all([c.is_nth_power(n) for c in self.coefficients()])
+
+    def nth_root(self, n):
+        """
+        Return a polynomial ``a`` such that this polynomial equals ``a^n``.
+
+        INPUT:
+
+        - ``n`` -- an integer
+
+        EXAMPLES::
+
+            sage: R.<x> = GF(3)[]
+            sage: x.nth_root(1)
+            x
+            sage: x.nth_root(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: element is not an n-th power.
+            sage: (x^3).nth_root(3)
+            x
+            sage: R(2).nth_root(-3)
+            2
+
+
+        """
+        if not self.is_nth_power(n):
+            raise ValueError("element is not an n-th power.")
+
+        if n < 0:
+            return self.parent()(self[0].nth_root(-n))
+        if n == 0:
+            return self.parent().one()
+        return self.parent()([c.nth_root(n) for c in self.coeffs()[::n]])
+
+    def pth_root(self):
+        p = self.parent().characteristic()
+        if p==0:
+            raise ValueError
+        return self.nth_root(p)
+
+
     def is_square(self, root=False):
         """
         Returns whether or not polynomial is square. If the optional

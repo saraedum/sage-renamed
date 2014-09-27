@@ -13,6 +13,14 @@ class RationalFunctionFieldValuation(DiscreteValuation):
     def _call_(self, x):
         return self._base_valuation(x.numerator()) - self._base_valuation(x.denominator())
 
+    def __hash__(self):
+        return hash(self._base_valuation) + hash(self.domain())
+
+    def __cmp__(self, other):
+        if type(self) != type(other):
+            return cmp(type(self),type(other))
+        return cmp(self._base_valuation,other._base_valuation)
+
     def shift(self, f, v):
         if f.parent() is not self.domain():
             raise ValueError

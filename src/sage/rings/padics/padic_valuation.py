@@ -20,6 +20,7 @@ AUTHORS:
 
 from discrete_valuation import DiscreteValuation
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.misc.cachefunc import cached_method
 
 def pAdicValuation(R, prime = None):
     """
@@ -48,11 +49,19 @@ def pAdicValuation(R, prime = None):
 
     """
     from sage.rings.all import ZZ, QQ
+    from sage.rings.number_field.number_field import is_NumberField
     from sage.rings.padics.padic_generic import pAdicGeneric
     if R is ZZ or R is QQ:
         if prime is None:
             raise ValueError("prime must be specified for this ring")
         return pAdicValuation_int(R, prime)
+    elif is_NumberField(R):
+        if prime is None:
+            raise ValueError("prime must be specified for this ring")
+        prime = R.ideal(prime)
+        if not prime.is_prime():
+            raise ValueError("prime must be prime")
+        return pAdicValuation_number_field(R, prime)
     elif isinstance(R, pAdicGeneric):
         if prime is None:
             prime = R.prime()
@@ -510,7 +519,7 @@ class pAdicValuation_base(UniqueRepresentation, DiscreteValuation):
         In this example, the process stops with a factorization of `x^2 + 1`::
 
             sage: v.mac_lane_approximants(G, precision_cap=infinity)
-            [[ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + 2 + 5 + 2*5^2 + 5^3 + O(5^4)) = +Infinity ], [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + 3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4)) = +Infinity ]]
+            [[ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + 5 + 2*5^2 + 5^3 + O(5^4))) = +Infinity ], [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4))) = +Infinity ]]
 
         This obviously cannot happen over the rationals where we only get an
         approximate factorization::
@@ -731,3 +740,35 @@ class pAdicValuation_padic(pAdicValuation_base):
 
 class pAdicValuation_int(pAdicValuation_base):
     pass
+
+class pAdicValuation_number_field(pAdicValuation_base):
+    @cached_method
+    def uniformizer(self):
+        #assert self._prime.is_principal()
+        #return self._prime.gen(0)
+        for g in self._prime.gens():
+            if g.valuation(self._prime) == 1:
+                return g
+        raise NotImplementedError
+
+    @cached_method
+    def residue_field(self):
+        from sage.rings.all import GF
+        return GF(self._prime.residue_field().order(), names=('u',))
+
+    def _repr_(self):
+        return "%s-adic valuation"%(self._prime)
+
+    def reduce(self, x):
+        if x.parent() is not self.domain():
+            raise ValueError("x must be in the domain of the valuation")
+
+        k = self.domain().residue_field(self._prime)
+        return self.residue_field()(k(x).polynomial())
+
+    def lift(self, x):
+        if x.parent() is not self.residue_field():
+            raise ValueError("x must be in the residue field of the valuation")
+
+        k = self.domain().residue_field(self._prime)
+        return self.domain()(x.polynomial(k.gen()))
