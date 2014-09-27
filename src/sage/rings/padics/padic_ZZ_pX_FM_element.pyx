@@ -175,6 +175,8 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             sage: z = (1+w)^5; z # indirect doctest
             1 + w^5 + w^6 + 2*w^7 + 4*w^8 + 3*w^10 + w^12 + 4*w^13 + 4*w^14 + 4*w^15 + 4*w^16 + 4*w^17 + 4*w^20 + w^21 + 4*w^24 + O(w^25)
 
+        TESTS:
+
         Check that :trac:`3865` is fixed::
 
             sage: W(gp('2 + O(5^2)'))
@@ -324,7 +326,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         mpz_init(tmp_m)
         mpz_invert(tmp_m, mpq_denref(x), self.prime_pow.pow_mpz_t_top())
         mpz_mul(tmp_m, tmp_m, mpq_numref(x))
-        mpz_mod(tmp_m, tmp_m, self.prime_pow.pow_mpz_t_top())
+        mpz_mod(tmp_m, tmp_m, &self.prime_pow.pow_mpz_t_top()[0])
         mpz_to_ZZ(&tmp_z, tmp_m)
         ZZ_pX_SetCoeff(self.value, 0, ZZ_to_ZZ_p(tmp_z))
         mpz_clear(tmp_m)
