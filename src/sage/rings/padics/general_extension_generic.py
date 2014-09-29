@@ -62,6 +62,7 @@ class GeneralExtensionGeneric(pAdicExtensionGeneric):
         """
         pAdicExtensionGeneric.__init__(self, poly.base_ring(), poly, prec, print_mode, names, element_class)
         self._poly = poly
+        assert self._poly.degree() >= 1
         self._polynomial_ring = poly.parent().change_var(names[0])
         self._prime = poly.base_ring().prime()
         self.__check = [ lambda: hasattr(self.implementation_ring(),"_check") and self.implementation_ring()._check() ]
@@ -188,9 +189,9 @@ class GeneralExtensionGeneric(pAdicExtensionGeneric):
             sage: L.<a> = K.extension(a + 1)
             sage: R.<b> = L[]
             sage: M.<b> = L.extension(b + a); M
-            Trivial extension in b defined by (1 + O(3^5))*b + 2 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + O(3^5) of Trivial extension in a defined by (1 + O(3^5))*a + (1 + O(3^5)) of 3-adic Field with capped relative precision 5
+            Trivial extension in b defined by (1 + O(3^5))*b + 2 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + O(3^5) of Trivial extension in a defined by (1 + O(3^5))*a + 1 + O(3^5) of 3-adic Field with capped relative precision 5
             sage: M.implementation_ring()
-            Trivial extension in a defined by (1 + O(3^5))*a + (1 + O(3^5)) of 3-adic Field with capped relative precision 5
+            Trivial extension in a defined by (1 + O(3^5))*a + 1 + O(3^5) of 3-adic Field with capped relative precision 5
             sage: b == 1
             True
 
@@ -199,9 +200,9 @@ class GeneralExtensionGeneric(pAdicExtensionGeneric):
             sage: K.<u> = Qq(25,3)
             sage: R.<a> = K[]
             sage: L.<a> = K.extension(a - u); L
-            Trivial extension in a defined by (1 + O(5^3))*a + 4*u + 4*u*5 + 4*u*5^2 + O(5^3) of Unramified Extension in u defined by (1 + O(5^3))*x^2 + (4 + O(5^3))*x + (2 + O(5^3)) of 5-adic Field with capped relative precision 3
+            Trivial extension in a defined by (1 + O(5^3))*a + 4*u + 4*u*5 + 4*u*5^2 + O(5^3) of Unramified Extension in u defined by (1 + O(5^3))*x^2 + (4 + O(5^3))*x + 2 + O(5^3) of 5-adic Field with capped relative precision 3
             sage: L.implementation_ring()
-            Unramified Extension in u defined by (1 + O(5^3))*x^2 + (4 + O(5^3))*x + (2 + O(5^3)) of 5-adic Field with capped relative precision 3
+            Unramified Extension in u defined by (1 + O(5^3))*x^2 + (4 + O(5^3))*x + 2 + O(5^3) of 5-adic Field with capped relative precision 3
             sage: a == u
             True
 
@@ -212,9 +213,9 @@ class GeneralExtensionGeneric(pAdicExtensionGeneric):
             sage: L.<a> = K.extension(a^2 - 7)
             sage: R.<b> = L[]
             sage: M.<b> = L.extension(b - a - 1); M
-            Trivial extension in b defined by (1 + O(a^8))*b + 6 + 6*a + 6*a^2 + 6*a^3 + 6*a^4 + 6*a^5 + 6*a^6 + 6*a^7 + O(a^8) of Eisenstein Extension in a defined by (1 + O(7^4))*a^2 + (O(7^5))*a + (6*7 + 6*7^2 + 6*7^3 + 6*7^4 + O(7^5)) of 7-adic Field with capped relative precision 4
+            Trivial extension in b defined by (1 + O(a^8))*b + 6 + 6*a + 6*a^2 + 6*a^3 + 6*a^4 + 6*a^5 + 6*a^6 + 6*a^7 + O(a^8) of Eisenstein Extension of 7-adic Field with capped relative precision 4 in a defined by (1 + O(7^4))*a^2 + 6*7 + 6*7^2 + 6*7^3 + 6*7^4 + O(7^5)
             sage: M.implementation_ring()
-            Eisenstein Extension in a defined by (1 + O(7^4))*a^2 + (O(7^5))*a + (6*7 + 6*7^2 + 6*7^3 + 6*7^4 + O(7^5)) of 7-adic Field with capped relative precision 4
+            Eisenstein Extension of 7-adic Field with capped relative precision 4 in a defined by (1 + O(7^4))*a^2 + 6*7 + 6*7^2 + 6*7^3 + 6*7^4 + O(7^5)
             sage: b == a + 1
             True
 
@@ -225,7 +226,7 @@ class GeneralExtensionGeneric(pAdicExtensionGeneric):
             sage: L.<a> = K.extension(a^2 + 7^3*a + 7^3)
             sage: R.<b> = L[]
             sage: M.<b> = L.extension(b - a); M
-            Trivial extension in b defined by (1 + O(pi^8))*b + pi^3 + pi^6 + O(pi^8) of Totally ramified extension in a defined by (1 + O(7^4))*a^2 + (7^3 + O(7^7))*a + (7^3 + O(7^7)) of 7-adic Field with capped relative precision 4
+            Trivial extension in b defined by (1 + O(pi^8))*b + pi^3 + pi^6 + O(pi^8) of Totally ramified extension in a defined by (1 + O(7^4))*a^2 + (7^3 + O(7^7))*a + 7^3 + O(7^7) of 7-adic Field with capped relative precision 4
             sage: b == a
             True
 
@@ -268,9 +269,9 @@ class GeneralExtensionGeneric(pAdicExtensionGeneric):
             sage: L.<a> = K.extension(a^2 - 2)
             sage: R.<b> = L[]
             sage: M.<b> = L.extension(b^2 - a); M
-            Eisenstein extension in b defined by (1 + O(a^8))*b^2 + a + a^3 + a^5 + a^7 + O(a^9) of Eisenstein Extension in a defined by (1 + O(2^4))*a^2 + (O(2^5))*a + (2 + 2^2 + 2^3 + 2^4 + O(2^5)) of 2-adic Field with capped relative precision 4
+            Eisenstein extension in b defined by (1 + O(a^8))*b^2 + a + a^3 + a^5 + a^7 + O(a^9) of Eisenstein Extension of 2-adic Field with capped relative precision 4 in a defined by (1 + O(2^4))*a^2 + 2 + 2^2 + 2^3 + 2^4 + O(2^5)
             sage: M.implementation_ring()
-            Eisenstein Extension in b defined by (1 + O(2^4))*b^4 + (O(2^5))*b^3 + (O(2^5))*b^2 + (O(2^5))*b + (2 + 2^2 + 2^3 + 2^4 + O(2^5)) of 2-adic Field with capped relative precision 4
+            Eisenstein Extension of 2-adic Field with capped relative precision 4 in b defined by (1 + O(2^4))*b^4 + 2 + 2^2 + 2^3 + 2^4 + O(2^5)
             sage: b^4==2
             True
 
@@ -282,9 +283,9 @@ class GeneralExtensionGeneric(pAdicExtensionGeneric):
             sage: L.<a> = K.extension(f)
             sage: g = (1 + O(a^20))*x^3 + (a^3 + a^5 + a^8 + a^9 + a^10 + a^12 + a^13 + a^15 + a^16 + a^17 + O(a^20))*x^2 + (a^2 + a^5 + a^7 + a^9 + a^10 + a^12 + a^13 + a^14 + a^18 + O(a^20))*x + a + a^2 + a^3 + a^4 + a^5 + a^6 + a^9 + a^10 + a^13 + a^14 + a^17 + a^18 + a^19 + O(a^20)
             sage: M.<b> = L.extension(g); M
-            Eisenstein extension in b defined by (1 + O(a^20))*x^3 + (a^3 + a^5 + a^8 + a^9 + a^10 + a^12 + a^13 + a^15 + a^16 + a^17 + O(a^20))*x^2 + (a^2 + a^5 + a^7 + a^9 + a^10 + a^12 + a^13 + a^14 + a^18 + O(a^20))*x + a + a^2 + a^3 + a^4 + a^5 + a^6 + a^9 + a^10 + a^13 + a^14 + a^17 + a^18 + a^19 + O(a^21) of Eisenstein Extension in a defined by (1 + O(2^5))*x^4 + (2 + O(2^6))*x^3 + (2 + O(2^6))*x^2 + (2 + 2^2 + 2^3 + 2^4 + 2^5 + O(2^6))*x + (2 + O(2^6)) of 2-adic Field with capped relative precision 5
+            Eisenstein extension in b defined by (1 + O(a^20))*x^3 + (a^3 + a^5 + a^8 + a^9 + a^10 + a^12 + a^13 + a^15 + a^16 + a^17 + O(a^20))*x^2 + (a^2 + a^5 + a^7 + a^9 + a^10 + a^12 + a^13 + a^14 + a^18 + O(a^20))*x + a + a^2 + a^3 + a^4 + a^5 + a^6 + a^9 + a^10 + a^13 + a^14 + a^17 + a^18 + a^19 + O(a^21) of Eisenstein Extension of 2-adic Field with capped relative precision 5 in a defined by (1 + O(2^5))*x^4 + (2 + O(2^6))*x^3 + (2 + O(2^6))*x^2 + (2 + 2^2 + 2^3 + 2^4 + 2^5 + O(2^6))*x + 2 + O(2^6)
             sage: M.implementation_ring()
-            Eisenstein Extension in x defined by (1 + O(2^5))*x^12 + (2 + 2^3 + 2^4 + 2^5 + O(2^6))*x^11 + (2^2 + 2^4 + O(2^6))*x^10 + (2^3 + 2^5 + O(2^6))*x^9 + (2^2 + 2^4 + O(2^6))*x^8 + (2 + 2^2 + O(2^6))*x^7 + (2^4 + O(2^6))*x^6 + (2^5 + O(2^6))*x^5 + (2^2 + 2^3 + 2^5 + O(2^6))*x^4 + (2 + 2^5 + O(2^6))*x^3 + (2^2 + 2^3 + 2^5 + O(2^6))*x^2 + (2^2 + 2^4 + O(2^6))*x + (2 + 2^4 + 2^5 + O(2^6)) of 2-adic Field with capped relative precision 5
+            Eisenstein Extension of 2-adic Field with capped relative precision 5 in x defined by (1 + O(2^5))*x^12 + (2 + 2^3 + 2^4 + 2^5 + O(2^6))*x^11 + (2^2 + 2^4 + O(2^6))*x^10 + (2^3 + 2^5 + O(2^6))*x^9 + (2^2 + 2^4 + O(2^6))*x^8 + (2 + 2^2 + O(2^6))*x^7 + (2^4 + O(2^6))*x^6 + (2^5 + O(2^6))*x^5 + (2^2 + 2^3 + 2^5 + O(2^6))*x^4 + (2 + 2^5 + O(2^6))*x^3 + (2^2 + 2^3 + 2^5 + O(2^6))*x^2 + (2^2 + 2^4 + O(2^6))*x + 2 + 2^4 + 2^5 + O(2^6)
             sage: g(b)
             O(b^60)
 
@@ -328,6 +329,8 @@ class GeneralExtensionGeneric(pAdicExtensionGeneric):
         epoly = f.sylvester_matrix(g, bivariate_ring.gen(0))(epoly_ring.zero(), epoly_ring.gen()).det()
         assert all([c.is_zero() for c in epoly.list()[modulus.degree()*base.modulus().degree()+1:]]), "epoly has too few leading zeros"
         epoly = epoly_ring(epoly.list()[:modulus.degree()*base.modulus().degree()+1])
+        assert epoly.degree() == modulus.degree()*base.modulus().degree()
+
         # if we lost too much precision during the computation it might happen
         # that epoly does not define a unique extension anymore
         self.__check.append(lambda: GenericExtensionFactory.krasner_check(epoly, names=epoly.parent().variable_names()))
@@ -381,9 +384,9 @@ class GeneralExtensionGeneric(pAdicExtensionGeneric):
             sage: L.<x> = K.extension(x + 3)
             sage: R.<a> = L[]
             sage: M.<a> = L.extension(a^2 + x); M
-            Eisenstein extension in a defined by (1 + O(3^5))*a^2 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + O(3^6) of Trivial extension in x defined by (1 + O(3^5))*x + (3 + O(3^6)) of 3-adic Field with capped relative precision 5
+            Eisenstein extension in a defined by (1 + O(3^5))*a^2 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + O(3^6) of Trivial extension in x defined by (1 + O(3^5))*x + 3 + O(3^6) of 3-adic Field with capped relative precision 5
             sage: M.implementation_ring()
-            Eisenstein Extension in a defined by (1 + O(3^5))*a^2 + (O(3^6))*a + (2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + O(3^6)) of 3-adic Field with capped relative precision 5
+            Eisenstein Extension of 3-adic Field with capped relative precision 5 in a defined by (1 + O(3^5))*a^2 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + O(3^6)
             sage: a^2 == 3
             True
 
@@ -392,9 +395,9 @@ class GeneralExtensionGeneric(pAdicExtensionGeneric):
             sage: K.<u> = Qq(25, 3)
             sage: R.<a> = K[]
             sage: L.<a> = K.extension(a^2 - 5*u); L
-            Eisenstein extension in a defined by (1 + O(5^3))*a^2 + 4*u*5 + 4*u*5^2 + 4*u*5^3 + O(5^4) of Unramified Extension in u defined by (1 + O(5^3))*x^2 + (4 + O(5^3))*x + (2 + O(5^3)) of 5-adic Field with capped relative precision 3
+            Eisenstein extension in a defined by (1 + O(5^3))*a^2 + 4*u*5 + 4*u*5^2 + 4*u*5^3 + O(5^4) of Unramified Extension in u defined by (1 + O(5^3))*x^2 + (4 + O(5^3))*x + 2 + O(5^3) of 5-adic Field with capped relative precision 3
             sage: L.implementation_ring()
-            Two step extension in ('u', 'a') defined by (1 + O(5^3))*a^2 + 4*u*5 + 4*u*5^2 + 4*u*5^3 + O(5^4) and (1 + O(5^3))*x^2 + (4 + O(5^3))*x + (2 + O(5^3)) of 5-adic Field with capped relative precision 3
+            Two step extension in ('u', 'a') defined by (1 + O(5^3))*a^2 + 4*u*5 + 4*u*5^2 + 4*u*5^3 + O(5^4) and (1 + O(5^3))*x^2 + (4 + O(5^3))*x + 2 + O(5^3) of 5-adic Field with capped relative precision 3
             sage: a^2 == 5*u
             True
 
@@ -434,9 +437,9 @@ class GeneralExtensionGeneric(pAdicExtensionGeneric):
             sage: K = Qp(3,5)
             sage: R.<x> = K[]
             sage: L.<a> = K.extension(x^2 + 3*x + 9); L
-            Totally ramified extension in a defined by (1 + O(3^5))*x^2 + (3 + O(3^6))*x + (3^2 + O(3^7)) of 3-adic Field with capped relative precision 5
+            Totally ramified extension in a defined by (1 + O(3^5))*x^2 + (3 + O(3^6))*x + 3^2 + O(3^7) of 3-adic Field with capped relative precision 5
             sage: L.implementation_ring()
-            Eisenstein Extension in x defined by (1 + O(3^5))*x^2 + (2*3 + 2*3^2 + 2*3^3 + 2*3^4 + O(3^6))*x + (3 + O(3^6)) of 3-adic Field with capped relative precision 5
+            Eisenstein Extension of 3-adic Field with capped relative precision 5 in x defined by (1 + O(3^5))*x^2 + (2*3 + 2*3^2 + 2*3^3 + 2*3^4 + O(3^6))*x + 3 + O(3^6)
 
         Totally ramified over Eisenstein::
 
@@ -448,9 +451,9 @@ class GeneralExtensionGeneric(pAdicExtensionGeneric):
             sage: g = f//(x-a); g
             (1 + O(a^20))*x^3 + (a + a^4 + a^5 + a^9 + a^10 + a^11 + a^12 + a^15 + a^17 + a^18 + a^20 + O(a^21))*x^2 + (a^2 + a^4 + a^6 + a^10 + a^14 + a^18 + a^20 + O(a^22))*x + a^3 + a^4 + a^7 + a^8 + a^10 + a^13 + a^14 + a^17 + a^18 + a^22 + O(a^23)
             sage: M.<b> = L.extension(g); M
-            Totally ramified extension in b defined by (1 + O(a^20))*x^3 + (a + a^4 + a^5 + a^9 + a^10 + a^11 + a^12 + a^15 + a^17 + a^18 + a^20 + O(a^21))*x^2 + (a^2 + a^4 + a^6 + a^10 + a^14 + a^18 + a^20 + O(a^22))*x + a^3 + a^4 + a^7 + a^8 + a^10 + a^13 + a^14 + a^17 + a^18 + a^22 + O(a^23) of Eisenstein Extension in a defined by (1 + O(2^5))*x^4 + (2 + O(2^6))*x^3 + (2 + O(2^6))*x^2 + (2 + 2^2 + 2^3 + 2^4 + 2^5 + O(2^6))*x + (2 + O(2^6)) of 2-adic Field with capped relative precision 5
+            Totally ramified extension in b defined by (1 + O(a^20))*x^3 + (a + a^4 + a^5 + a^9 + a^10 + a^11 + a^12 + a^15 + a^17 + a^18 + a^20 + O(a^21))*x^2 + (a^2 + a^4 + a^6 + a^10 + a^14 + a^18 + a^20 + O(a^22))*x + a^3 + a^4 + a^7 + a^8 + a^10 + a^13 + a^14 + a^17 + a^18 + a^22 + O(a^23) of Eisenstein Extension of 2-adic Field with capped relative precision 5 in a defined by (1 + O(2^5))*x^4 + (2 + O(2^6))*x^3 + (2 + O(2^6))*x^2 + (2 + 2^2 + 2^3 + 2^4 + 2^5 + O(2^6))*x + 2 + O(2^6)
             sage: M.implementation_ring()
-            Eisenstein extension in x defined by (1 + O(a^20))*x^3 + (a^3 + a^5 + a^8 + a^9 + a^10 + a^12 + a^13 + a^15 + a^16 + a^17 + a^20 + O(a^21))*x^2 + (a^2 + a^5 + a^7 + a^9 + a^10 + a^12 + a^13 + a^14 + a^18 + O(a^21))*x + a + a^2 + a^3 + a^4 + a^5 + a^6 + a^9 + a^10 + a^13 + a^14 + a^17 + a^18 + a^19 + a^20 + O(a^21) of Eisenstein Extension in a defined by (1 + O(2^5))*x^4 + (2 + O(2^6))*x^3 + (2 + O(2^6))*x^2 + (2 + 2^2 + 2^3 + 2^4 + 2^5 + O(2^6))*x + (2 + O(2^6)) of 2-adic Field with capped relative precision 5
+            Eisenstein extension in x defined by (1 + O(a^20))*x^3 + (a^3 + a^5 + a^8 + a^9 + a^10 + a^12 + a^13 + a^15 + a^16 + a^17 + a^20 + O(a^21))*x^2 + (a^2 + a^5 + a^7 + a^9 + a^10 + a^12 + a^13 + a^14 + a^18 + O(a^21))*x + a + a^2 + a^3 + a^4 + a^5 + a^6 + a^9 + a^10 + a^13 + a^14 + a^17 + a^18 + a^19 + a^20 + O(a^21) of Eisenstein Extension of 2-adic Field with capped relative precision 5 in a defined by (1 + O(2^5))*x^4 + (2 + O(2^6))*x^3 + (2 + O(2^6))*x^2 + (2 + 2^2 + 2^3 + 2^4 + 2^5 + O(2^6))*x + 2 + O(2^6)
             sage: g(b)
             O(pi^64)
             sage: f(M(a))
@@ -462,13 +465,13 @@ class GeneralExtensionGeneric(pAdicExtensionGeneric):
             sage: R.<x> = K[]
             sage: f = x^2 + 4*x + 8
             sage: L.<a> = K.extension(f); L
-            Totally ramified extension in a defined by (1 + O(2^5))*x^2 + (2^2 + O(2^7))*x + (2^3 + O(2^8)) of 2-adic Field with capped relative precision 5
+            Totally ramified extension in a defined by (1 + O(2^5))*x^2 + (2^2 + O(2^7))*x + 2^3 + O(2^8) of 2-adic Field with capped relative precision 5
             sage: R.<x> = L[]
             sage: g= x^2 + a^2*x + a^3
             sage: M.<b> = L.extension(g); M
-            Totally ramified extension in b defined by (1 + O(pi^10))*x^2 + (pi^6 + O(pi^13))*x + pi^9 + pi^11 + pi^12 + pi^13 + O(pi^16) of Totally ramified extension in a defined by (1 + O(2^5))*x^2 + (2^2 + O(2^7))*x + (2^3 + O(2^8)) of 2-adic Field with capped relative precision 5
+            Totally ramified extension in b defined by (1 + O(pi^10))*x^2 + (pi^6 + O(pi^13))*x + pi^9 + pi^11 + pi^12 + pi^13 + O(pi^16) of Totally ramified extension in a defined by (1 + O(2^5))*x^2 + (2^2 + O(2^7))*x + 2^3 + O(2^8) of 2-adic Field with capped relative precision 5
             sage: M.implementation_ring()
-             Eisenstein extension in x defined by (1 + O(pi^5))*x^2 + (pi^2 + O(pi^6))*x + pi + pi^3 + pi^4 + pi^5 + O(pi^6) of Totally ramified extension in a defined by (1 + O(2^5))*x^2 + (2^2 + O(2^7))*x + (2^3 + O(2^8)) of 2-adic Field with capped relative precision 5
+             Eisenstein extension in x defined by (1 + O(pi^5))*x^2 + (pi^2 + O(pi^6))*x + pi + pi^3 + pi^4 + pi^5 + O(pi^6) of Totally ramified extension in a defined by (1 + O(2^5))*x^2 + (2^2 + O(2^7))*x + 2^3 + O(2^8) of 2-adic Field with capped relative precision 5
             sage: g(b)
             O(pi^19)
             sage: f(M(a))
@@ -556,7 +559,7 @@ class GeneralExtensionGeneric(pAdicExtensionGeneric):
             sage: K = Qp(5)
             sage: R.<u> = K[]
             sage: L.<u> = K.extension(u^2 + 5*u + 25); L
-            Unramified extension in u defined by (1 + O(5^20))*u^2 + (5 + O(5^21))*u + (5^2 + O(5^22)) of 5-adic Field with capped relative precision 20
+            Unramified extension in u defined by (1 + O(5^20))*u^2 + (5 + O(5^21))*u + 5^2 + O(5^22) of 5-adic Field with capped relative precision 20
 
         """
         base = self.base_ring()
@@ -615,9 +618,9 @@ class GeneralExtensionGeneric(pAdicExtensionGeneric):
             sage: R.<u> = L[]
             sage: g = u^2 + u + 1
             sage: M.<u> = L.extension(g); M
-            Unramified extension in u defined by (1 + O(a^10))*u^2 + (1 + O(a^10))*u + 1 + O(a^10) of Eisenstein Extension in a defined by (1 + O(2^5))*a^2 + (2 + O(2^6))*a + (2 + O(2^6)) of 2-adic Field with capped relative precision 5
+            Unramified extension in u defined by (1 + O(a^10))*u^2 + (1 + O(a^10))*u + 1 + O(a^10) of Eisenstein Extension of 2-adic Field with capped relative precision 5 in a defined by (1 + O(2^5))*a^2 + (2 + O(2^6))*a + 2 + O(2^6)
             sage: M.implementation_ring()
-            Eisenstein extension in a defined by (1 + O(2^5))*a^2 + (2 + O(2^6))*a + 2 + O(2^6) of Unramified Extension in u defined by (1 + O(2^5))*x^2 + (1 + O(2^5))*x + (1 + O(2^5)) of 2-adic Field with capped relative precision 5
+            Eisenstein extension in pi2 defined by (1 + O(2^5))*pi2^2 + (2 + O(2^6))*pi2 + 2 + O(2^6) of Unramified Extension in u2 defined by (1 + O(2^5))*u2^2 + (1 + O(2^5))*u2 + 1 + O(2^5) of 2-adic Field with capped relative precision 5
             sage: f(M(a)).is_zero()
             True
 
@@ -688,9 +691,9 @@ class GeneralExtensionGeneric(pAdicExtensionGeneric):
             sage: R.<v> = M[]
             sage: h = v^2 + u*v + u
             sage: N.<v> = M.extension(h); N
-            Unramified extension in v defined by (1 + O(a^10))*v^2 + (u_ + O(a^10))*v + u_ + O(a^10) of Eisenstein extension in a defined by (1 + O(2^5))*a^2 + 2 + 2^2 + 2^3 + 2^4 + 2^5 + O(2^6) of Unramified Extension in u defined by (1 + O(2^5))*x^2 + (1 + O(2^5))*x + (1 + O(2^5)) of 2-adic Field with capped relative precision 5
+            Unramified extension in v defined by (1 + O(a^10))*v^2 + (u_ + O(a^10))*v + u_ + O(a^10) of Eisenstein extension in a defined by (1 + O(2^5))*a^2 + 2 + 2^2 + 2^3 + 2^4 + 2^5 + O(2^6) of Unramified Extension in u defined by (1 + O(2^5))*u^2 + (1 + O(2^5))*u + 1 + O(2^5) of 2-adic Field with capped relative precision 5
             sage: N.implementation_ring()
-            Eisenstein extension in a defined by (1 + O(2^5))*a^2 + 2 + 2^2 + 2^3 + 2^4 + 2^5 + O(2^6) of Unramified Extension in v defined by (1 + O(2^5))*x^4 + (O(2^5))*x^3 + (O(2^5))*x^2 + (1 + O(2^5))*x + (1 + O(2^5)) of 2-adic Field with capped relative precision 5
+            Eisenstein extension in pi2 defined by (1 + O(2^5))*pi2^2 + 2 + 2^2 + 2^3 + 2^4 + 2^5 + O(2^6) of Unramified Extension in u4 defined by (1 + O(2^5))*u4^4 + (1 + O(2^5))*u4 + 1 + O(2^5) of 2-adic Field with capped relative precision 5
             sage: f(N(u)).is_zero()
             True
 
@@ -702,7 +705,7 @@ class GeneralExtensionGeneric(pAdicExtensionGeneric):
 
         from sage.rings.all import GF, ZZ
         unram_name = "u%s"%(modulus.degree()*base.base().degree())
-        unramified_modulus = GF(base.prime()**(modulus.degree()*base.base().degree())).modulus().change_ring(ZZ).change_ring(base.ground_ring_of_tower()).change_variable_name(unram_name)
+        unramified_modulus = GF(base.prime()**(modulus.degree()*base.base().degree()),conway=True,prefix="u").modulus().change_ring(ZZ).change_ring(base.ground_ring_of_tower()).change_variable_name(unram_name)
         unramified_base = base.ground_ring_of_tower().extension(unramified_modulus, names=(unram_name,))
 
         base_base_to_unramified_base = base.base().hom([base.base().modulus().change_ring(unramified_base).any_root()])

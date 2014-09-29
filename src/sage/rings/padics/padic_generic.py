@@ -1498,9 +1498,9 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: l.<w> = k.extension(x^2-5); l
             Eisenstein Extension of 5-adic Field with capped relative precision 20 in w defined by (1 + O(5^20))*x^2 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + 4*5^10 + 4*5^11 + 4*5^12 + 4*5^13 + 4*5^14 + 4*5^15 + 4*5^16 + 4*5^17 + 4*5^18 + 4*5^19 + 4*5^20 + O(5^21)
 
-            sage: F = list(Qp(19)['x'](cyclotomic_polynomial(5)).factor())[0][0]
-            sage: L = Qp(19).extension(F, names='a')
-            sage: L
+            sage: F = list(Qp(19)['x'](cyclotomic_polynomial(5)).factor())[0][0] # long time
+            sage: L = Qp(19).extension(F, names='a') # long time
+            sage: L # long time
             Unramified Extension in a defined by (1 + O(19^20))*x^2 + (5 + 2*19 + 10*19^2 + 14*19^3 + 7*19^4 + 13*19^5 + 5*19^6 + 12*19^7 + 8*19^8 + 4*19^9 + 14*19^10 + 6*19^11 + 5*19^12 + 13*19^13 + 16*19^14 + 4*19^15 + 17*19^16 + 8*19^18 + 4*19^19 + O(19^20))*x + 1 + O(19^20) of 19-adic Field with capped relative precision 20
         """
         from sage.rings.padics.factory import ExtensionFactory
@@ -1810,29 +1810,29 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: K = Qp(2, 3)
             sage: R.<x> = K[]
             sage: f = x^4+2*x^3+2*x^2-2*x+2
-            sage: L = K.splitting_field(f); L
+            sage: L = K.splitting_field(f); L # long time
             Two step extension in ('u2', 'pi12') defined by (1 + O(2^3))*pi12^12 + (2 + O(2^4))*pi12^11 + (2^2 + O(2^4))*pi12^10 + (2^3 + O(2^4))*pi12^9 + (2^2 + O(2^4))*pi12^8 + (2 + 2^2 + O(2^4))*pi12^7 + (2^2 + 2^3 + O(2^4))*pi12^4 + (2 + O(2^4))*pi12^3 + (2^2 + 2^3 + O(2^4))*pi12^2 + (2^2 + O(2^4))*pi12 + 2 + O(2^4) and (1 + O(2^3))*u2^2 + (1 + O(2^3))*u2 + 1 + O(2^3) of 2-adic Field with capped relative precision 3
-            sage: roots = f.change_ring(L).roots(multiplicities=False)
-            sage: [f(r) for r in roots]
+            sage: roots = f.change_ring(L).roots(multiplicities=False) # long time
+            sage: [f(r) for r in roots] # long time
             [O(pi12^45), O(pi12^43), O(pi12^42), O(pi12^42)]
 
-            sage: L = K.splitting_field(f, simplify=False); L
+            sage: L = K.splitting_field(f, simplify=False); L # long time
             Unramified extension in a2 defined by (1 + O(pi^36))*a2^2 + (pi^4 + pi^7 + pi^8 + pi^10 + O(pi^12))*a2 + pi^6 + pi^7 + pi^8 + pi^13 + O(pi^15) of Totally ramified extension in a3 defined by (1 + O(a4^12))*a3^3 + (a4 + a4^4 + a4^5 + a4^9 + a4^10 + a4^11 + O(a4^12))*a3^2 + (a4^2 + a4^4 + a4^6 + a4^10 + O(a4^13))*a3 + a4^3 + a4^4 + a4^7 + a4^8 + a4^10 + a4^13 + O(a4^14) of Eisenstein Extension of 2-adic Field with capped relative precision 3 in a4 defined by (1 + O(2^3))*a4^4 + (2 + O(2^4))*a4^3 + (2 + O(2^4))*a4^2 + (2 + 2^2 + 2^3 + O(2^4))*a4 + 2 + O(2^4)
-            sage: roots = f.change_ring(L).roots(multiplicities=False)
-            sage: [f(r) for r in roots]
+            sage: roots = f.change_ring(L).roots(multiplicities=False) # long time
+            sage: [f(r) for r in roots] # long time
             [O(pi^21), O(pi^19), O(pi^18), O(pi^18)]
 
             sage: K=Qp(2,15)
             sage: A.<x>=K[]
             sage: f=3*x^4+4*x^3+12*x+4
-            sage: L=K.splitting_field(f.monic())
-            sage: B.<y>=L[]
-            sage: pi=L.uniformizer()
+            sage: L=K.splitting_field(f.monic()) # long time
+            sage: B.<y>=L[] # long time
+            sage: pi=L.uniformizer() # long time
             sage: M.<pi1>=L.extension(y^2-pi, check=True) # long time
-            sage: M.<pi1>=L.extension(y^2-pi, check=False)
-            sage: pi1^2 - pi
+            sage: M.<pi1>=L.extension(y^2-pi, check=False) # long time
+            sage: pi1^2 - pi # long time
             O(pi1^360)
-            sage: (-pi1)^2 - pi
+            sage: (-pi1)^2 - pi # long time
             O(pi1^360)
 
         """

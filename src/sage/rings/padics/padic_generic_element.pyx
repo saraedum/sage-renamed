@@ -190,10 +190,22 @@ cdef class pAdicGenericElement(LocalGenericElement):
     cdef bint _set_prec_both(self, long absprec, long relprec) except -1:
         return 0
 
-    def residue(self, n = 1):
-        if n != 1:
-            raise NotImplementedError
-        return self.parent().residue_field()(self[0])
+    def residue(self, absprec = 1):
+        if absprec < 0:
+            raise ValueError("cannot reduce modulo a negative power of the uniformizer.")
+        if absprec > self.precision_absolute():
+            from precision_error import PrecisionError
+            raise PrecisionError("not enough precision known in order to compute residue.")
+        if self.valuation() < 0:
+            raise ValueError("element must have non-negative valuation in order to compute residue.")
+
+        if absprec == 0:
+            from sage.rings.finite_rings.integer_mod import Mod
+            return Mod(0,1)
+        elif absprec == 1:
+            return self.parent().residue_field()(self[0])
+        else:
+            raise NotImplementedError("residue() not implemented in for absprec larger than one.")
 
     #def _pari_(self):
     #    """
@@ -571,7 +583,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         EXAMPLES::
 
             sage: Zp(5,5)(1/3).minimal_polynomial('x')
-            (1 + O(5^5))*x + (3 + 5 + 3*5^2 + 5^3 + 3*5^4 + O(5^5))
+            (1 + O(5^5))*x + 3 + 5 + 3*5^2 + 5^3 + 3*5^4 + O(5^5)
         """
         R = self.parent()[name]
         return R.gen() - R(self)
@@ -1814,7 +1826,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: W.<w> = R.ext(f)
             sage: z = 1 + w^2 + 4*w^7; z
             1 + w^2 + 4*w^7 + O(w^20)
-            sage: z.log()
+            sage: z.log() # long time
             w^2 + 2*w^4 + 3*w^6 + 4*w^7 + w^9 + 4*w^10 + 4*w^11 + 4*w^12 + 3*w^14 + w^15 + w^17 + 3*w^18 + 3*w^19 + O(w^20)
 
         In an extension, there will usually be a difference between
@@ -1825,24 +1837,24 @@ cdef class pAdicGenericElement(LocalGenericElement):
             Traceback (most recent call last):
             ...
             ValueError: You must specify a branch of the logarithm for non-units
-            sage: b.log(p_branch=0)
+            sage: b.log(p_branch=0) # long time
             O(w^20)
-            sage: b.log(p_branch=w)
+            sage: b.log(p_branch=w) # long time
             w + O(w^20)
-            sage: b.log(pi_branch=0)
+            sage: b.log(pi_branch=0) # long time
             3*w^2 + 2*w^4 + 2*w^6 + 3*w^8 + 4*w^10 + w^13 + w^14 + 2*w^15 + 2*w^16 + w^18 + 4*w^19 + O(w^20)
-            sage: b.unit_part().log()
+            sage: b.unit_part().log() # long time
             3*w^2 + 2*w^4 + 2*w^6 + 3*w^8 + 4*w^10 + w^13 + w^14 + 2*w^15 + 2*w^16 + w^18 + 4*w^19 + O(w^20)
             sage: y = w^2 * 4*w^7; y
             4*w^9 + O(w^29)
-            sage: y.log(p_branch=0)
+            sage: y.log(p_branch=0) # long time
             2*w^2 + 2*w^4 + 2*w^6 + 2*w^8 + w^10 + w^12 + 4*w^13 + 4*w^14 + 3*w^15 + 4*w^16 + 4*w^17 + w^18 + 4*w^19 + O(w^20)
-            sage: y.log(p_branch=w)
+            sage: y.log(p_branch=w) # long time
             w + 2*w^2 + 2*w^4 + 4*w^5 + 2*w^6 + 2*w^7 + 2*w^8 + 4*w^9 + w^10 + 3*w^11 + w^12 + 4*w^14 + 4*w^16 + 2*w^17 + w^19 + O(w^20)
 
         Check that log is multiplicative::
 
-            sage: y.log(p_branch=0) + z.log() - (y*z).log(p_branch=0)
+            sage: y.log(p_branch=0) + z.log() - (y*z).log(p_branch=0) # long time
             O(w^20)
 
         Now an unramified example::
@@ -1894,12 +1906,12 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: S.<x> = R[]
             sage: f = x^3 - 3
             sage: W.<w> = R.ext(f)
-            sage: w.log(p_branch=2)
+            sage: w.log(p_branch=2) # long time
             Traceback (most recent call last):
             ...
             ValueError: logarithm is not integral, use change_frac=True to obtain a result in the fraction field
-            sage: w.log(p_branch=2, change_frac=True)
-            2*w^-3 + O(w^21)
+            sage: w.log(p_branch=2, change_frac=True) # long time
+            2*w^-3 + O(w^24)
 
         TESTS:
 
@@ -2150,9 +2162,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: f = x^4 + 15*x^2 + 625*x - 5
             sage: W.<w> = R.ext(f)
             sage: z = 1 + w^2 + 4*w^7; z
-            1 + w^2 + 4*w^7 + O(w^16)
+            1 + w^2 + 4*w^7 + O(w^20)
             sage: z.log().exp()
-            1 + w^2 + 4*w^7 + O(w^16)
+            1 + w^2 + 4*w^7 + O(w^20)
 
         Check that this also works for fixed-mod implementations::
 

@@ -93,7 +93,7 @@ cdef class PowComputer_flint(PowComputer_class):
         """
         return PowComputer_flint_maker, (self.prime, self.cache_limit, self.prec_cap, self.ram_prec_cap, self.in_field, self.polynomial(), self._prec_type)
 
-    def _repr_(self):
+    def __repr__(self):
         """
         String representation of this powcomputer.
 
@@ -272,7 +272,7 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
             fmpz_poly_clear(self._moduli[i])
         sage_free(self._moduli)
 
-    def _repr_(self):
+    def __repr__(self):
         """
         String representation of this powcomputer.
 

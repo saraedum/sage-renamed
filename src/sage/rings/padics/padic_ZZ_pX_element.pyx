@@ -52,7 +52,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
 
         EXAMPLES::
 
-            sage: A = Zp(next_prime(50000),10)
+            sage: A = Zp(next_prime(50000),10,implementation="NTL")
             sage: S.<x> = A[]
             sage: B.<t> = A.ext(x^2+next_prime(50000)) #indirect doctest
         """
@@ -72,7 +72,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
 
         EXAMPLES::
 
-            sage: R = ZpFM(5,5)
+            sage: R = ZpFM(5,5,implementation="NTL")
             sage: S.<x> = ZZ[]
             sage: W.<w> = R.ext(x^5 + 25*x^3 - 15*x - 5)
             sage: W([1,2,3,4]) #indirect doctest
@@ -104,7 +104,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = ZZ[]
             sage: W.<w> = R.ext(x^5 + 25*x^3 - 15*x - 5)
             sage: W([1,2,3,4]) #indirect doctest
@@ -136,7 +136,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
 
         EXAMPLES::
 
-            sage: R = ZpCA(5,5)
+            sage: R = ZpCA(5,5,implementation="NTL")
             sage: S.<x> = ZZ[]
             sage: W.<w> = R.ext(x^5 + 25*x^3 - 15*x - 5)
             sage: W([1,2,3,4])
@@ -171,7 +171,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = ZZ[]
             sage: W.<w> = R.ext(x^5 + 25*x^3 - 15*x - 5)
             sage: W([1,2,3,4])
@@ -203,7 +203,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -256,7 +256,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -372,7 +372,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
 
         EXAMPLES::
 
-            sage: K = ZpCR(3,5)
+            sage: K = ZpCR(3,5,implementation="NTL")
             sage: R.<a> = K[]
             sage: L.<a> = K.extension(a^2 - 3)
             sage: t = a.add_bigoh(2); t
@@ -404,7 +404,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
 
         Check that this also works for capped absolute elements::
 
-            sage: K = ZpCA(3,5)
+            sage: K = ZpCA(3,5,implementation="NTL")
             sage: R.<a> = K[]
             sage: L.<a> = K.extension(a^2 - 3)
             sage: t = a.add_bigoh(2); t
@@ -415,7 +415,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
 
         Check that this also works for fixed-mod elements::
 
-            sage: K = ZpFM(3,5)
+            sage: K = ZpFM(3,5,implementation="NTL")
             sage: R.<a> = K[]
             sage: L.<a> = K.extension(a^2 - 3)
             sage: a.matrix()
@@ -471,7 +471,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
 
         EXAMPLES::
 
-            sage: R = ZpCR(5,5)
+            sage: R = ZpCR(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -482,7 +482,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
 
         TESTS::
 
-           sage: R = ZpCA(5,5)
+           sage: R = ZpCA(5,5,implementation="NTL")
            sage: S.<x> = ZZ[]
            sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
            sage: W.<w> = R.ext(f)
@@ -505,7 +505,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
 
             sage: R.<x> = QQ[]
             sage: f = x^2 + 3*x + 1
-            sage: M.<a> = Qp(7).extension(f)
+            sage: M.<a> = Qp(7,implementation="NTL").extension(f)
             sage: M(7).norm()
             7^2 + O(7^22)
             sage: b = 7*a + 35
@@ -545,7 +545,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
 
         EXAMPLES::
 
-            sage: R = ZpCR(5,5)
+            sage: R = ZpCR(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -560,7 +560,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
 
         TESTS::
 
-            sage: R = ZpCA(5,5)
+            sage: R = ZpCA(5,5,implementation="NTL")
             sage: S.<x> = ZZ[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -572,7 +572,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
             4*5 + 5^2 + 5^3 + 2*5^4 + O(5^5)
             sage: (a+b).trace()
             4*5 + 5^2 + 5^3 + 2*5^4 + O(5^5)
-            sage: R = ZpFM(5,5)
+            sage: R = ZpFM(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -609,7 +609,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
 
         EXAMPLES::
 
-            sage: QQ(Qq(125,names='a')(-1/5)) #indirect doctest
+            sage: QQ(Qq(125,names='a',implementation="NTL")(-1/5)) #indirect doctest, known bug: I somehow broke this
             -1/5
         """
         if self.valuation() < 0:
@@ -624,7 +624,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
 
         EXAMPLES::
 
-            sage: R = ZpCR(5,5)
+            sage: R = ZpCR(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -641,15 +641,15 @@ cdef class pAdicZZpXElement(pAdicExtElement):
 
         Check that :trac:`13647` has been fixed::
 
-            sage: K = ZpCA(3)
+            sage: K = ZpCA(3, implementation="NTL")
             sage: R.<u> = K[]
-            sage: L.<u> = K.extension(u^2 + 1)
+            sage: L.<u> = K.extension(u^2 + 1, implementation="NTL")
             sage: L(R.gen())
             u + O(3^20)
 
-            sage: K = ZpFM(3)
+            sage: K = ZpFM(3,implementation="NTL")
             sage: R.<u> = K[]
-            sage: L.<u> = K.extension(u^2 + 1)
+            sage: L.<u> = K.extension(u^2 + 1,implementation="NTL")
             sage: L(R.gen())
             u + O(3^20)
 
@@ -683,27 +683,6 @@ def _test_preprocess_list(R, L):
     - ``ctx`` -- An ``ntl_ZZ_p_Context`` giving the power of `p`
       modulo which the elements in ``LL`` are defined.  If ``None``,
       then the elements of ``LL`` are ``ntl_ZZs``.
-
-    EXAMPLES::
-
-        sage: from sage.rings.padics.padic_ZZ_pX_element import _test_preprocess_list
-        sage: from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZ_p as ntl_ZZ_p
-        sage: _test_preprocess_list(Zq(25,names='a'), [1,2,3])
-        ([1, 2, 3], 0, None)
-        sage: _test_preprocess_list(Zq(25,names='a'), [10,20,30])
-        ([10, 20, 30], 0, None)
-        sage: _test_preprocess_list(Zq(25,names='a'), [1/5,2/5,3])
-        ([1, 2, 15], -1, NTL modulus 95367431640625)
-        sage: _test_preprocess_list(Zq(25,names='a'), [1/5,mod(2,625),3])
-        ([1, 10, 15], -1, NTL modulus 3125)
-        sage: _test_preprocess_list(Zq(25,names='a'), [1/5,mod(2,625),ntl_ZZ_p(3,25)])
-        ([1, 10, 15], -1, NTL modulus 125)
-        sage: _test_preprocess_list(Zq(25,names='a'), [1/5,mod(2,625),Zp(5)(5,3)])
-        ([1, 10, 1], -1, NTL modulus 625)
-        sage: _test_preprocess_list(Zq(25,names='a'), [1/5,mod(2,625),Zp(5)(5,3),0])
-        ([1, 10, 1, 0], -1, NTL modulus 625)
-        sage: _test_preprocess_list(Zq(25,names='a'), [1/5,mod(2,625),Zp(5)(5,3),mod(0,3125)])
-        ([1, 10, 1, 0], -1, NTL modulus 625)
     """
     return preprocess_list(R(0), L)
 
@@ -814,13 +793,13 @@ def _find_val_aprec_test(R, L):
 
         sage: from sage.rings.padics.padic_ZZ_pX_element import _find_val_aprec_test
         sage: from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZ_p as ntl_ZZ_p
-        sage: _find_val_aprec_test(Zq(25,names='a'), [15, int(75), ntl_ZZ(625)])
+        sage: _find_val_aprec_test(Zq(25,names='a',implementation="NTL"), [15, int(75), ntl_ZZ(625)])
         (1, 340282366920938463463374607431768211457, 2)
-        sage: _find_val_aprec_test(Zq(25,names='a'), [5, int(25), 7/25])
+        sage: _find_val_aprec_test(Zq(25,names='a',implementation="NTL"), [5, int(25), 7/25])
         (-2, 340282366920938463463374607431768211457, 1)
-        sage: _find_val_aprec_test(Zq(25,names='a'), [mod(4,125), Zp(5)(5,5), ntl_ZZ_p(16,625), 4/125])
+        sage: _find_val_aprec_test(Zq(25,names='a',implementation="NTL"), [mod(4,125), Zp(5,implementation="NTL")(5,5), ntl_ZZ_p(16,625), 4/125])
         (-3, 3, 0)
-        sage: _find_val_aprec_test(Zq(25,names='a'), [mod(25,125), Zp(5)(5,5), ntl_ZZ_p(15,625)])
+        sage: _find_val_aprec_test(Zq(25,names='a',implementation="NTL"), [mod(25,125), Zp(5,implementation="NTL")(5,5), ntl_ZZ_p(15,625)])
         (0, 3, 0)
     """
     return find_val_aprec(R.prime_pow, L)
@@ -891,42 +870,42 @@ def _test_get_val_prec(R, a):
 
         sage: from sage.rings.padics.padic_ZZ_pX_element import _test_get_val_prec
         sage: from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZ_p as ntl_ZZ_p
-        sage: _test_get_val_prec(Zq(25,names='a'), 15)
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), 15)
         (1, 340282366920938463463374607431768211457, 2)
-        sage: _test_get_val_prec(Zq(25,names='a'), ntl_ZZ(15))
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), ntl_ZZ(15))
         (1, 340282366920938463463374607431768211457, 2)
-        sage: _test_get_val_prec(Zq(25,names='a'), int(15))
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), int(15))
         (1, 340282366920938463463374607431768211457, 2)
-        sage: _test_get_val_prec(Zq(25,names='a'), 1/15)
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), 1/15)
         (-1, 340282366920938463463374607431768211457, 1)
-        sage: _test_get_val_prec(Zq(25,names='a'), Zp(5)(15,4))
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), Zp(5,implementation="NTL")(15,4))
         (0, 4, 0)
-        sage: _test_get_val_prec(Zq(25,names='a'), Qp(5)(1/15,4))
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), Qp(5,implementation="NTL")(1/15,4))
         (-1, 4, 0)
-        sage: _test_get_val_prec(Zq(25,names='a'), mod(15,625))
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), mod(15,625))
         (0, 4, 0)
-        sage: _test_get_val_prec(Zq(25,names='a'), ntl_ZZ_p(15,625))
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), ntl_ZZ_p(15,625))
         (0, 4, 0)
 
     TESTS::
 
-        sage: _test_get_val_prec(Zq(25,names='a'), 0) #indirect doctest
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), 0) #indirect doctest
         (340282366920938463463374607431768211457, 340282366920938463463374607431768211457, 2)
-        sage: _test_get_val_prec(Zq(25,names='a'), ntl_ZZ(0))
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), ntl_ZZ(0))
         (340282366920938463463374607431768211457, 340282366920938463463374607431768211457, 2)
-        sage: _test_get_val_prec(Zq(25,names='a'), int(0))
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), int(0))
         (340282366920938463463374607431768211457, 340282366920938463463374607431768211457, 2)
-        sage: _test_get_val_prec(Zq(25,names='a'), 0/1)
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), 0/1)
         (340282366920938463463374607431768211457, 340282366920938463463374607431768211457, 1)
-        sage: _test_get_val_prec(Zq(25,names='a'), Zp(5)(25,4))
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), Zp(5,implementation="NTL")(25,4))
         (0, 4, 0)
-        sage: _test_get_val_prec(Zq(25,names='a'), Qp(5)(1/25,4))
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), Qp(5,implementation="NTL")(1/25,4))
         (-2, 4, 0)
-        sage: _test_get_val_prec(Zq(25,names='a'), Zp(5)(0))
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), Zp(5,implementation="NTL")(0))
         (340282366920938463463374607431768211457, 340282366920938463463374607431768211457, 1)
-        sage: _test_get_val_prec(Zq(25,names='a'), mod(0,625))
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), mod(0,625))
         (0, 4, 0)
-        sage: _test_get_val_prec(Zq(25,names='a'), ntl_ZZ_p(0,625))
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), ntl_ZZ_p(0,625))
         (0, 4, 0)
     """
     return get_val_prec(R.prime_pow, a)

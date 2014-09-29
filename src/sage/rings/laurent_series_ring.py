@@ -29,9 +29,9 @@ from sage.libs.pari.all import pari_gen
 from sage.structure.category_object import check_default_category
 from sage.categories.fields import Fields
 from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationFields
+from sage.structure.factory import UniqueFactory
 
-laurent_series = {}
-def LaurentSeriesRing(base_ring, name=None, names=None, default_prec=20, sparse=False):
+class LaurentSeriesRing_factory(UniqueFactory):
     """
     EXAMPLES::
 
@@ -78,26 +78,25 @@ def LaurentSeriesRing(base_ring, name=None, names=None, default_prec=20, sparse=
         sage: W is T
         False
     """
-    if not names is None: name = names
-    if name is None:
-        raise TypeError("You must specify the name of the indeterminate of the Laurent series ring.")
+    def create_key(self, base_ring, name=None, names=None, default_prec=20, sparse=False):
+        if not names is None: name = names
+        if name is None:
+            raise TypeError("You must specify the name of the indeterminate of the Laurent series ring.")
 
-    global laurent_series
-    key = (base_ring, name, default_prec, sparse)
-    if key in laurent_series:
-        x = laurent_series[key]()
-        if x is not None: return x
+        return (base_ring, name, default_prec, sparse)
 
-    if isinstance(base_ring, field.Field):
-        R = LaurentSeriesRing_field(base_ring, name, default_prec, sparse)
-    elif isinstance(base_ring, integral_domain.IntegralDomain):
-        R = LaurentSeriesRing_domain(base_ring, name, default_prec, sparse)
-    elif isinstance(base_ring, commutative_ring.CommutativeRing):
-        R = LaurentSeriesRing_generic(base_ring, name, default_prec, sparse)
-    else:
-        raise TypeError("base_ring must be a commutative ring")
-    laurent_series[key] = weakref.ref(R)
-    return R
+    def create_object(self, version, key, **extra_args):
+        base_ring, name, default_prec, sparse = key
+        if isinstance(base_ring, field.Field):
+            return LaurentSeriesRing_field(base_ring, name, default_prec, sparse)
+        elif isinstance(base_ring, integral_domain.IntegralDomain):
+            return LaurentSeriesRing_domain(base_ring, name, default_prec, sparse)
+        elif isinstance(base_ring, commutative_ring.CommutativeRing):
+            return LaurentSeriesRing_generic(base_ring, name, default_prec, sparse)
+        else:
+            raise TypeError("base_ring must be a commutative ring")
+
+LaurentSeriesRing = LaurentSeriesRing_factory("LaurentSeriesRing")
 
 def is_LaurentSeriesRing(x):
     """

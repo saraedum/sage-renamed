@@ -143,7 +143,7 @@ cdef class LocalGenericElement(PrincipalIdealDomainElement):
 
             sage: R = ZpCA(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 - 3 )
             sage: (t - 1).inverse_of_unit()
-            2 + 2*t + t^2 + t^3 + t^4 + t^5 + t^6 + t^7 + O(t^8)
+            2 + 2*t + t^2 + t^3 + t^4 + t^5 + t^6 + t^7 + t^8 + t^9 + O(t^10)
 
             sage: R = ZpCR(3,5); S.<t> = R[]; W.<t> = R.extension( t^2 - 3 )
             sage: (t - 1).inverse_of_unit()
@@ -399,12 +399,12 @@ cdef class LocalGenericElement(PrincipalIdealDomainElement):
 
         EXAMPLES::
             sage: K = Qp(11, 5)
-            sage: L.<a> = K.extension(x^20 - 11)
-            sage: b = a^3 + 3*a^5; b
+            sage: L.<a> = K.extension(x^20 - 11) # long time
+            sage: b = a^3 + 3*a^5; b # long time
             a^3 + 3*a^5 + O(a^103)
-            sage: b.add_bigoh(17)
+            sage: b.add_bigoh(17) # long time
             a^3 + 3*a^5 + O(a^17)
-            sage: b.add_bigoh(150)
+            sage: b.add_bigoh(150) # long time
             a^3 + 3*a^5 + O(a^103)
         """
         return self.parent()(self, absprec=prec)

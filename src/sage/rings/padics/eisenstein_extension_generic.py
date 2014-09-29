@@ -92,7 +92,7 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
             sage: S.<x> = A[]
             sage: B.<t> = A.ext(x^2+7)
             sage: B #indirect doctest
-            Eisenstein Extension of 7-adic Ring with capped relative precision 10 in t defined by (1 + O(7^10))*x^2 + (O(7^11))*x + (7 + O(7^11))
+            Eisenstein Extension of 7-adic Ring with capped relative precision 10 in t defined by (1 + O(7^10))*x^2 + 7 + O(7^11)
         """
         if do_latex:
             return "Eisenstein Extension of %s in %s defined by %s"%(latex(self.ground_ring()), self.latex_name(), latex(self.modulus()))

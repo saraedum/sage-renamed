@@ -1544,26 +1544,11 @@ cdef class CRElement(pAdicTemplateElement):
         return val, unit
 
     def __hash__(self):
-        """
-        Hashing.
+        raise TypeError("p-adic elements are not hashable.")
 
-        .. WARNING::
-
-            Hashing of `p`-adic elements will likely be deprecated soon.  See :trac:`11895`.
-
-        EXAMPLES::
-
-            sage: R = Zp(5)
-            sage: hash(R(17)) #indirect doctest
-            17
-
-            sage: hash(R(-1))
-            1977822444 # 32-bit
-            95367431640624 # 64-bit
-        """
-        if exactzero(self.ordp):
-            return 0
-        return chash(self.unit, self.ordp, self.relprec, self.prime_pow) ^ self.ordp
+    def _cache_key(self):
+        coeffs = tuple(tuple(c) if isinstance(c,list) else c for c in self.list())
+        return self.valuation(), self.precision_relative(), coeffs
 
 cdef class pAdicCoercion_ZZ_CR(RingHomomorphism_coercion):
     """

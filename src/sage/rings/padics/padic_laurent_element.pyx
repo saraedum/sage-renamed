@@ -183,7 +183,7 @@ cdef class pAdicLaurentElement(pAdicExtElement):
             sage: R.<a> = L[]
             sage: M = QpTwoStepExtensionFactory(L, a^3 - 9*u*a^2 + 3*u, ram_name="a"); a = M.uniformizer(); u = M(u)
             sage: M.gen().__series_ring()
-            Laurent Series Ring in a over Unramified Extension in u defined by (1 + O(3^10))*u^2 + (3 + O(3^10))*u + (1 + 3 + O(3^10)) of 3-adic Field with capped relative precision 10
+            Laurent Series Ring in a over Unramified Extension in u defined by (1 + O(3^10))*u^2 + (3 + O(3^10))*u + 1 + 3 + O(3^10) of 3-adic Field with capped relative precision 10
 
         """
         from sage.rings.laurent_series_ring import LaurentSeriesRing

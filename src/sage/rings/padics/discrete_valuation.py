@@ -89,10 +89,11 @@ class DiscretePseudoValuation(Morphism):
             tester.assertEqual(self(x*y),self(x)+self(y))
 
     def __hash__(self):
-        raise NotImplementedError
-
+        # TODO: remove me. This is just a reminder to implement __hash__ in all subclasses
+        raise NotImplementedError("%s does not implement __hash__"%type(self))
 
     def __cmp__(self, other):
+        # TODO: remove me. This is just a reminder to implement __cmp__ in all subclasses
         raise NotImplementedError
 
     def is_equivalent(self, f, g):

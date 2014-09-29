@@ -88,7 +88,7 @@ An Eisenstein extension::
     sage: S.<x> = R[]
     sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
     sage: W.<w> = R.ext(f); W
-    Eisenstein Extension of 5-adic Ring with capped relative precision 5 in w defined by (1 + O(5^5))*x^5 + (O(5^6))*x^4 + (3*5^2 + O(5^6))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))*x^2 + (5^3 + O(5^6))*x + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))
+    Eisenstein Extension of 5-adic Ring with capped relative precision 5 in w defined by (1 + O(5^5))*x^5 + (3*5^2 + O(5^6))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))*x^2 + (5^3 + O(5^6))*x + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6)
     sage: z = (1+w)^5; z
     1 + w^5 + w^6 + 2*w^7 + 4*w^8 + 3*w^10 + w^12 + 4*w^13 + 4*w^14 + 4*w^15 + 4*w^16 + 4*w^17 + 4*w^20 + w^21 + 4*w^24 + O(w^25)
     sage: y = z >> 1; y
@@ -104,7 +104,7 @@ An Eisenstein extension::
     sage: (1/w)^12+w
     w^-12 + w + O(w^13)
     sage: (1/w).parent()
-    Eisenstein Extension of 5-adic Field with capped relative precision 5 in w defined by (1 + O(5^5))*x^5 + (O(5^6))*x^4 + (3*5^2 + O(5^6))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))*x^2 + (5^3 + O(5^6))*x + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))
+    Eisenstein Extension of 5-adic Field with capped relative precision 5 in w defined by (1 + O(5^5))*x^5 + (3*5^2 + O(5^6))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))*x^2 + (5^3 + O(5^6))*x + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6)
 
 Unramified extensions::
 
@@ -131,16 +131,16 @@ Unramified extensions::
 
 Different printing modes::
 
-    sage: R = Zp(5, print_mode='digits'); S.<x> = R[]; f = x^5 + 75*x^3 - 15*x^2 + 125*x -5; W.<w> = R.ext(f)
+    sage: R = Zp(5, print_mode='digits', implementation="NTL"); S.<x> = R[]; f = x^5 + 75*x^3 - 15*x^2 + 125*x -5; W.<w> = R.ext(f)
     sage: z = (1+w)^5; repr(z)
     '...4110403113210310442221311242000111011201102002023303214332011214403232013144001400444441030421100001'
-    sage: R = Zp(5, print_mode='bars'); S.<x> = R[]; g = x^3 + 3*x + 3; A.<a> = R.ext(g)
+    sage: R = Zp(5, print_mode='bars', implementation="NTL"); S.<x> = R[]; g = x^3 + 3*x + 3; A.<a> = R.ext(g)
     sage: z = (1+a)^5; repr(z)
     '...[4, 4, 4]|[4, 4, 4]|[4, 4, 4]|[4, 4, 4]|[4, 4, 4]|[4, 4, 4]|[4, 4, 4]|[4, 4, 4]|[4, 4, 4]|[4, 4, 4]|[4, 4, 4]|[4, 4, 4]|[4, 4, 4]|[4, 4, 4]|[4, 4, 4]|[4, 4, 4]|[4, 4, 4]|[4, 3, 4]|[1, 3, 3]|[0, 4, 2]'
-    sage: R = Zp(5, print_mode='terse'); S.<x> = R[]; f = x^5 + 75*x^3 - 15*x^2 + 125*x -5; W.<w> = R.ext(f)
+    sage: R = Zp(5, print_mode='terse', implementation="NTL"); S.<x> = R[]; f = x^5 + 75*x^3 - 15*x^2 + 125*x -5; W.<w> = R.ext(f)
     sage: z = (1+w)^5; z
     6 + 95367431640505*w + 25*w^2 + 95367431640560*w^3 + 5*w^4 + O(w^100)
-    sage: R = Zp(5, print_mode='val-unit'); S.<x> = R[]; f = x^5 + 75*x^3 - 15*x^2 + 125*x -5; W.<w> = R.ext(f)
+    sage: R = Zp(5, print_mode='val-unit', implementation="NTL"); S.<x> = R[]; f = x^5 + 75*x^3 - 15*x^2 + 125*x -5; W.<w> = R.ext(f)
     sage: y = (1+w)^5 - 1; y
     w^5 * (2090041 + 19073486126901*w + 1258902*w^2 + 674*w^3 + 16785*w^4) + O(w^100)
 
@@ -246,7 +246,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -272,13 +272,13 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         Check that :trac:`13612` has been fixed::
 
-            sage: R = Zp(3)
+            sage: R = Zp(3,implementation="NTL")
             sage: S.<a> = R[]
             sage: W.<a> = R.extension(a^2+1)
             sage: W(W.residue_field().zero())
             O(3)
 
-            sage: K = Qp(3)
+            sage: K = Qp(3,implementation="NTL")
             sage: S.<a> = K[]
             sage: L.<a> = K.extension(a^2+1)
             sage: L(L.residue_field().zero())
@@ -504,7 +504,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         have a meaningful hash value since then their hash value would have to
         be the same::
 
-            sage: K.<a> = Qq(9)
+            sage: K.<a> = Qq(9,implementation="NTL")
             sage: b = a + O(3)
             sage: a == b
             True
@@ -548,7 +548,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -563,7 +563,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         TESTS::
 
-            sage: R = Zp(17, 3)
+            sage: R = Zp(17, 3, implementation="NTL")
             sage: S.<x> = R[]
             sage: W.<w> = R.ext(x^34 - 289*x^5 + 17)
             sage: z = W(0, 6); z
@@ -584,7 +584,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -599,7 +599,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         TESTS::
 
-            sage: R = Zp(89, 3)
+            sage: R = Zp(89, 3, implementation="NTL")
             sage: S.<x> = R[]
             sage: W.<w> = R.ext(x^34 - 2*89*x^5 + 89)
             sage: z = R(0); z # indirect doctest
@@ -620,7 +620,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Qp(3,5)
+            sage: R = Qp(3,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -633,7 +633,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         TESTS::
 
-            sage: R = Qp(53, 3)
+            sage: R = Qp(53, 3, implementation="NTL")
             sage: S.<x> = R[]
             sage: W.<w> = R.ext(x^34 - 2*53^5*x^9 + 53)
             sage: z = W(0)
@@ -655,7 +655,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(7,5)
+            sage: R = Zp(7,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -668,7 +668,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         TESTS::
 
-            sage: R = Qp(29, 3)
+            sage: R = Qp(29, 3,implementation="NTL")
             sage: S.<x> = R[]
             sage: W.<w> = R.ext(x^29 - 2*29^5*x - 29)
             sage: z = W(0)
@@ -690,17 +690,17 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
-            sage: W.<w> = R.ext(f)
+            sage: W.<w> = R.ext(f,implementation="NTL")
             sage: F = W.fraction_field()
             sage: z = F(1+w); z # indirect doctest
             1 + w + O(w^25)
 
         TESTS::
 
-            sage: R = Zp(17,30)
+            sage: R = Zp(17,30,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^51 - 34
             sage: W.<w> = R.ext(f)
@@ -721,7 +721,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -732,7 +732,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         TESTS::
 
-            sage: R = Qp(13,50)
+            sage: R = Qp(13,50,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^169 - 13
             sage: W.<w> = R.ext(f)
@@ -768,7 +768,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -779,7 +779,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         TESTS::
 
-            sage: R = Zp(7,3)
+            sage: R = Zp(7,3,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^49 + 7*x^21 - 14
             sage: W.<w> = R.ext(f)
@@ -817,7 +817,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -841,7 +841,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         TESTS::
 
-            sage: R = Zp(11, 8, print_mode='digits')
+            sage: R = Zp(11, 8, print_mode='digits', implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^3 + 1331 * x^2 - 11 * x + 11
             sage: W.<w> = R.ext(f)
@@ -879,7 +879,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -915,7 +915,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         TESTS::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -942,7 +942,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         TESTS::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -975,7 +975,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -1013,7 +1013,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -1047,7 +1047,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         TESTS::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -1094,7 +1094,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -1133,7 +1133,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -1167,7 +1167,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         TESTS::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -1188,7 +1188,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         TESTS::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -1224,7 +1224,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         TESTS::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -1268,7 +1268,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         TESTS::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -1302,7 +1302,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -1344,7 +1344,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R.<a> = ZqCR(125); b = 5*a + 4; c = 10*a^2 + 6; d = b + c
+            sage: R.<a> = ZqCR(125,implementation="NTL"); b = 5*a + 4; c = 10*a^2 + 6; d = b + c
             sage: d._is_normalized()
             False
             sage: d
@@ -1371,7 +1371,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         TESTS::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -1434,7 +1434,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Qp(5,5)
+            sage: R = Qp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -1505,7 +1505,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Qp(5,5)
+            sage: R = Qp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -1527,7 +1527,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Qp(5,5)
+            sage: R = Qp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -1555,7 +1555,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Qp(5,5)
+            sage: R = Qp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -1583,7 +1583,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Qp(5,5)
+            sage: R = Qp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -1611,7 +1611,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -1619,7 +1619,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: y = ~z; y # indirect doctest
             1 + 4*w^5 + 4*w^6 + 3*w^7 + w^8 + 2*w^10 + w^11 + w^12 + 2*w^14 + 3*w^16 + 3*w^17 + 4*w^18 + 4*w^19 + 2*w^20 + 2*w^21 + 4*w^22 + 3*w^23 + 3*w^24 + O(w^25)
             sage: y.parent()
-            Eisenstein Extension of 5-adic Field with capped relative precision 5 in w defined by (1 + O(5^5))*x^5 + (O(5^6))*x^4 + (3*5^2 + O(5^6))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))*x^2 + (5^3 + O(5^6))*x + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))
+            Eisenstein Extension of 5-adic Field with capped relative precision 5 in w defined by (1 + O(5^5))*x^5 + (3*5^2 + O(5^6))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))*x^2 + (5^3 + O(5^6))*x + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6)
             sage: z = z - 1
             sage: ~z
             w^-5 + 4*w^-4 + 4*w^-3 + 4*w^-2 + 2*w^-1 + 1 + w + 4*w^2 + 4*w^3 + 4*w^4 + w^5 + w^6 + w^7 + 4*w^8 + 4*w^9 + 2*w^10 + w^11 + 2*w^12 + 4*w^13 + 4*w^14 + O(w^15)
@@ -1632,7 +1632,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -1640,7 +1640,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: y = ~z; y # indirect doctest
             1 + 4*w^5 + 4*w^6 + 3*w^7 + w^8 + 2*w^10 + w^11 + w^12 + 2*w^14 + 3*w^16 + 3*w^17 + 4*w^18 + 4*w^19 + 2*w^20 + 2*w^21 + 4*w^22 + 3*w^23 + 3*w^24 + O(w^25)
             sage: y.parent()
-            Eisenstein Extension of 5-adic Field with capped relative precision 5 in w defined by (1 + O(5^5))*x^5 + (O(5^6))*x^4 + (3*5^2 + O(5^6))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))*x^2 + (5^3 + O(5^6))*x + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))
+            Eisenstein Extension of 5-adic Field with capped relative precision 5 in w defined by (1 + O(5^5))*x^5 + (3*5^2 + O(5^6))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))*x^2 + (5^3 + O(5^6))*x + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6)
             sage: z = z - 1
             sage: ~z
             w^-5 + 4*w^-4 + 4*w^-3 + 4*w^-2 + 2*w^-1 + 1 + w + 4*w^2 + 4*w^3 + 4*w^4 + w^5 + w^6 + w^7 + 4*w^8 + 4*w^9 + 2*w^10 + w^11 + 2*w^12 + 4*w^13 + 4*w^14 + O(w^15)
@@ -1671,7 +1671,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -1705,7 +1705,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -1739,7 +1739,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5,print_mode='digits')
+            sage: R = Zp(5,5,print_mode='digits',implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -1804,7 +1804,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -1840,7 +1840,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -1924,7 +1924,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -1961,7 +1961,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
             We define ``0^0`` to be unity, :trac:`13786`::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -1974,7 +1974,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         The value returned from ``0^0`` should belong to our ring::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -2121,7 +2121,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -2240,7 +2240,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -2266,7 +2266,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -2320,7 +2320,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -2350,7 +2350,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -2373,9 +2373,9 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: ZZ(ZqCR(125,names='a')(-1)) #indirect doctest
+            sage: ZZ(ZqCR(125,names='a',implementation="NTL")(-1)) #indirect doctest
             95367431640624
-            sage: R = Zp(5); S.<x> = ZZ[]; f = x^5 + 25*x^3 - 5; W.<w> = R.ext(f)
+            sage: R = Zp(5,implementation="NTL"); S.<x> = ZZ[]; f = x^5 + 25*x^3 - 5; W.<w> = R.ext(f)
             sage: ZZ(W(-1))
             95367431640624
             sage: ZZ(W(0))
@@ -2386,8 +2386,8 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             Traceback (most recent call last):
             ...
             ValueError: This element not well approximated by an integer.
-            sage: ZZ(W(5)) # todo: this should be different...
-            381469726562505
+            sage: ZZ(W(5))
+            5
         """
         cdef Integer ans
         cdef ZZ_c tmp_z
@@ -2417,7 +2417,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -2467,7 +2467,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -2493,7 +2493,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -2515,7 +2515,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -2539,13 +2539,13 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         Check that :trac:`13651` has been resolved::
 
-            sage: R = Qp(3,5)
+            sage: R = Qp(3,5,implementation="NTL")
             sage: S.<a> = R[]
             sage: L.<a> = R.extension(a^2-3)
             sage: L(3)._ntl_rep_abs()
             ([3], 0)
 
-            sage: R = Zp(5,print_mode="val-unit")
+            sage: R = Zp(5,print_mode="val-unit",implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 + 125*x -5
             sage: W.<w> = R.ext(f)
@@ -2559,7 +2559,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         Check that the output is correct on a larger set of inputs (for
         Eisenstein extensions)::
 
-            sage: R = Zp(3,5)
+            sage: R = Zp(3,5,implementation="NTL")
             sage: S.<a> = R[]
             sage: L.<a> = R.extension(a^4-3)
             sage: all([Integer(L(i)._ntl_rep_abs()[0][0]) == i for i in range(1,3^5)])
@@ -2569,7 +2569,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         For unramified extensions::
 
-            sage: R = Zp(3,5)
+            sage: R = Zp(3,5,implementation="NTL")
             sage: S.<u> = R[]
             sage: L.<u> = R.extension(u^4+u-1, implementation="NTL")
             sage: all([Integer(L(i)._ntl_rep_abs()[0][0]) == i for i in range(1,3^5)])
@@ -2628,7 +2628,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -2646,7 +2646,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -2689,7 +2689,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -2781,7 +2781,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -2808,7 +2808,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: W(0,4).list()
             [0]
             sage: A(0,4).list()
-            [[]]
+            []
         """
         cdef pAdicZZpXCRElement zero
         cdef Integer ordp
@@ -2859,7 +2859,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = ZpCR(5,5)
+            sage: R = ZpCR(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -2878,7 +2878,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         matrix is known to precision ``O(3^2)`` whereas the other entries are
         known to precision ``O(3)``::
 
-            sage: K = ZpCR(3,5)
+            sage: K = ZpCR(3,5,implementation="NTL")
             sage: R.<a> = K[]
             sage: L.<a> = K.extension(a^2 - 3)
             sage: t = a.add_bigoh(2); t
@@ -2891,7 +2891,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         Check that :trac:`13617` has been fixed::
 
-            sage: R = ZpCR(5,5)
+            sage: R = ZpCR(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: W.<w> = R.ext(x^5 + 75*x^3 - 15*x^2 +125*x - 5)
             sage: W.zero().matrix_mod_pn()
@@ -2903,7 +2903,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         Check that :trac:`13659` has been fixed::
 
-            sage: K = ZpCR(3,3)
+            sage: K = ZpCR(3,3,implementation="NTL")
             sage: R.<a> = K[]
             sage: L.<a> = K.extension(a^2 - 3)
             sage: L(3).matrix_mod_pn()
@@ -2992,7 +2992,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R.<a> = ZqCR(5^4,4)
+            sage: R.<a> = ZqCR(5^4,4,implementation="NTL")
             sage: L = a.teichmuller_list(); L
             [a + (2*a^3 + 2*a^2 + 3*a + 4)*5 + (4*a^3 + 3*a^2 + 3*a + 2)*5^2 + (4*a^2 + 2*a + 2)*5^3 + O(5^4), (3*a^3 + 3*a^2 + 2*a + 1) + (a^3 + 4*a^2 + 1)*5 + (a^2 + 4*a + 4)*5^2 + O(5^3), (4*a^3 + 2*a^2 + a + 1) + (2*a^3 + 2*a^2 + 2*a + 4)*5 + O(5^2), (a^3 + a^2 + a + 4) + O(5)]
             sage: sum([5^i*L[i] for i in range(4)])
@@ -3002,7 +3002,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
             sage: S.<x> = ZZ[]
             sage: f = x^3 - 98*x + 7
-            sage: W.<w> = ZpCR(7,3).ext(f)
+            sage: W.<w> = ZpCR(7,3,implementation="NTL").ext(f)
             sage: b = (1+w)^5; L = b.teichmuller_list(); L
             [1 + O(w^9), 5 + 5*w^3 + w^6 + 4*w^7 + O(w^8), 3 + 3*w^3 + O(w^7), 3 + 3*w^3 + O(w^6), O(w^5), 4 + 5*w^3 + O(w^4), 3 + O(w^3), 6 + O(w^2), 6 + O(w)]
             sage: sum([w^i*L[i] for i in range(9)]) == b
@@ -3053,7 +3053,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(7,5)
+            sage: R = Zp(7,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 77*x^3 - 98*x^2 - 7
             sage: W.<w> = R.ext(f)
@@ -3073,7 +3073,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         We check that #8239 is resolved::
 
-            sage: K.<a> = Qq(25)
+            sage: K.<a> = Qq(25,implementation="NTL")
             sage: K.teichmuller(K(2/5))
             Traceback (most recent call last):
             ...
@@ -3104,7 +3104,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -3139,7 +3139,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -3171,7 +3171,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -3195,7 +3195,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -3244,7 +3244,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         EXAMPLES::
 
-            sage: R = Zp(5,5)
+            sage: R = Zp(5,5,implementation="NTL")
             sage: S.<x> = R[]
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
@@ -3276,7 +3276,7 @@ def make_ZZpXCRElement(parent, unit, ordp, relprec, version):
 
     EXAMPLES::
 
-        sage: R = Zp(5,5)
+        sage: R = Zp(5,5,implementation="NTL")
         sage: S.<x> = R[]
         sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
         sage: W.<w> = R.ext(f)

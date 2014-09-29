@@ -90,11 +90,11 @@ A splitting field::
     sage: g = f.change_ring(L)//(x-a)
     sage: g.is_irreducible()
     True
-    sage: M.<b> = L.extension(g)
-    sage: h = g.change_ring(M)//(x-b)
-    sage: h.is_irreducible()
+    sage: M.<b> = L.extension(g) # long time
+    sage: h = g.change_ring(M)//(x-b) # long time
+    sage: h.is_irreducible() # long time
     True
-    sage: N.<c> = M.extension(h, check=False) # check is False for speed
+    sage: N.<c> = M.extension(h, check=False) # long time, check is False for speed
     sage: len(f.change_ring(N).roots(multiplicities=False)) # long time
     4
     sage: len(f.change_ring(N).factor()) # long time
@@ -943,7 +943,17 @@ class BaseFactory(AbstractFactory):
         EXAMPLES:
 
             sage: Qp._decode_key((2, 10, 'capped-rel', 'terse', '2', None, None, None, None, None))
-            ('capped-rel', {'implementation': None, 'p': 2, 'print_mode': {'sep': None, 'alphabet': None, 'pos': None, 'mode': 'terse', 'ram_name': '2', 'max_ram_terms': None}, 'names': '2', 'prec': 10})
+            ('capped-rel',
+             {'implementation': None,
+              'names': '2',
+              'p': 2,
+              'prec': 10,
+              'print_mode': {'alphabet': None,
+               'max_ram_terms': None,
+               'mode': 'terse',
+               'pos': None,
+               'ram_name': '2',
+               'sep': None}})
 
         """
         p, prec, type, print_mode, names, print_pos, print_sep, print_alphabet, print_max_ram_terms, implementation = key
@@ -1453,12 +1463,13 @@ class GenericExtensionFactory(AbstractFactory):
             raise NotImplementedError("modulus not integral after normalization")
 
         if check:
-            if not modulus.is_irreducible():
-                raise ValueError("modulus must be irreducible but %s is not irreducible over %s"%(modulus,base))
             if modulus.is_constant():
                 raise ValueError("modulus must not be constant")
             if len(modulus.list()) > modulus.degree()+1:
                 raise ValueError("modulus must not have leading zero coefficients")
+            if not self.is_eisenstein(modulus): # checking for Eisenstein is much faster than a general check for irreducibility (TODO: move this into the is_irreducible)
+                if not modulus.is_irreducible():
+                    raise ValueError("modulus must be irreducible but %s is not irreducible over %s"%(modulus,base))
 
         assert modulus.is_monic()
         return modulus
@@ -1602,7 +1613,20 @@ class GenericExtensionFactory(AbstractFactory):
             sage: R.<x> = K[]
             sage: from sage.rings.padics.factory import QpExtensionFactory
             sage: QpExtensionFactory._decode_key(('u', K, (1 + O(2^20))*x^2 + (1 + O(2^20))*x + (1 + O(2^20)), (1 + O(2^20))*x^2 + (1 + O(2^20))*x + (1 + O(2^20)), ('u', 'u0'), 20, 40, 'series', True, None, None, -1, -1, -1, None))
-            (('u', 'capped-rel'), {'halt': 40, 'implementation': None, 'prec': 20, 'print_mode': {'sep': None, 'alphabet': None, 'pos': True, 'max_unram_terms': -1, 'max_terse_terms': -1, 'mode': 'series', 'max_ram_terms': -1}, 'poly': (1 + O(2^20))*x^2 + (1 + O(2^20))*x + 1 + O(2^20), 'prepoly': (1 + O(2^20))*x^2 + (1 + O(2^20))*x + 1 + O(2^20), 'names': ('u', 'u0')})
+            (('u', 'capped-rel'),
+             {'halt': 40,
+              'implementation': None,
+              'names': ('u', 'u0'),
+              'poly': (1 + O(2^20))*x^2 + (1 + O(2^20))*x + 1 + O(2^20),
+              'prec': 20,
+              'prepoly': (1 + O(2^20))*x^2 + (1 + O(2^20))*x + 1 + O(2^20),
+              'print_mode': {'alphabet': None,
+               'max_ram_terms': -1,
+               'max_terse_terms': -1,
+               'max_unram_terms': -1,
+               'mode': 'series',
+               'pos': True,
+               'sep': None}})
 
         """
         ext, base, premodulus, modulus, names, prec, halt, print_mode, print_pos, print_sep, print_alphabet, print_max_ram_terms, print_max_unram_terms, print_max_terse_terms, implementation = key

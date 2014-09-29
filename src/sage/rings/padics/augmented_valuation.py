@@ -91,6 +91,12 @@ class AugmentedValuation(DevelopingValuation):
         if check and not self.residue_field().has_coerce_map_from(v.residue_field()):
             raise ValueError("the residue field `%s` does not embed into `%s`"%(v.residue_field(), self.residue_field()))
 
+    def __hash__(self):
+        return hash(self._base_valuation, self._mu, self._phi)
+
+    def _cache_key(self):
+        return self._base_valuation, self._mu, self._phi
+
     def _call_(self, f):
         """
         Evaluate this valuation at ``f``.
@@ -765,7 +771,7 @@ class AugmentedValuation(DevelopingValuation):
             Univariate Quotient Polynomial Ring in u1 over Finite Field in u0 of size 2^2 with modulus u1^2 + u1 + u0
             sage: w = w.extension((x^2 + x + u)^2 + 2, 5/3)
             sage: w.residue_field()
-            Univariate Quotient Polynomial Ring in u2 over Univariate Quotient Polynomial Ring in u1 over Finite Field in u0 of size 2^2 with modulus u1^2 + u1 + u0 with modulus u2 + 1
+            Univariate Quotient Polynomial Ring in u1 over Finite Field in u0 of size 2^2 with modulus u1^2 + u1 + u0
 
         """
         if generator is None:

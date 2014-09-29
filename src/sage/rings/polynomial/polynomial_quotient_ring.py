@@ -1653,10 +1653,8 @@ class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, sage.rings.i
 
         return self.gen().field_extension(names)
 
-
-
-
-class PolynomialQuotientRing_field(PolynomialQuotientRing_domain, field.Field):
+from sage.structure.unique_representation import UniqueRepresentation
+class PolynomialQuotientRing_field(UniqueRepresentation, PolynomialQuotientRing_domain, field.Field):
     """
     EXAMPLES::
 
@@ -1671,10 +1669,6 @@ class PolynomialQuotientRing_field(PolynomialQuotientRing_domain, field.Field):
     """
     def __init__(self, ring, polynomial, name=None):
         PolynomialQuotientRing_domain.__init__(self, ring, polynomial, name)
-
-    def __reduce__(self):
-        return PolynomialQuotientRing_field, (self.polynomial_ring(),
-                                        self.modulus(), self.variable_names())
 
     def base_field(self):
         r"""

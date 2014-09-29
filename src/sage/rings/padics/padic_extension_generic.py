@@ -107,10 +107,11 @@ class pAdicExtensionGeneric(pAdicGeneric):
 
     def __hash__(self):
         # TODO: define good hash functions for all padic rings & make cmp actually work
-        try:
-            return hash(self.defining_polynomial())
-        except TypeError:
-            return hash(self.defining_polynomial()._cache_key())
+        return hash(self.defining_polynomial())
+
+    def _cache_key(self):
+        from sage.misc.cachefunc import _cache_key
+        return _cache_key(self.base()), self.defining_polynomial()._cache_key()
 
     #def absolute_discriminant(self):
     #    raise NotImplementedError
@@ -149,7 +150,8 @@ class pAdicExtensionGeneric(pAdicGeneric):
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
             sage: W.defining_polynomial()
-            (1 + O(5^5))*x^5 + (O(5^6))*x^4 + (3*5^2 + O(5^6))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))*x^2 + (5^3 + O(5^6))*x + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))
+            (1 + O(5^5))*x^5 + (3*5^2 + O(5^6))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))*x^2 + (5^3 + O(5^6))*x + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6)
+
         """
         return self._given_poly
 
@@ -164,7 +166,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
             sage: W.modulus()
-            (1 + O(5^5))*x^5 + (O(5^6))*x^4 + (3*5^2 + O(5^6))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))*x^2 + (5^3 + O(5^6))*x + (4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))
+            (1 + O(5^5))*x^5 + (3*5^2 + O(5^6))*x^3 + (2*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6))*x^2 + (5^3 + O(5^6))*x + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + O(5^6)
         """
         return self._given_poly
 
@@ -253,7 +255,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
 
             sage: U.<a> = Zq(17^4, 6, print_mode='val-unit', print_max_terse_terms=3)
             sage: U.fraction_field()
-            Unramified Extension of 17-adic Field with capped relative precision 6 in a defined by (1 + O(17^6))*x^4 + (O(17^6))*x^3 + (7 + O(17^6))*x^2 + (10 + O(17^6))*x + (3 + O(17^6))
+            Unramified Extension in a defined by (1 + O(17^6))*x^4 + (7 + O(17^6))*x^2 + (10 + O(17^6))*x + 3 + O(17^6) of 17-adic Field with capped relative precision 6
             sage: U.fraction_field({"pos":False}) == U.fraction_field()
             False
         """
@@ -291,7 +293,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
 
             sage: U.<a> = Qq(17^4, 6, print_mode='val-unit', print_max_terse_terms=3)
             sage: U.integer_ring()
-            Unramified Extension of 17-adic Ring with capped relative precision 6 in a defined by (1 + O(17^6))*x^4 + (O(17^6))*x^3 + (7 + O(17^6))*x^2 + (10 + O(17^6))*x + (3 + O(17^6))
+            Unramified Extension in a defined by (1 + O(17^6))*x^4 + (7 + O(17^6))*x^2 + (10 + O(17^6))*x + 3 + O(17^6) of 17-adic Ring with capped relative precision 6
             sage: U.fraction_field({"pos":False}) == U.fraction_field()
             False
         """
@@ -325,10 +327,10 @@ class pAdicExtensionGeneric(pAdicGeneric):
         EXAMPLES::
 
             sage: R.<a> = Zq(125, 5); R.random_element()
-            3*a + (2*a + 1)*5 + (4*a^2 + 3*a + 4)*5^2 + (a^2 + 2*a)*5^3 + (a + 2)*5^4 + O(5^5)
+            (3*a^2 + 3*a + 3) + (a^2 + 4*a + 1)*5 + (3*a^2 + 4*a + 1)*5^2 + (2*a^2 + 3*a + 3)*5^3 + (4*a^2 + 3)*5^4 + O(5^5)
             sage: R = Zp(5,3); S.<x> = ZZ[]; f = x^5 + 25*x^2 - 5; W.<w> = R.ext(f)
             sage: W.random_element()
-            3 + 4*w + 3*w^2 + w^3 + 4*w^4 + w^5 + w^6 + 3*w^7 + w^8 + 2*w^10 + 4*w^11 + w^12 + 2*w^13 + 4*w^14 + O(w^15)
+            4 + 3*w + w^2 + 4*w^3 + w^5 + 3*w^6 + w^7 + 4*w^10 + 2*w^12 + 4*w^13 + 3*w^14 + O(w^15)
         """
         return reduce(lambda x,y: x+y, \
                       map(lambda a,b: a*b, \

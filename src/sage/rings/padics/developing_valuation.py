@@ -746,11 +746,11 @@ class DevelopingValuation(DiscreteValuation):
             sage: (g-g).list()
             [0, O(2^5)]
             sage: f = x*R(0,1) + R(1,2); f
-            (O(2))*x + (1 + O(2^2))
+            1 + O(2^2)
             sage: list(v.coefficients(f)) # indirect doctest
-            [(1 + O(2^2))]
+            [1 + O(2^2)]
             sage: f = x*R(0,1) + R(2,2); f
-            (O(2))*x + (2 + O(2^2))
+            2 + O(2^2)
             sage: list(v.coefficients(f)) # indirect doctest
             Traceback (most recent call last):
             ...
@@ -790,10 +790,10 @@ class DevelopingValuation(DiscreteValuation):
             sage: v = GaussValuation(S)
             sage: f = x^2 + 2*x + 3
             sage: list(v.coefficients(f)) # note that these constants are in the polynomial ring
-            [(1 + 2 + O(2^5)), (2 + O(2^6)), (1 + O(2^5))]
+            [1 + 2 + O(2^5), 2 + O(2^6), 1 + O(2^5)]
             sage: v = v.extension( x^2 + x + 1, 1)
             sage: list(v.coefficients(f))
-            [(1 + O(2^5))*x + (2 + O(2^5)), (1 + O(2^5))]
+            [(1 + O(2^5))*x + 2 + O(2^5), 1 + O(2^5)]
 
         """
         if f.parent() is not self.domain():
@@ -828,7 +828,7 @@ class DevelopingValuation(DiscreteValuation):
             sage: v = v.extension( x^2 + x + 1, 1)
             sage: f = x^2 + 2*x + 3
             sage: list(v.coefficients(f)) # indirect doctest
-            [(1 + O(2^5))*x + (2 + O(2^5)), (1 + O(2^5))]
+            [(1 + O(2^5))*x + 2 + O(2^5), 1 + O(2^5)]
         """
         while f.degree() >= 0:
             f,r = self.__quo_rem(f)

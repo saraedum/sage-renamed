@@ -410,7 +410,7 @@ class pAdicValuation_base(UniqueRepresentation, DiscreteValuation):
             sage: v = pAdicValuation(k)
             sage: R.<x>=k[]
             sage: G = x^2 + 1
-            sage: v.montes_factorization(G)
+            sage: v.montes_factorization(G) # long time
             ((1 + O(5^4))*x + 2 + 5 + 2*5^2 + 5^3 + O(5^4)) * ((1 + O(5^4))*x + 3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4))
 
         REFERENCES:
@@ -495,7 +495,7 @@ class pAdicValuation_base(UniqueRepresentation, DiscreteValuation):
             sage: v0 = pAdicValuation(QQ, 5)
             sage: v0.mac_lane_approximants(G)
             [[ Gauss valuation induced by 5-adic valuation, v(x + 2) = 1 ], [ Gauss valuation induced by 5-adic valuation, v(x + 3) = 1 ]]
-            sage: v0.mac_lane_approximants(G, precision_cap = 10)
+            sage: v0.mac_lane_approximants(G, precision_cap = 10) # long time
             [[ Gauss valuation induced by 5-adic valuation, v(x + 25670807) = 11 ], [ Gauss valuation induced by 5-adic valuation, v(x + 23157318) = 11 ]]
 
         The same example over the 5-adic numbers. In the quadratic extension
@@ -521,7 +521,8 @@ class pAdicValuation_base(UniqueRepresentation, DiscreteValuation):
         In this example, the process stops with a factorization of `x^2 + 1`::
 
             sage: v.mac_lane_approximants(G, precision_cap=infinity)
-            [[ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (2 + 5 + 2*5^2 + 5^3 + O(5^4))) = +Infinity ], [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + (3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4))) = +Infinity ]]
+            [[ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + 2 + 5 + 2*5^2 + 5^3 + O(5^4)) = +Infinity ],
+             [ Gauss valuation induced by 5-adic valuation, v((1 + O(5^4))*x + 3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4)) = +Infinity ]]
 
         This obviously cannot happen over the rationals where we only get an
         approximate factorization::

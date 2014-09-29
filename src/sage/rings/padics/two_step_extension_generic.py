@@ -194,7 +194,7 @@ class TwoStepExtensionGeneric(pAdicExtensionGeneric):
             sage: R.<a> = L[]
             sage: M = ZpTwoStepExtensionFactory(L, a^3 - 9*u*a^2 + 3*u, ram_name='a'); a = M.uniformizer(); u = M(u)
             sage: M.inertia_subring()
-            Unramified Extension in u defined by (1 + O(3^10))*u^2 + (3 + O(3^10))*u + (1 + 3 + O(3^10)) of 3-adic Ring with capped relative precision 10
+            Unramified Extension in u defined by (1 + O(3^10))*u^2 + (3 + O(3^10))*u + 1 + 3 + O(3^10) of 3-adic Ring with capped relative precision 10
 
         """
         return self._inertia_subring

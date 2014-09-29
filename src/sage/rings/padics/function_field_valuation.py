@@ -16,6 +16,9 @@ class RationalFunctionFieldValuation(DiscreteValuation):
     def __hash__(self):
         return hash(self._base_valuation) + hash(self.domain())
 
+    def _cache_key(self):
+        return self._base_valuation, self.domain()
+
     def __cmp__(self, other):
         if type(self) != type(other):
             return cmp(type(self),type(other))
@@ -145,7 +148,8 @@ class RationalFunctionFieldValuation(DiscreteValuation):
     def _repr_(self):
         return "Valuation on rational function field induced by %s"%self._base_valuation
 
-class TrivialValuation(DiscreteValuation):
+from sage.structure.unique_representation import UniqueRepresentation
+class TrivialValuation(UniqueRepresentation, DiscreteValuation):
     def __init__(self, domain):
         DiscreteValuation.__init__(self, domain)
 

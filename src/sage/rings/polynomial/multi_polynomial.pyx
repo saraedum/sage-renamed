@@ -1234,16 +1234,20 @@ cdef class MPolynomial(CommutativeRingElement):
 
         r = 0
         offset = 0
+        restriction = [None]*self.parent().ngens()
+        index = self.parent().gens().index(variable)
         for _ in range(n):
             for c in range(m, -1, -1):
-                M[r, m - c + offset] = self.coefficient({variable:c})
+                restriction[index] = c
+                M[r, m - c + offset] = self.coefficient(restriction)
             offset += 1
             r += 1
 
         offset = 0
         for _ in range(m):
             for c in range(n, -1, -1):
-                M[r, n - c + offset] = right.coefficient({variable:c})
+                restriction[index] = c
+                M[r, n - c + offset] = right.coefficient(restriction)
             offset += 1
             r += 1
 

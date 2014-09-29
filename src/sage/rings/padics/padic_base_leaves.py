@@ -309,7 +309,7 @@ class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGener
 
             sage: R.<x> = ZpCR(13,5)[]
             sage: (x^2 + 1).factor()
-            ((1 + O(13^5))*x + (5 + 5*13 + 13^2 + 5*13^4 + O(13^5))) * ((1 + O(13^5))*x + (8 + 7*13 + 11*13^2 + 12*13^3 + 7*13^4 + O(13^5)))
+            ((1 + O(13^5))*x + 5 + 5*13 + 13^2 + 5*13^4 + O(13^5)) * ((1 + O(13^5))*x + 8 + 7*13 + 11*13^2 + 12*13^3 + 7*13^4 + O(13^5))
 
         """
         from sage.rings.padics.factory import ZpCA
@@ -350,7 +350,7 @@ class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGener
             sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^3)])
 
             sage: R = ZpCA(3, 2)
-            sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^6)])
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^6)]) # long time
 
             sage: R = ZpCA(next_prime(10^60))
             sage: TestSuite(R).run()
@@ -441,7 +441,7 @@ class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
             sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^3)])
 
             sage: R = ZpFM(3, 2)
-            sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^6)])
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^6)]) # long time
 
             sage: R = ZpFM(next_prime(10^60))
             sage: TestSuite(R).run()
@@ -555,10 +555,10 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
             sage: TestSuite(R).run(elements = [R.random_element() for i in range(2^10)], max_runs = 2^12) # long time
 
             sage: R = Qp(3, 1)
-            sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^6)])
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^6)]) # long time
 
             sage: R = Qp(3, 2)
-            sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^9)])
+            sage: TestSuite(R).run(elements = [R.random_element() for i in range(3^9)]) # long time
 
             sage: R = Qp(next_prime(10^60))
             sage: TestSuite(R).run()
