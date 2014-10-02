@@ -488,7 +488,11 @@ def _get_from_cache(key):
     try:
         return _cache[key] #()
     except TypeError as msg:
-        raise TypeError('key = %s\n%s'%(key,msg))
+        from sage.misc.cachefunc import _cache_key
+        try:
+            return _cache[_cache_key(key)]
+        except KeyError:
+            return None
     except KeyError:
         return None
 
@@ -496,8 +500,8 @@ def _save_in_cache(key, R):
     try:
          _cache[key] = R
     except TypeError as msg:
-        raise TypeError('key = %s\n%s'%(key,msg))
-
+        from sage.misc.cachefunc import _cache_key
+        _cache[_cache_key(key)] = R
 
 def _single_variate(base_ring, name, sparse, implementation):
     import sage.rings.polynomial.polynomial_ring as m
