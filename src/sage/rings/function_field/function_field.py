@@ -7,8 +7,7 @@ AUTHORS:
 
 - Robert Bradshaw (2010-05-30): added is_finite()
 
-- Julian Rueth (2011-06-08, 2011-09-14, 2014-06-23, 2014-06-24): fixed hom(), extension();
-use @cached_method; added derivation(); added support for relative vector spaces
+- Julian Rueth (2011-06-08, 2011-09-14, 2014-06-23, 2014-06-24): fixed hom(), extension(); use @cached_method; added derivation(); added support for relative vector spaces
 
 - Maarten Derickx (2011-09-11): added doctests
 
@@ -231,7 +230,7 @@ class FunctionField(Field):
 
         OUTPUT:
 
-            - a function field
+        a function field
 
         EXAMPLES::
 
@@ -268,7 +267,7 @@ class FunctionField(Field):
 
         OUTPUT:
 
-            - an order in this function field
+        an order in this function field
 
         EXAMPLES::
 
@@ -936,7 +935,7 @@ class FunctionField_polymod(FunctionField):
 
         OUTPUT:
 
-            ``x``, as an element of this function field
+        ``x``, as an element of this function field
 
         TESTS::
 
@@ -1433,7 +1432,7 @@ class FunctionField_polymod(FunctionField):
             - a morphism from the constructed field to self
             - a morphism from self to the constructed field
 
-        EXAMPLES::
+        EXAMPLES:
 
         A tower of four function fields::
 
@@ -1614,7 +1613,7 @@ class FunctionField_polymod(FunctionField):
             -  ``from_V`` - an isomorphism from V to self
             -  ``to_V`` - an isomorphism from self to V
 
-        EXAMPLES::
+        EXAMPLES:
 
         We define a function field::
         

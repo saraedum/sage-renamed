@@ -100,7 +100,7 @@ A splitting field::
     sage: len(f.change_ring(N).factor()) # long time
     4
 
-.. _padic_precision
+.. _padic_precision:
 
 Precision
 ---------
@@ -187,7 +187,7 @@ Notice how the following computation differs in these three precision models::
 Eventually, in a *lazy* implementation, elements will be able to increase their
 precision upon request. This is currently not implemented.
 
-.. _padic_printing
+.. _padic_printing:
 
 Printing
 --------
@@ -556,7 +556,7 @@ However, irrelevant options are not taken into account::
     sage: K == L
     True
 
-:: _padic_modulus
+.. _padic_modulus:
 
 Moduli
 ------
@@ -1214,7 +1214,7 @@ class GenericExtensionFactory(AbstractFactory):
     """
     @staticmethod
     def krasner_check(poly, names=None):
-        """
+        r"""
         Check whether the Eisenstein polynomial ``poly`` uniquely defines an
         extension by Krasner's lemma.
 

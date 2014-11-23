@@ -30,7 +30,7 @@ from sage.structure.element cimport FieldElement, RingElement, ModuleElement, El
 from sage.misc.cachefunc import cached_in_parent_method
 
 def is_FunctionFieldElement(x):
-    """
+    r"""
     Return True if x is any type of function field element.
 
     EXAMPLES::
@@ -46,7 +46,7 @@ def is_FunctionFieldElement(x):
     return is_FunctionField(x.parent())
 
 def make_FunctionFieldElement(parent, element_class, representing_element):
-    """
+    r"""
     Used for unpickling FunctionFieldElement objects (and subclasses).
 
     EXAMPLES::
@@ -59,7 +59,7 @@ def make_FunctionFieldElement(parent, element_class, representing_element):
     return element_class(parent, representing_element, reduce=False)
 
 cdef class FunctionFieldElement(FieldElement):
-    """
+    r"""
     The abstract base class for function field elements.
 
     EXAMPLES::
@@ -73,7 +73,7 @@ cdef class FunctionFieldElement(FieldElement):
     cdef readonly object _matrix
 
     def _vector_(self, base_field=None):
-        """
+        r"""
         Return the coefficients of the linear combination of self with coefficients in base.
 
         EXAMPLES::
@@ -104,7 +104,7 @@ cdef class FunctionFieldElement(FieldElement):
         return self.nth_root(p)
 
     def __reduce__(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: K = FunctionField(QQ,'x')
@@ -143,7 +143,7 @@ cdef class FunctionFieldElement(FieldElement):
         raise NotImplementedError("PARI does not support general function field elements.")
 
     def _latex_(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: K.<t> = FunctionField(QQ)
@@ -218,7 +218,7 @@ cdef class FunctionFieldElement(FieldElement):
         return self._matrix
 
     def _matrix_over_base(self, base):
-        """
+        r"""
         Return the matrix of self over base, a subfield of self.parent().
         The base needs to be a field that embeds in the parent of self.
         
@@ -261,7 +261,7 @@ cdef class FunctionFieldElement(FieldElement):
         return MatrixSpace(base,total_degree)([(self*b)._vector_(base) for b in basis])
 
     def trace(self):
-        """
+        r"""
         Return the trace of this function field element.
 
         EXAMPLES::
@@ -274,7 +274,7 @@ cdef class FunctionFieldElement(FieldElement):
         return self.matrix().trace()
 
     def norm(self):
-        """
+        r"""
         Return the norm of this function field element.
 
         EXAMPLES::
@@ -297,7 +297,7 @@ cdef class FunctionFieldElement(FieldElement):
         return self.matrix().determinant()
 
     def characteristic_polynomial(self, *args, **kwds):
-        """
+        r"""
         Return the characteristic polynomial of this function field
         element.  Give an optional input string to name the variable
         in the characteristic polynomial.
@@ -319,7 +319,7 @@ cdef class FunctionFieldElement(FieldElement):
     charpoly = characteristic_polynomial
 
     def minimal_polynomial(self, *args, **kwds):
-        """
+        r"""
         Return the minimal polynomial of this function field element.
         Give an optional input string to name the variable in the
         characteristic polynomial.
@@ -363,7 +363,7 @@ cdef class FunctionFieldElement(FieldElement):
         return all([a in R for a in self.minimal_polynomial()])
 
 cdef class FunctionFieldElement_polymod(FunctionFieldElement):
-    """
+    r"""
     Elements of a finite extension of a function field.
 
     EXAMPLES::
@@ -374,7 +374,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         x*y + 1/x^3
     """
     def __init__(self, parent, x, reduce=True):
-        """
+        r"""
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
@@ -389,10 +389,11 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
             self._x = x
 
     def element(self):
-        """
+        r"""
         Return the underlying polynomial that represents this element.
 
         EXAMPLES::
+
             sage: K.<x> = FunctionField(QQ); R.<T> = K[]
             sage: L.<y> = K.extension(T^2 - x*T + 4*x^3)
             sage: f = y/x^2 + x/(x^2+1); f
@@ -405,7 +406,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         return self._x
 
     def _repr_(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
@@ -416,7 +417,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         return self._x._repr(name=self.parent().variable_name())
 
     def __nonzero__(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
@@ -431,7 +432,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         return not not self._x
 
     cdef int _cmp_c_impl(self, Element other) except -2:
-        """
+        r"""
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
@@ -446,7 +447,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         return cmp(left._x, right._x)
 
     cpdef ModuleElement _add_(self, ModuleElement right):
-        """
+        r"""
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
@@ -463,7 +464,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         return res
 
     cpdef ModuleElement _sub_(self, ModuleElement right):
-        """
+        r"""
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
@@ -478,7 +479,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         return res
 
     cpdef RingElement _mul_(self, RingElement right):
-        """
+        r"""
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
@@ -491,7 +492,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         return res
 
     cpdef RingElement _div_(self, RingElement right):
-        """
+        r"""
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
@@ -506,7 +507,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         return self * ~right
 
     def __invert__(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
@@ -522,7 +523,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         return P(self._x.xgcd(P._polynomial)[1])
 
     def nth_root(self, n):
-        """
+        r"""
         Compute an ``n``-th root of this element in the function field.
 
         INPUT:
@@ -540,11 +541,11 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         base field is perfect, then this uses the algorithm described in
         Proposition 12 of [GiTr1996].
 
-        REFERENCES::
+        REFERENCES:
 
         .. [GiTr1996] P. Gianni, B. Trager. Square-Free Algorithms in Positive
-        Characteristic. Applicable Algebra In Engineering, Communication And
-        Computing, 7(1), p. 1-14.
+           Characteristic. Applicable Algebra In Engineering, Communication And
+           Computing, 7(1), p. 1-14.
 
         .. SEEALSO::
 
@@ -592,12 +593,6 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         raise NotImplementedError("nth_root() not implemented for this n")
 
     def is_nth_power(self, n):
-        """
-        EXAMPLES::
-
-            TODO
-
-        """
         if n == 0:
             return self.is_one()
         if n == 1:
@@ -617,7 +612,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         raise NotImplementedError("nth_root() not implemented for this n")
 
     def __pth_root(self):
-        """
+        r"""
         Helper method for :meth:`nth_root` which computes a `p`-th root if the
         characteristic is `p` and the constant base field is perfect.
 
@@ -653,10 +648,10 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         return self.parent()(f)
 
     def list(self):
-        """
+        r"""
         Return a list of coefficients of self, i.e., if self is an element of
-        a function field K[y]/(f(y)), then return the coefficients of the
-        reduced presentation as a polynomial in K[y].
+        a function field `K[y]/(f(y))`, then return the coefficients of the
+        reduced presentation as a polynomial in `K[y]`.
 
         EXAMPLES::
 
@@ -672,12 +667,6 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         return self._x.padded_list(self.parent().degree())
 
     def is_nth_power(self, n):
-        """
-        EXAMPLES::
-
-            TODO
-
-        """
         if n == 0:
             return self.is_one()
         if n == 1:
@@ -698,7 +687,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
 
     @cached_in_parent_method
     def nth_root(self, n):
-        """
+        r"""
         Compute an ``n``-th root of this element in the function field.
 
         INPUT:
@@ -715,12 +704,6 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         If ``n`` is a power of the characteristic of the field and the constant
         base field is perfect, then this uses the algorithm described in
         Proposition 12 of [GiTr1996].
-
-        REFERENCES::
-
-        .. [GiTr1996] P. Gianni, B. Trager. Square-Free Algorithms in Positive
-        Characteristic. Applicable Algebra In Engineering, Communication And
-        Computing, 7(1), p. 1-14.
 
         .. SEEALSO::
 
@@ -768,7 +751,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         raise NotImplementedError("nth_root() not implemented for this n")
 
     def __pth_root(self):
-        """
+        r"""
         Helper method for :meth:`nth_root` which computes a `p`-th root if the
         characteristic is `p` and the constant base field is perfect.
 
@@ -792,7 +775,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         return self.parent()(f)
 
 cdef class FunctionFieldElement_rational(FunctionFieldElement):
-    """
+    r"""
     Elements of a rational function field.
 
     EXAMPLES::
@@ -801,7 +784,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         Rational function field in t over Rational Field
     """
     def __init__(self, parent, x, reduce=True):
-        """
+        r"""
         EXAMPLES::
 
             sage: FunctionField(QQ,'t').gen()^3
@@ -811,7 +794,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         self._x = x
 
     def is_constant(self):
-        """
+        r"""
         Return True if self is a member of the constant base field.
 
         EXAMPLES::
@@ -829,7 +812,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         return len(self.numerator().coeffs())<=1 and len(self.denominator().coeffs())<=1
 
     def element(self):
-        """
+        r"""
         Return the underlying fraction field element that represents this element.
 
         EXAMPLES::
@@ -849,12 +832,12 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         return self._x
 
     def list(self):
-        """
+        r"""
         Return a list of coefficients of self, i.e., if self is an element of
         a function field K[y]/(f(y)), then return the coefficients of the
         reduced presentation as a polynomial in K[y].
         Since self is a member of a rational function field, this simply returns
-        the list `[self]`
+        the list `[self]`.
 
         EXAMPLES::
 
@@ -865,7 +848,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         return [self]
 
     def _repr_(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: K.<t> = FunctionField(QQ)
@@ -875,7 +858,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         return repr(self._x)
 
     def __nonzero__(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: K.<t> = FunctionField(QQ)
@@ -889,7 +872,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         return not not self._x
 
     cdef int _cmp_c_impl(self, Element other) except -2:
-        """
+        r"""
         EXAMPLES::
 
             sage: K.<t> = FunctionField(QQ)
@@ -906,7 +889,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         return c or cmp(left._x, right._x)
 
     cpdef ModuleElement _add_(self, ModuleElement right):
-        """
+        r"""
         EXAMPLES::
 
             sage: K.<t> = FunctionField(QQ)
@@ -918,7 +901,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         return res
 
     cpdef ModuleElement _sub_(self, ModuleElement right):
-        """
+        r"""
         EXAMPLES::
 
             sage: K.<t> = FunctionField(QQ)
@@ -930,7 +913,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         return res
 
     cpdef RingElement _mul_(self, RingElement right):
-        """
+        r"""
         EXAMPLES::
 
             sage: K.<t> = FunctionField(QQ)
@@ -942,7 +925,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         return res
 
     cpdef RingElement _div_(self, RingElement right):
-        """
+        r"""
         EXAMPLES::
 
             sage: K.<t> = FunctionField(QQ)
@@ -955,7 +938,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         return res
 
     def numerator(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: K.<t> = FunctionField(QQ)
@@ -967,7 +950,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         return self._x.numerator()
 
     def denominator(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: K.<t> = FunctionField(QQ)
@@ -979,7 +962,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         return self._x.denominator()
 
     def valuation(self, v):
-        """
+        r"""
         EXAMPLES::
 
             sage: K.<t> = FunctionField(QQ)
@@ -995,7 +978,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         return self._x.valuation(R(self._parent(v)._x))
 
     def is_square(self):
-        """
+        r"""
         Returns whether self is a square.
 
         EXAMPLES::
@@ -1017,7 +1000,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         return self._x.is_square()
 
     def sqrt(self, all=False):
-        """
+        r"""
         Returns the square root of self.
 
         EXAMPLES::
@@ -1041,7 +1024,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
             return self._parent(self._x.sqrt())
 
     def factor(self):
-        """
+        r"""
         Factor this rational function.
 
         EXAMPLES::
@@ -1063,7 +1046,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         return Factorization([(P(a),e) for a,e in F], unit=F.unit())
 
     def is_nth_power(self, n):
-        """
+        r"""
         Return whether this element is an ``n``-th power in the rational
         function field.
 
@@ -1081,12 +1064,6 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         If ``n`` is a power of the characteristic of the field and the constant
         base field is perfect, then this uses the algorithm described in Lemma
         3 of [GiTr1996].
-
-        REFERENCES::
-
-        .. [GiTr1996] P. Gianni, B. Trager. Square-Free Algorithms in Positive
-        Characteristic. Applicable Algebra In Engineering, Communication And
-        Computing, 7(1), p. 1-14.
 
         .. SEEALSO::
 
@@ -1120,7 +1097,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         raise NotImplementedError("is_nth_power() not implemented for the given n")
 
     def nth_root(self, n):
-        """
+        r"""
         Compute an ``n``-th root of this element in the function field.
 
         INPUT:
@@ -1137,12 +1114,6 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         If ``n`` is a power of the characteristic of the field and the constant
         base field is perfect, then this uses the algorithm described in
         Corllary 3 of [GiTr1996].
-
-        REFERENCES::
-
-        .. [GiTr1996] P. Gianni, B. Trager. Square-Free Algorithms in Positive
-        Characteristic. Applicable Algebra In Engineering, Communication And
-        Computing, 7(1), p. 1-14.
 
         .. SEEALSO::
 
@@ -1203,7 +1174,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
 
     @cached_in_parent_method
     def is_nth_power(self, n):
-        """
+        r"""
         Return whether this element is an ``n``-th power in the rational
         function field.
 
@@ -1221,12 +1192,6 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         If ``n`` is a power of the characteristic of the field and the constant
         base field is perfect, then this uses the algorithm described in Lemma
         3 of [GiTr1996].
-
-        REFERENCES::
-
-        .. [GiTr1996] P. Gianni, B. Trager. Square-Free Algorithms in Positive
-        Characteristic. Applicable Algebra In Engineering, Communication And
-        Computing, 7(1), p. 1-14.
 
         .. SEEALSO::
 
@@ -1260,7 +1225,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         raise NotImplementedError("is_nth_power() not implemented for the given n")
 
     def nth_root(self, n):
-        """
+        r"""
         Compute an ``n``-th root of this element in the function field.
 
         INPUT:
@@ -1277,12 +1242,6 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         If ``n`` is a power of the characteristic of the field and the constant
         base field is perfect, then this uses the algorithm described in
         Corllary 3 of [GiTr1996].
-
-        REFERENCES::
-
-        .. [GiTr1996] P. Gianni, B. Trager. Square-Free Algorithms in Positive
-        Characteristic. Applicable Algebra In Engineering, Communication And
-        Computing, 7(1), p. 1-14.
 
         .. SEEALSO::
 

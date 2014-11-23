@@ -630,7 +630,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
 
         TESTS:
 
-            Check that :trac:`13662` has been resolved::
+        Check that :trac:`13662` has been resolved::
 
             sage: R.<x> = Zp(3,2)[]
             sage: S.<xbar> = R.quo(x^2)
