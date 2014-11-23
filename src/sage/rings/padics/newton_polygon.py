@@ -128,7 +128,7 @@ class NewtonPolygon(SageObject):
     @cached_method
     def _finite_lower_convex_hull(self):
         """
-        Compute the finite part of the Newton polygon, i.e., the lower convex
+        Compute the finite part of the Newton polygon, i.e., the lower convex
         hull of the points which have finite ordinate. Implements Andrew's
         monotone chain algorithm.
 
