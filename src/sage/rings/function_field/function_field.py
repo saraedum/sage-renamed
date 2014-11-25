@@ -1674,6 +1674,17 @@ class FunctionField_polymod(FunctionField):
         """
         return self.relative_vector_space(self.base_field())
 
+    def _squarefree_decomposition_univariate_polynomial(self, f):
+        from sage.structure.factorization import Factorization
+        if f.is_nth_power(self.characteristic()):
+            g = f.nth_root(self.characteristic())
+            G = g.squarefree_decomposition()
+            return Factorization([(g,e*self.characteristic()) for (g,e) in G],unit=G.unit)
+        if f.degree() ==1:
+            return Factorization([(f,1)])
+        print "Squarefree decomposition not implemented yet for %s"%f
+        raise NotImplementedError
+
     def _factor_univariate_polynomial(self, f):
         r"""
 
