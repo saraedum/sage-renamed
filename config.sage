@@ -25,13 +25,26 @@ class Configuration(object):
         if hasattr(self._G, 'parent'):
             v = self._valuation()
             V = v.mac_lane_approximants(self._G)
-            while sum(v.phi().degree() for v in V) != self._G.degree():
-                print "mac_lane_step"
-                V = [v if v._mu is Infinity else v.mac_lane_step(self._G)[0] for v in V]
-            print V
+            print "initial approximants for %s are %s"%(self._G,V)
+            for i,w in enumerate(V):
+                while w.phi().degree() < w.E()*w.F() or (len(V)>1 and not Configuration(w.phi(),self._valuation())._splits(w._mu)):
+                    w = w.mac_lane_step(self._G)
+                    assert len(w) == 1
+                    w = w[0]
+                    V[i] = w
+            print "final approximants for %s are %s"%(self._G,V)
             return Sequence(v.phi() for v in V)
         else:
             return Sequence(self._G)
+
+    def _splits(self, mu):
+        if self._G.degree() == 1:
+            return True
+        if len(self._approximate_factors()) != 1:
+            raise NotImplementedError
+
+        distances = self._distances()[0][0]
+        return mu > max([d for d in distances.keys() if d is not Infinity]) + sum([distances[d]*d for d in distances if d is not Infinity])
 
     @cached_method
     def _ring(self):
@@ -54,7 +67,6 @@ class Configuration(object):
         else:
             v = self._valuation()
             ## TODO: move this to pAdicValuation
-            print "(factor)"
             I = L.ideal(v.uniformizer()).factor()
             assert len(I)==1, "uniformizer has coprime factors"
             pi,e = I[0]
@@ -65,7 +77,6 @@ class Configuration(object):
         return [[self._distance(g,h) for h in self._approximate_factors()] for g in self._approximate_factors()]
 
     def _distance(self, g, h):
-        print "(extension)"
         K.<a> = self._field().extension(g)
 
         v = self._valuation()
