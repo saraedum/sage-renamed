@@ -8,5 +8,5 @@ from pow_computer_ext import PowComputer_ext_maker
 from discrete_value_group import DiscreteValueGroup
 from padic_valuation import pAdicValuation
 from gauss_valuation import GaussValuation
-from function_field_valuation import RationalFunctionFieldValuation
+from function_field_valuation import RationalFunctionFieldValuation, FunctionFieldPolymodValuation
 from newton_polygon import NewtonPolygon
