@@ -65,12 +65,7 @@ class Configuration(object):
             else:
                 return self._vp
         else:
-            v = self._valuation()
-            ## TODO: move this to pAdicValuation
-            I = L.ideal(v.uniformizer()).factor()
-            assert len(I)==1, "uniformizer has coprime factors"
-            pi,e = I[0]
-            return pAdicValuation(L, pi)
+            return self._valuation().extension(L)
 
     @cached_method
     def _distances(self):
