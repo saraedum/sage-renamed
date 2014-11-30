@@ -1680,7 +1680,9 @@ class FunctionField_polymod(FunctionField):
             g = f.nth_root(self.characteristic())
             G = g.squarefree_decomposition()
             return Factorization([(g,e*self.characteristic()) for (g,e) in G],unit=G.unit)
-        if f.degree() ==1:
+        if f.is_monic() and f.degree() == 1:
+            return Factorization([(f,1)])
+        if f.is_monic() and f.degree() == 2 and not f.is_nth_power(2):
             return Factorization([(f,1)])
         print "Squarefree decomposition not implemented yet for %s"%f
         raise NotImplementedError
