@@ -6,6 +6,17 @@ sage: C=Configuration(G,pAdicValuation(QQ,p))
 sage: title="Configuration of Roots, $v(%s)=%s$"%(p,C._denominator())
 sage: C.plot().save('/tmp/plot.svg',axes=False,aspect_ratio=1,title=title)
 sage: C.plot_tree().save('/tmp/tree.svg',aspect_ratio=1,title=title)
+
+sage: %runfile epp.sage
+sage: p = 3
+sage: K,R,vx = SmartRationalFunctionFieldValuation(QQ,p)
+sage: K.inject_variables()
+sage: R.inject_variables()
+sage: G=t^3-1-3*x^3-3*x^5
+sage: C = Configuration(G,vx)
+sage: title="Configuration of Roots, $v(%s)=%s$"%(p,C._denominator())
+sage: C.plot().save('/tmp/plot.svg',axes=False,aspect_ratio=1,title=title)
+sage: C.plot_tree().save('/tmp/tree.svg',aspect_ratio=1,title=title)
 """
 
 class Configuration(object):
