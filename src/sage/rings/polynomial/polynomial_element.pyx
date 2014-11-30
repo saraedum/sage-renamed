@@ -1287,6 +1287,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             True
 
         """
+        n = ZZ(n)
         if n == 0:
             return self.is_one()
         if n < 0:
