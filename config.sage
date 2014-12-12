@@ -202,18 +202,18 @@ class Configuration(object):
     def _plot(self, graphics, center, tree, radius, denominator):
         r = radius[tree._radius]
         if tree._radius is Infinity:
-            graphics += circle(center, r, fill=True, rgbcolor=sage.plot.colors.rainbow(len(self._approximate_factors()))[tree._children[0]], alpha=.5)
+            graphics += circle(center, r, fill=True, rgbcolor=sage.plot.colors.rainbow(len(self._approximate_factors()))[tree._children[0]], alpha=.8, thickness=0)
         else:
-            graphics += circle(center, r, rgbcolor=(0,0,0))
-            delta = 2*pi/len(tree._children)
-            for i,c in enumerate(tree._children):
-                graphics = self._plot(graphics, (center[0]+(r-radius[c._radius])*cos(delta*i), center[1]+(r-radius[c._radius])*sin(delta*i)), c, radius, denominator)
             if len(tree._children) > 2 or all(c._radius == Infinity for c in tree._children):
                 text_pos = center
             else:
                 text_pos = (center[0], center[1]+r/2)
             fontsize = r*100
-            graphics += text("$"+latex(tree._radius*denominator)+"$", text_pos, fontsize=fontsize, rgbcolor=(.5,.5,.5))
+            graphics += text("$"+latex(tree._radius*denominator)+"$", text_pos, fontsize=fontsize, rgbcolor=(0,0,0))
+            graphics += circle(center, r, rgbcolor=(0,0,0))
+            delta = 2*pi/len(tree._children)
+            for i,c in enumerate(tree._children):
+                graphics = self._plot(graphics, (center[0]+(r-radius[c._radius])*cos(delta*i), center[1]+(r-radius[c._radius])*sin(delta*i)), c, radius, denominator)
         return graphics
 
     def _denominator(self):
