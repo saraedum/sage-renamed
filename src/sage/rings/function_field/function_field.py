@@ -2003,6 +2003,8 @@ class RationalFunctionField(FunctionField):
             Rational function field in t over Rational Field
 
         """
+        if x is None:
+            return FunctionFieldElement_rational(self, self._field(x))
         if x.parent() is self._field:
             return FunctionFieldElement_rational(self, x)
         if isinstance(x, FunctionFieldElement):
