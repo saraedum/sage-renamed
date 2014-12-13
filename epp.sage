@@ -1,9 +1,14 @@
 def SmartRationalFunctionFieldValuation(L, p, vx_=0, delta=0):
-    vp = pAdicValuation(QQ, p)
-    vL = vp.extension(L)
+    if L in DiscreteValuationFields():
+        vL = pAdicValuation(L)
+    else:
+        vp = pAdicValuation(QQ, p)
+        vL = vp.extension(L)
+
     R.<x> = L[]
     vx = GaussValuation(R,vL)
     if vx_ != 0:
+        print vx,x-delta
         vx = vx.extension(x-delta,vx_)
     K.<x> = FunctionField(L)
     vx = RationalFunctionFieldValuation(K,vx)

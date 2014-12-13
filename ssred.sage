@@ -1,5 +1,79 @@
+def kai1():
+    try:
+        K = Qp(3,3)
+        Kx,Rt,vx = SmartRationalFunctionFieldValuation(K,3)
+        G = t^3 - 1 - 3*x^3 - 3*x^5
+        print "is the special fiber of the model of P1 reduced?"
+        print vx.value_group() == vx._base_valuation.constant_valuation().value_group()
+        print "is the special of the normalization reduced?"
+        print vx.value_group() == prod([v.value_group() for v in vx.mac_lane_approximants(G)])
+        print "make it reduced"
+        R.<pi> = K[]
+        L.<pi> = K.extension(pi^3-3)
+        Kx,Rt,vx = SmartRationalFunctionFieldValuation(L, 3)
+
+        vL = vx._base_valuation.constant_valuation()
+        G = t^3 - 1 - 3*x^3 - 3*x^5
+        print vx.value_group() == prod([v.value_group() for v in vx.mac_lane_approximants(G)])
+        print "compute the special fiber of the normalization"
+        I,gens = normalization_gauss(Kx.extension(G),vL, assume_smooth=True)
+        C = AffineSpace(I.ring()).subscheme(I)
+        C.is_smooth()
+        print "where are the singularities?"
+        J = C.Jacobian()
+        print AffineSpace(I.ring()).subscheme(I+J).rational_points()
+        print gens # to see what the coordinates mean
+
+        print "blow up in x=0 with radius lambda=1/12"
+        Kx,Rt,vx = SmartRationalFunctionFieldValuation(L, 3, 1/4)
+        print "is the model of P1 reduced?"
+        vx.value_group() == vx._base_valuation.constant_valuation().value_group()
+        print "make it reduced"
+        R.<pi> = K[]
+        L.<pi> = K.extension(pi^12-3)
+        Kx,Rt,vx = SmartRationalFunctionFieldValuation(L, 3, 1)
+        vx.value_group() == vx._base_valuation.constant_valuation().value_group()
+        print "is the special fiber of the normalization reduced?"
+        G = t^3 - 1 - 3*x^3 - 3*x^5
+        vx.value_group() == prod([v.value_group() for v in vx.mac_lane_approximants(G)])
+        print "no, so make it reduced"
+        R.<pi> = K[]
+        L.<pi> = K.extension(pi^36-3)
+        Kx,Rt,vx = SmartRationalFunctionFieldValuation(L, 3, 3)
+        G = t^3 - 1 - 3*x^3 - 3*x^5
+        vx.value_group() == prod([v.value_group() for v in vx.mac_lane_approximants(G)])
+        print "compute the special fiber of the normalization"
+        I,gens = normalization(vx, Kx.extension(G), assume_smooth=True)
+        C = AffineSpace(I.ring()).subscheme(I)
+        C.is_smooth()
+        J = C.Jacobian()
+        D = AffineSpace(I.ring()).subscheme(I+J)
+        print "find the singularities over a sufficiently large field"
+        k.<a> = GF(9)
+        print rational_points(D,k)
+
+        print "enlarge the base field so we have F9 in the residue field (and an element of valuation 1/8)"
+        K.<a> = Qq(9,3)
+        R.<pi> = K[]
+        L.<pi> = K.extension(pi^72-3)
+        a = L(a)
+        Kx,Rt,vx = SmartRationalFunctionFieldValuation(L, 3, 9, a*pi^6)
+        print "is the model of P1 reduced?"
+        print vx.value_group() == vx._base_valuation.constant_valuation().value_group()
+        print "is the special fiber of the normalization reduced?"
+        G = t^3 - 1 - 3*x^3 - 3*x^5
+        assert vx.value_group() == prod([v.value_group() for v in vx.mac_lane_approximants(G,assume_squarefree=True)])
+        print "computing the special fiber of the normalization"
+        I,gens = normalization(vx, Kx.extension(G), assume_smooth=True)
+        C = AffineSpace(I.ring()).subscheme(I)
+        C.is_smooth()
+        J = C.Jacobian()
+        D = AffineSpace(I.ring()).subscheme(I+J)
+    finally:
+        globals().update(locals())
+
 """
-# KAI 1
+# KAI 1 (global)
 %attach ssred.sage
 %runfile epp.sage
 Kx,Rt,vx = SmartRationalFunctionFieldValuation(QQ,3)
@@ -103,7 +177,7 @@ def rational_points(C, F=None):
 
 # compute the normalization of the component (minus one point) corresponding to the Gauss valuation in L
 # the missing point is x=infinity
-def normalization_gauss(L, vK, assume_wu=False):
+def normalization_gauss(L, vK, assume_wu=False, assume_smooth=False):
     K = vK.domain()
     Kx = L.base()
     G = L.polynomial()
@@ -114,7 +188,7 @@ def normalization_gauss(L, vK, assume_wu=False):
     if not assume_wu:
         W = vx.mac_lane_approximants(G)
         if any([w.value_group() != vK.value_group() for w in W]):
-            raise ValueErrror("all extensions must be weakly unramified over vK")
+            raise ValueError("all extensions must be weakly unramified over vK")
 
     S.<x,t> = vK.domain()[]
     if not all([c.denominator().is_one() for c in G.coefficients()]):
@@ -122,9 +196,13 @@ def normalization_gauss(L, vK, assume_wu=False):
     F = G.map_coefficients(lambda c:c.numerator(), R)(t)
     print "F=%s"%F
     print "L=%s"%L
-    if not AffineSpace(S).subscheme(F).is_smooth():
-        raise NotImplementedError("F must define a smooth curve.")
+    if not assume_smooth:
+        if not AffineSpace(S).subscheme(F).is_smooth():
+            raise NotImplementedError("F must define a smooth curve.")
+    else:
+         print AffineSpace(S).subscheme(F).Jacobian_matrix()
 
+    global B,B_
     B = [L.gen()]
     B_ = [None]
     extra = []
@@ -136,9 +214,11 @@ def normalization_gauss(L, vK, assume_wu=False):
             if B_[i] is None:
                 print "determining equation for %s"%b
                 B_[i] = B[i].charpoly(names[i])
+                B_[i].map_coefficients(lambda c:c.element().reduce())
                 print "charpoly is %s"%(B_[i],)
-                assert([c.denominator().is_one() for c in B_[i].coefficients()])
+                assert(all([c.denominator().is_one() for c in B_[i].coefficients()]))
                 B_[i] = B_[i].map_coefficients(lambda c:c.numerator(),R)(S.gen(1))
+                print B_[i]
                 B_[i] = B_[i].map_coefficients(vK.reduce,vK.residue_field())(R_.gen(0),R_.gen(i+ 1))
                 print "which reduces to %s"%(B_[i],)
         I = R_.ideal(B_+extra)
@@ -149,8 +229,10 @@ def normalization_gauss(L, vK, assume_wu=False):
         for i,g in enumerate(J.gens()):
             if g not in I:
                 print "g=%s not in I"%g
-                z = g.change_ring(K)([x]+B[:len(names)])
-                w = z/vK.uniformizer()
+                z = g.map_coefficients(lambda c:vK.lift(c), K)([x]+B[:len(names)])
+                w = z
+                while vx((w/vK.uniformizer()).norm())>=0:
+                    w = w/vK.uniformizer()
                 assert w not in B 
                 if B_[-1] is not None:
                     B.append(w)
@@ -160,7 +242,7 @@ def normalization_gauss(L, vK, assume_wu=False):
             return J, [L(Kx.gen())]+B
 
 # compute the normalization of the component (minus one point) corresponding to v in L
-def normalization(v, L, assume_wu=False):
+def normalization(v, L, assume_wu=False, assume_smooth=False):
     # substitute so v looks like a Gauss valuation
     Kx = L.base()
     if v.domain() is not Kx:
@@ -180,7 +262,7 @@ def normalization(v, L, assume_wu=False):
         raise NotImplementedError
     H = G.map_coefficients(lambda c:c.numerator()(c.numerator().parent().gen()*pi - delta))
     LH = Kx.extension(H)
-    J,gens = normalization_gauss(LH, vK, assume_wu)
+    J,gens = normalization_gauss(LH, vK, assume_wu, assume_smooth)
     # substitute back
     x_ = Kx._ring.gen()
     gens = [g.element().map_coefficients(lambda c:Kx._field(c.numerator()((x_+delta)/pi),c.denominator()((x_+delta)/pi))) for g in gens]
