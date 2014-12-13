@@ -558,12 +558,17 @@ def _cache_key(o):
         hash(o)
         return o
     except TypeError:
+        oo = o
         if isinstance(o, sage.structure.sage_object.SageObject):
             o = o._cache_key()
         if isinstance(o,tuple):
             return tuple(_cache_key(item) for item in o)
         else:
-            return o
+            try:
+                hash(o)
+                return o
+            except TypeError as e:
+                raise TypeError("_cache_key() for %s returned an unhashable %s element. Inner exception: %s"%(oo,o,e))
 
 cdef class CachedFunction(object):
     """
