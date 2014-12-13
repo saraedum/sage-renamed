@@ -1,15 +1,38 @@
-def SmartRationalFunctionFieldValuation(L, p):
+def SmartRationalFunctionFieldValuation(L, p, vx_=0, delta=0):
     vp = pAdicValuation(QQ, p)
     vL = vp.extension(L)
     R.<x> = L[]
     vx = GaussValuation(R,vL)
+    if vx_ != 0:
+        vx = vx.extension(x-delta,vx_)
     K.<x> = FunctionField(L)
     vx = RationalFunctionFieldValuation(K,vx)
     R.<t> = K[]
+    K.inject_variables()
+    R.inject_variables()
     return K,R,vx
 
-
-
+def stars(vx,L,p):
+    g = L.random_element().minpoly()
+    M = L.degree()
+    if g.degree()<M:
+        print "weird."
+        return
+    while vx(g[0])<0: g = g(t/vx.uniformizer())*(vx.uniformizer()^M)
+    vf = [vx(c) for c in list(g)]
+    print vf
+    if vf[0]/M in ZZ:
+        print "leo failed."
+    if min(vf[1:-1]) < min([v for i,v in enumerate(vf) if not p.divides(i)]):
+        print "cancer failed."
+    for j in range(1,M):
+        vff = [vx(binomial(i,j))+vf[i] for i in range(j,M+1)]
+        mins = [v for v in vff if v==min(vff)]
+        if len(mins)!=1:
+            print "gemini failed for j=%s"%j
+            print vff
+            break
+    return g
 
 ###p = 2
 ###K.<x> = FunctionField(QQ)
