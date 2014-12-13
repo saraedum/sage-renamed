@@ -38,6 +38,7 @@ from sage.rings.finite_rings.integer_mod import is_IntegerMod
 from sage.rings.padics.padic_printing cimport pAdicPrinter_class
 from sage.rings.padics.pow_computer_ext cimport PowComputer_ext
 from sage.rings.rational_field import QQ
+from sage.misc.cachefunc import cached_method
 
 zero = Integer(0)
 one = Integer(1)
@@ -344,6 +345,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
                 break
         return ans
 
+    @cached_method
     def polynomial(self):
         return self.parent().modulus().parent()(self.vector())
 
