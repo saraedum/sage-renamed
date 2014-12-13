@@ -106,8 +106,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
         return self._printer.cmp_modes(other._printer)
 
     def __hash__(self):
-        # TODO: define good hash functions for all padic rings & make cmp actually work
-        return hash(self.defining_polynomial())
+        raise TypeError
 
     def _cache_key(self):
         from sage.misc.cachefunc import _cache_key
