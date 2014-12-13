@@ -772,6 +772,8 @@ class Polynomial_generic_field(Polynomial_singular_repr,
             True
 
         """
+        if hasattr(self.base_ring(),"_xgcd_univariate_polynomial"):
+            return self.base_ring()._xgcd_univariate_polynomial(self, other)
         if other.is_zero():
             R = self.parent()
             return self, R.one_element(), R.zero_element()
