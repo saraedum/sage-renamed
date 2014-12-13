@@ -938,6 +938,9 @@ class AffineScheme(Scheme):
         # R is the only defining data, but we'd like to avoid collisions with it.
         return hash("Spec") ^ hash(self.__R)
 
+    def _cache_key(self):
+        return "Spec", self.__R
+
     def _repr_(self):
         """
         Return a string representation of ``self``.

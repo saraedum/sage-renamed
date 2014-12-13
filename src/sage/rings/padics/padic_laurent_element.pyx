@@ -515,7 +515,8 @@ cdef class pAdicLaurentElement(pAdicExtElement):
         return self.__series_valuation
 
     def _cache_key(self):
-        return tuple(self._series_developed().list()),self.parent()
+        s = self._series_developed()
+        return tuple(s.list()),s.valuation(),s.prec(),self.parent()
 
     def _series_compressed(self):
         if self.__series_compressed is None:
