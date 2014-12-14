@@ -1,5 +1,28 @@
+def kai3():
+    K.<x> = FunctionField(QQ)
+    R.<t> = K[]
+    G = t^9 - 1 - x^2
+    observer.log("EXAMPLE: G = %s"%G)
+    G = normal_form(G)
+    observer.log("in normal form: %s"%G)
+    L = Qp(3,20)
+    ssred(G, L, 0, 0)
+
+def kai2():
+    K.<x> = FunctionField(QQ)
+    R.<t> = K[]
+    G = t^7 - (x^3 - 2*x^2 - x + 1)/(x^3 - x^2 - 2*x + 1)
+    observer.log("EXAMPLE: G = %s"%G)
+    G = normal_form(G)
+    observer.log("in normal form: %s"%G)
+    K = Qp(7,3)
+    R.<pi> = K[]
+    L.<pi> = K.extension(pi^21-7)
+    ssred(G, L, 1/3, 3)
+
 def kai1():
-    R.<t,x> = ZZ[]
+    K.<x> = FunctionField(QQ)
+    R.<t> = K[]
     G = t^3- 1 - 3*x^3 - 3*x^5
     observer.log("EXAMPLE: G = %s"%G)
     K = Qp(3,3)
@@ -59,11 +82,11 @@ def ssred(G, L, mu, delta):
             Kx,Rt,vx = SmartRationalFunctionFieldValuation(L, L.prime(), mu*L(L.prime()).valuation(), delta)
             observer.log("model of P¹ is given by %s"%vx)
 
-            with observer.ask("Is the special fiber the model of P¹ reduced?") as question:
+            with observer.ask("Is the special fiber of the model of P¹ reduced?") as question:
                 if not question.answer(vx.value_group() == vx._base_valuation.constant_valuation().value_group()):
                     raise P1NotReducedError
 
-            G = G(t,x)
+            G = G.map_coefficients(Kx,Kx)
 
             with observer.ask("Is the special fiber of the normalization reduced?") as question:
                 with observer.report("Computing valuations of normalization."):
@@ -127,6 +150,15 @@ def ssred(G, L, mu, delta):
     finally:
         globals().update(locals())
 
+def normal_form(G):
+    if not G.is_monic():
+        raise NotImplementedError
+    D = lcm([c.denominator() for c in G.coeffs()])
+    H = G*(D**G.degree())
+    ret = H(G.parent().gen()/D)
+    assert ret.is_monic()
+    return ret
+
 def rational_points(C, F=None):
     with observer.report("Finding rational points of scheme."):
         equations = list(C.defining_polynomials())
@@ -144,13 +176,18 @@ def rational_points(C, F=None):
         R = S.remove_var(*constants.keys())
         equations = [R(e) for e in equations]
         observer.log("after removal of trivial equations I have to solve %s"%equations)
-        observer.log("with groebner basis: %s"%R.ideal(equations).groebner_basis())
-        D = AffineSpace(R).subscheme(equations)
-        ret = D.rational_points(F)
+        if R.ngens() > 1:
+            observer.log("with groebner basis: %s"%R.ideal(equations).groebner_basis())
+            D = AffineSpace(R).subscheme(equations)
+            ret = D.rational_points(F)
+        else:
+            if len(equations)!= 1:
+                raise NotImplementedError
+            ret = [[r] for r in equations[0].roots(multiplicities=False)]
         ret = [[constants[v] if v in constants else r[R.gens().index(v)] for v in S.gens()] for r in ret]
-        while not all([all([s in D.base() for s in r]) for r in ret]):
-            ret = [[s(r) if s not in D.base() else s for s in r] for r in ret]
-        ret = [[D.base()(s) for s in r] for r in ret]
+        while not all([all([s in R.base() for s in r]) for r in ret]):
+            ret = [[s(r) if s not in R.base() else s for s in r] for r in ret]
+        ret = [[R.base()(s) for s in r] for r in ret]
         return ret
 
 # compute the normalization of the component (minus one point) corresponding to the Gauss valuation in L
@@ -229,14 +266,14 @@ def normalization(v, L, assume_smooth=False):
     # y = (x+delta)/pi
     # → x = y*pi-delta
     G = L.polynomial()
-    if not all([c.denominator().is_one() for c in G.coefficients()]):
-        raise NotImplementedError
-    H = G.map_coefficients(lambda c:c.numerator()(c.numerator().parent().gen()*pi - delta))
+    to_ = Kx.hom([Kx.gen()*pi-delta])
+    H = G.map_coefficients(to_)
+    observer.log("shifted defining polynomial is %s"%H)
     LH = Kx.extension(H)
     J,gens = normalization_gauss(LH, vK, assume_smooth)
     # substitute back
-    x_ = Kx._ring.gen()
-    gens = [g.element().map_coefficients(lambda c:Kx._field(c.numerator()((x_+delta)/pi),c.denominator()((x_+delta)/pi))) for g in gens]
+    from_ = Kx.hom([(Kx.gen()+delta)/pi])
+    gens = [g.element().map_coefficients(from_) for g in gens]
     return J,gens
 
 """
@@ -319,8 +356,9 @@ def SmartRationalFunctionFieldValuation(L, p, vx_=0, delta=0):
 
     R.<x> = L[]
     vx = GaussValuation(R,vL)
+    if delta:
+        assert vx_ != 0
     if vx_ != 0:
-        print vx,x-delta
         vx = vx.extension(x-delta,vx_)
     K.<x> = FunctionField(L)
     vx = RationalFunctionFieldValuation(K,vx)
