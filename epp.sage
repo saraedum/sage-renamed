@@ -1,22 +1,3 @@
-def SmartRationalFunctionFieldValuation(L, p, vx_=0, delta=0):
-    if L in DiscreteValuationFields():
-        vL = pAdicValuation(L)
-    else:
-        vp = pAdicValuation(QQ, p)
-        vL = vp.extension(L)
-
-    R.<x> = L[]
-    vx = GaussValuation(R,vL)
-    if vx_ != 0:
-        print vx,x-delta
-        vx = vx.extension(x-delta,vx_)
-    K.<x> = FunctionField(L)
-    vx = RationalFunctionFieldValuation(K,vx)
-    R.<t> = K[]
-    K.inject_variables()
-    R.inject_variables()
-    return K,R,vx
-
 def stars(vx,L,p):
     g = L.random_element().minpoly()
     M = L.degree()
