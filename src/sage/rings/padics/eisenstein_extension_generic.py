@@ -45,6 +45,7 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
         from sage.categories.homset import Hom
         return self, Hom(self,self).identity(), Hom(self,self).identity()
 
+    def is_eisenstein(self):return True
 
     def eisenstein_polynomial(self):
         return self.modulus()

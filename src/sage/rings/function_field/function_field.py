@@ -1169,8 +1169,11 @@ class FunctionField_polymod(FunctionField):
         # object because genus method only accepts a ring of transdental degree 2 over a prime field
         # not a ring of transdental degree 1 over a rational function field of one variable
 
-        if is_RationalFunctionField(self._base_field) and self._base_field.constant_field().is_prime_field():
-
+        if not self.constant_base_field().is_prime_field():
+            raise NotImplementedError("Computation of genus over this base field not implemented yet")
+        elif not is_RationalFunctionField(self._base_field):
+            return self.simple_model()[0].genus()
+        else:
             #Making the auxiliary ring which only has polynomials with integral coefficients.
             tmpAuxRing = PolynomialRing(self._base_field.constant_field(), str(self._base_field.gen())+','+str(self._ring.gen()))
             intMinPoly, d = self._make_monic_integral(self._polynomial)
@@ -1178,9 +1181,6 @@ class FunctionField_polymod(FunctionField):
 
             singular.lib('normal.lib') #loading genus method in singular
             return int(curveIdeal._singular_().genus())
-
-        else:
-            raise NotImplementedError("Computation of genus over this rational function field not implemented yet")
 
     @cached_method
     def derivation(self):
@@ -1820,6 +1820,8 @@ class RationalFunctionField(FunctionField):
           To:   Rational function field in tbar over Rational Field
           Defn: t |--> tbar
     """
+    def genus(self):return 0
+
     def __init__(self, constant_field, names,
             element_class = FunctionFieldElement_rational,
             category=CAT):

@@ -323,12 +323,17 @@ class GeneralExtensionGeneric(pAdicExtensionGeneric):
         bivariate_ring = PolynomialRing(unramified_base, names=(base.variable_name(),modulus.variable_name()))
         univariate_over_unramified = bivariate_ring.remove_var(bivariate_ring.gen(1))
 
+        epoly_ring = bivariate_ring.remove_var(bivariate_ring.gen(0))
         f = base.modulus()(bivariate_ring.gen(0))
         g = modulus.map_coefficients(lambda c:c.polynomial(), univariate_over_unramified)(bivariate_ring.gen(1))
-        epoly_ring = bivariate_ring.remove_var(bivariate_ring.gen(0))
-        epoly = f.sylvester_matrix(g, bivariate_ring.gen(0))(epoly_ring.zero(), epoly_ring.gen()).det()
-        assert all([c.is_zero() for c in epoly.list()[modulus.degree()*base.modulus().degree()+1:]]), "epoly has too few leading zeros"
-        epoly = epoly_ring(epoly.list()[:modulus.degree()*base.modulus().degree()+1])
+        if self.base().residue_field().characteristic().divides(modulus.degree()) or True:
+            epoly = f.sylvester_matrix(g, bivariate_ring.gen(0))(epoly_ring.zero(), epoly_ring.gen()).det()
+            assert all([c.is_zero() for c in epoly.list()[modulus.degree()*base.modulus().degree()+1:]]), "epoly has too few leading zeros"
+            epoly = epoly_ring(epoly.list()[:modulus.degree()*base.modulus().degree()+1])
+        else:
+            # this works in principle but the code below does not construct the right isomorphisms between the implementation ring this ring
+            epoly = base.modulus()(base.modulus().parent().gen()**modulus.degree())(epoly_ring.gen())
+
         assert epoly.degree() == modulus.degree()*base.modulus().degree()
 
         # if we lost too much precision during the computation it might happen
@@ -363,6 +368,7 @@ class GeneralExtensionGeneric(pAdicExtensionGeneric):
         for root in base.modulus().change_ring(implementation_ring).roots(multiplicities=False):
             if not g(root, implementation_ring.gen()):
                 base_uniformizer = root
+                break
         assert base_uniformizer is not None
         from sage.categories.rings import Rings
         from sage.categories.homset import Hom

@@ -792,6 +792,20 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         """
         FieldElement.__init__(self, parent)
         self._x = x
+        if hasattr(x,'reduce'):
+            x.reduce()
+
+#    def map_coefficients(self, f, ring=None):
+#        if hasattr(f,'codomain'):
+#            ring = f.codomain()
+#        from sage.categories.fields import Fields
+#        if f in Fields():
+#            ring = f
+#        if ring is None:
+#            ring = self.constant_base_field()
+#
+#        parent = RationalFunctionField(ring, names=self.parent().variable_names())
+#        return parent(self.element().numerator().map_coefficients(f), self.element().denominator().map_coefficients(f))
 
     def is_constant(self):
         r"""
@@ -855,6 +869,8 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
             sage: t._repr_()
             't'
         """
+        if hasattr(self._x,'reduce'):
+            self._x.reduce()
         return repr(self._x)
 
     def __nonzero__(self):
@@ -1172,7 +1188,7 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         assert self._x.denominator() == 1
         return self.parent()(self._x.numerator().inverse_mod(f.numerator()))
 
-    @cached_in_parent_method
+    #@cached_in_parent_method
     def is_nth_power(self, n):
         r"""
         Return whether this element is an ``n``-th power in the rational

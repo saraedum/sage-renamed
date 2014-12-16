@@ -5,7 +5,7 @@ from threading import RLock
 import sys
 
 class Observer(object):
-    def __init__(self, thread_id, long_time=5):
+    def __init__(self, thread_id, long_time=30):
         if thread_id not in sys._current_frames():
             raise ValueError
         self._thread_id = thread_id
@@ -13,7 +13,7 @@ class Observer(object):
         self._last_complaint = 0
         self._status = [Observer.Context(self, "<uninitialized>")]
         self._status[0]._clock = 2**30
-        self._timer = RepeatedTimer(1, self.check)
+        self._timer = RepeatedTimer(5, self.check)
         self._long_time = long_time
         self._lock = RLock()
 
@@ -79,10 +79,16 @@ class Observer(object):
         self._status.pop()
 
     def log(self, msg, color=None):
+        msg = str(msg)
         with self._lock:
-            if color is None and msg[-1]=="!":
-                color = "white"
+            if msg[-1]=="!":
+                if color == "white":
+                    color = "red"
+                    msg = "\n"+msg
+                elif color is None:
+                    color = "white"
                 msg = msg[:-1]+"."
+            
             import sys
             if color == "red":
                 sys.stdout.write("\x1b[31m")

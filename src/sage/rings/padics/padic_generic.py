@@ -132,6 +132,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         x = self.zero()
         for i in range(iterations):
             x -= poly(x)/poly.derivative()(x)
+            if poly(x).is_zero(): return x
         return x
 
     def _any_root_univariate_polynomial_improve(self, root, poly, prec=0):
@@ -187,6 +188,14 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         if ret is not None:
             assert poly(ret).is_zero()
         return ret
+
+    def totally_ramified_extension(self, degree):
+        if not self.is_eisenstein():
+            raise NotImplementedError()
+
+        ret = self.base().extension(self.modulus()(self.modulus().parent().gen()**degree), names="%s_%s"%(self.variable_name(),degree))
+        self_to_ret = self.hom([ret.gen()**degree])
+        return ret, self_to_ret
 
     def _gcd_univariate_polynomial_fixed(self, f, g):
         """

@@ -52,6 +52,11 @@ class pAdicBaseGeneric(pAdicGeneric):
             raise RuntimeError
         self._populate_coercion_lists_(coerce_list=coerce_list, convert_list=convert_list, element_constructor=element_class)
 
+    def totally_ramified_extension(self, degree, names='pi'):
+        from sage.rings.all import PolynomialRing
+        R = PolynomialRing(self, names=names)
+        return self.extension(R.gen()**degree - self.uniformizer(), names=names)
+
     def hom(self, im_gens, base=None):
         if base is not None:
             raise ValueError("base must be None")
