@@ -1,5 +1,33 @@
 # coding=utf-8
 
+def obus():
+    with observer.report("A SECOND EXAMPLE!"):
+        K.<x> = FunctionField(Qp(2,20))
+        R.<t> = K[]
+        G = t^2 - x*(x-1)^2
+        L.<y> = K.extension(G)
+        observer.log("G = %s!"%G)
+        
+        X = NormalModel(L, pAdicValuation(K.constant_base_field()))
+
+        with observer.report("BLOWUP with center zeta and radius 2/3!"):
+            K = X.base()
+            R.<zeta> = K[]
+            Delta = 3*zeta^4-6*zeta^2-1
+            Delta = Delta.monic()
+            L.<zeta> = K.extension(Delta.change_variable_name("zeta").monic())
+            with observer.report("Normalizing %s"%L):
+                L,(zeta,) = impl(L,zeta)
+            Y = X.change_ring(L)
+            M, to_M = L.totally_ramified_extension(3)
+            Y = X.change_ring(M)
+            Mzeta = to_M(zeta)
+            B = Y.blowup(Mzeta, 2/3).normalization()
+            return B.special_fiber()
+
+        
+
+
 def afirstexample():
     with observer.report("A FIRST EXAMPLE!"):
         K.<x> = FunctionField(Qp(3,2))
@@ -54,6 +82,7 @@ def afirstexample():
             with observer.ask("Is the special fiber reduced?", False) as question:
                 question.answer(B.is_special_fiber_reduced())
             N = B.make_special_fiber_reduced()
+            observer.log(N)
             Z = Y.change_ring(N)
             B = Z.blowup(Mzeta,1/8).normalization()
             with observer.ask("Is the special fiber reduced?", True) as question:
@@ -63,8 +92,9 @@ def afirstexample():
                 observer.log(C)
                 with observer.ask("Is the special fiber smooth?", True) as question:
                     question.answer(C.is_smooth())
+                return B
 
-class ModelComponent(object):
+class NormalModelComponent(object):
     def __init__(self, modelP1):
         self._modelP1 = modelP1
 
@@ -99,7 +129,7 @@ class ModelComponent(object):
             raise ValueError
         return epp(self._G(), self._modelP1.valuation())
 
-class ModelP1Component(object):
+class NormalModelP1Component(object):
     def __init__(self, model, center, radius):
         self._model = model
         self._center = center
@@ -110,7 +140,7 @@ class ModelP1Component(object):
 
     @cached_method
     def normalization(self):
-        return ModelComponent(self)
+        return NormalModelComponent(self)
 
     def __repr__(self):
         return "Component corresponding to %s"%self.valuation()
@@ -150,14 +180,14 @@ class NormalModel(object):
             raise ValueError
         Kx = FunctionField(K, names= self._variable_P1)
         G = self._G.change_ring(Kx)
-        return Model(self._rational_function_field().extension(G), vp)
+        return NormalModel(self._rational_function_field().extension(G), vp)
 
     def blowup(self, center, radius):
         if center not in self._rational_function_field():
             raise ValueError
         if radius < 0:
             raise ValueError
-        return ModelP1Component(self, center, radius)
+        return NormalModelP1Component(self, center, radius)
 
 def afirstexample_():
     with observer.report("A FIRST EXAMPLE!"):
@@ -650,3 +680,247 @@ def ppprint(f, variables=['x'], delimiters = [','], substitutions=[('pi','π'),(
 # Χ, χ        Chi (χῖ)    chi (χι)    ch  [kʰ]    ch  [x], [ç]
 # Ψ, ψ        Psi (ψῖ)    psi (ψι)    ps  [ps]    ps  [ps]
 # Ω, ω        Omega (ὦ μέγα)  oméga (ωμέγα)   ō   [ɔː]    o   [ɔ]
+def epp(G, vx):
+    if not G.parent().base() is vx.domain():
+        raise ValueError
+
+    R = G.parent()
+    K = R.base().constant_base_field()
+    Kx = R.base()
+    t = G.parent().gen()
+    p = vx.residue_field().characteristic()
+    v0 = GaussValuation(R,vx)
+
+    W = vx.mac_lane_approximants(G)
+    E = lcm([w.value_group().denominator().gen(0) for w in W])
+    if not p.divides(E):
+        return K.totally_ramified_extension(E)
+
+    f0 = -G[0]
+
+    if vx(f0) != 0:
+        raise ValueError
+
+    if not vx.reduce(f0).is_nth_power(p):
+        raise ValueError("no ramification here")
+
+    h = vx.lift(vx.reduce(f0).nth_root(p))
+    v1 = v0.extension(t-h, infinity)
+
+    def nred(g=None):
+        if g is None: g = g0()
+        if g.parent() is R:
+            assert g.degree() <= 0
+            g = g[0]
+        return vx.reduce(vx.shift(g,-vx(g)))
+
+    def is_a(g=None):
+        if g is None: g = g0()
+        return vx(g)/vx(p) >= p/(p-1)
+
+    def is_b(g=None):
+        if g is None: g = g0()
+        return not nred(g).is_nth_power(p)
+
+    def is_633(g=None):
+        if g is None: g = g0()
+        return is_a(g) or is_b(g) or (vx(g)/p not in ZZ)
+
+    def g0():
+        return v1.coefficients(G).next()[0]
+
+    def h():
+        return -v1.phi()[0]
+
+    # LEMMA 6.33
+    while not is_633():
+        alpha = vx.lift(nred().nth_root(p))
+        s = vx(g0())
+        assert p.divides(s)
+        v1 = v1._base_valuation.extension(v1.phi()+vx.shift(alpha,s//p),infinity)
+    if is_a():
+        raise ValueError("any totally ramified extension works")
+    if is_b():
+        return K.totally_ramified_extension(p)
+    assert vx(g0())/p not in ZZ
+
+    if nred().is_constant():
+        vx_,v0_,v1_,G_ = vx,v0,v1,G
+
+        vK = vx._base_valuation.constant_valuation()
+        S.<Phi> = K[]
+        F = Phi^p + vK.shift(vK.lift(nred().element().numerator()[0]), vx(g0()))
+
+        vx1 = vx._base_valuation
+        if vx1.phi().degree()!=1:
+            raise NotImplementedError
+
+        while True:
+            print F
+            L.<phi> = K.extension(F)
+            Lx_ = PolynomialRing(L,names=Kx.variable_names())
+            wx0 = GaussValuation(Lx_)
+            wx1 = wx0.extension(vx1.phi().change_ring(L), vx1._mu*p)
+            Lx = FunctionField(L,names=Kx.variable_names())
+            wx = RationalFunctionFieldValuation(Lx,wx1)
+
+            if not h().denominator().is_one():
+                raise NotImplementedError
+            delta = Lx.zero()
+            hh = Lx(h().numerator().map_coefficients(L,L)) + phi + delta
+
+            wR = R.change_ring(Lx)
+            w0 = GaussValuation(wR, wx)
+            w1 = w0.extension(wR.gen() - hh, infinity)
+            wG = G.change_ring(Lx)
+
+            ppprint(list(w1.coefficients(wG)))
+
+            vx,v0,v1,G = wx,w0,w1,wG
+            try:
+                vg0 = ZZ(vx(g0()))
+                bi = nred()
+                print bi,vg0
+                if is_a():
+                    return L
+                if is_b():
+                    return L
+                i = vg0%p
+                if i == 0:
+                    raise NotImplementedError
+                else:
+                    if not bi.is_constant():
+                        break
+                    else:
+                        bi = g0()/(phi**i)
+                        r = wx(bi)/p
+                        assert r in ZZ
+                        r = ZZ(r)
+                        beta0 = wx.reduce(bi/K.uniformizer()**r)
+                        assert beta0.is_constant()
+                        beta0 = beta0.numerator()[0]
+                        beta0 = vK.lift(beta0)
+                        F += vK.shift(beta0,r)*F.parent().gen()**i
+            finally:
+                vx,v0,v1,G = vx_,v0_,v1_,G_
+
+    raise NotImplementedError
+
+def stars(vx,L,p):
+    g = L.random_element().minpoly()
+    M = L.degree()
+    if g.degree()<M:
+        print "weird."
+        return
+    while vx(g[0])<0: g = g(t/vx.uniformizer())*(vx.uniformizer()^M)
+    vf = [vx(c) for c in list(g)]
+    print vf
+    if vf[0]/M in ZZ:
+        print "leo failed."
+    if min(vf[1:-1]) < min([v for i,v in enumerate(vf) if not p.divides(i)]):
+        print "cancer failed."
+    for j in range(1,M):
+        vff = [vx(binomial(i,j))+vf[i] for i in range(j,M+1)]
+        mins = [v for v in vff if v==min(vff)]
+        if len(mins)!=1:
+            print "gemini failed for j=%s"%j
+            print vff
+            break
+    return g
+
+
+
+
+def solve_b(F,i):
+
+    b=F.parent().gen(i)
+    return -F.constant_coefficient()/F.monomial_coefficient(b)
+
+
+def Delta_univ(n,p):
+
+    r=floor(n/p)
+    s=floor(log(n)/log(p))
+
+    R=PolynomialRing(ZZ,'a',n+1)
+    K=R.fraction_field()
+
+    S1=PolynomialRing(K,'b',r+1)
+    S2.<x>=S1[]
+
+    F=S2([R.gen(i) for i in [0..n]])
+
+    H=S2([1]+[S1.gen(i) for i in [1..r]])
+
+    G=F-F[0]*H^p
+
+    GL=[G[k] for k in [0..n]]
+
+    for k in [1..r]:
+        b=solve_b(GL[k],k)
+        for i in [k..p^s]:
+            GL[i]=GL[i].subs({S1.gen(k):b})
+    
+    return GL[p^s].constant_coefficient().numerator()
+
+
+def Delta_f(f,p):
+
+    K=f.parent().base_ring()
+    x=f.parent().gen()
+    n=f.degree()
+
+    Delta=Delta_univ(n,p)
+    a=Delta.parent().gens()
+    Delta=Delta.change_ring(f.parent())
+
+    fd=f
+    F=[]
+    for i in [0..n]:
+        F.append(fd)
+        fd=fd.derivative(x)/(i+1)
+    Delta=Delta(F)
+    return Delta
+
+
+
+
+def pol_red(f,p):
+
+     m=min([f[i].valuation(p) for i in [0..f.degree()]])
+     f=f/p^m
+     return f.change_ring(GF(p))
+
+
+
+def h_g_decomposition(f,p):
+
+# f: ein Polynom über einem Körper K vom Grad n
+# p: eine Primzahl
+# Bedingung: f=a0+a1*x+.., mit a0<>0
+
+# Ausgabe: Polynome h,g, so dass
+#    (a)  f=a_0*(h^p+g)
+#    (b)  r:=deg(h)<=n/p
+#    (c)  x^(r+1)|g
+
+    R=f.parent()
+    K=R.base_ring()
+    x=R.gen()
+    n=f.degree()
+    r=floor(n/p)
+    a0=f[0]
+    assert a0.is_unit()
+
+    h=R(1)
+    f=f/a0
+    g=f-1
+    for k in [1..r]:
+        h=h+g[k]/p*x^k
+        g=f-h^p
+    return h,g
+
+
+        
+        
+
