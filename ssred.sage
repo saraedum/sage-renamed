@@ -1,94 +1,251 @@
 # coding=utf-8
 
-def obus2():
-    with observer.report("A THIRD EXAMPLE!"):
-        K.<x> = FunctionField(Qp(2,20))
-        R.<t> = K[]
-        G = t^4 - x*(x^2-1)
-        L.<y> = K.extension(G)
-        observer.log("G = %s!"%G)
-        
-        X = NormalModel(L, pAdicValuation(K.constant_base_field()))
+use_norm = True
 
-        with observer.report("BLOWUP with center 0 and radius 0!"):
-            Y_ = X.blowup(1,2).normalization()
-            if not Y_.is_special_fiber_reduced():
-                M, to_M = Y_.make_special_fiber_reduced()
-                try:
-                    X_ = X_.change_ring(M)
-                except:
-                    X_ = X.change_ring(M)
-                zeta = to_M(zeta)
-                Y_ = X_.blowup(zeta,radius).normalization()
-            return Y_
-
-        radius = QQ(1)
-        with observer.report("BLOWUP with center zeta and radius %s!"%radius):
-            K = X.base()
-            R.<zeta> = K[]
-            Delta = Delta_f(G[0].element().numerator(), 2)
-            Delta = Delta.parent()(Delta.monic().list()[:Delta.degree()+1])
-            L.<zeta> = K.extension(Delta)
-            with observer.report("Normalizing %s"%L):
-                L,(zeta,) = impl(L,zeta)
-            X_ = X.change_ring(L)
-            radius_L = radius*L.valuation()(2)
-            if radius_L.denominator() != 1:
-                L, to_L = L.totally_ramified_extension(radius_L.denominator())
-                zeta = to_L(zeta)
-            try:
-                X_ = X.change_ring(L)
-            except:
-                X_ = X_.change_ring(L)
-            Y_ = X_.blowup(zeta,radius).normalization()
-            if not Y_.is_special_fiber_reduced():
-                M, to_M = Y_.make_special_fiber_reduced()
-                try:
-                    X_ = X_.change_ring(M)
-                except:
-                    X_ = X.change_ring(M)
-                zeta = to_M(zeta)
-                Y_ = X_.blowup(zeta,radius).normalization()
-            return Y_
-
-def obus1():
-    with observer.report("A SECOND EXAMPLE!"):
-        K.<x> = FunctionField(Qp(2,20))
+def obus1(prec=40):
+    with observer.report("OBUS 1"):
+        K.<x> = FunctionField(Qp(2,prec))
         R.<t> = K[]
         G = t^2 - x*(x^2-1)
         L.<y> = K.extension(G)
         observer.log("G = %s!"%G)
-        
-        X = NormalModel(L, pAdicValuation(K.constant_base_field()))
 
-        radius = QQ(1)
-        with observer.report("BLOWUP with center zeta and radius %s!"%radius):
-            K = X.base()
-            R.<zeta> = K[]
-            Delta = Delta_f(G[0].element().numerator(), 2)
-            Delta = Delta.parent()(Delta.monic().list()[:Delta.degree()+1])
-            L.<zeta> = K.extension(Delta)
-            with observer.report("Normalizing %s"%L):
-                L,(zeta,) = impl(L,zeta)
+        X = NormalModel(L, pAdicValuation(K.constant_base_field()))
+        K = X.base()
+        R.<t> = K[]
+        L.<zeta> = K.extension(t^4-2*t^2-1/3)
+        radius = 1
+        with observer.report("BLOWUP with center %s and radius %s!"%(zeta,radius)):
             X_ = X.change_ring(L)
-            radius_L = radius*L.valuation()(2)
-            if radius_L.denominator() != 1:
-                L, to_L = L.totally_ramified_extension(radius_L.denominator())
-                zeta = to_L(zeta)
-            try:
-                X_ = X.change_ring(L)
-            except:
-                X_ = X_.change_ring(L)
             Y_ = X_.blowup(zeta,radius).normalization()
             if not Y_.is_special_fiber_reduced():
                 M, to_M = Y_.make_special_fiber_reduced()
+                M, (zeta,) = impl(M, to_M(zeta))
                 try:
                     X_ = X_.change_ring(M)
                 except:
                     X_ = X.change_ring(M)
-                zeta = to_M(zeta)
                 Y_ = X_.blowup(zeta,radius).normalization()
             return Y_
+
+def obus2_1(M, prec=40):
+    with observer.report("OBUS 2/1"):
+        K.<x> = FunctionField(Qp(2,prec))
+        R.<t> = K[]
+        G = t^4 - x*(x^2-1)
+        L.<y> = K.extension(G)
+        observer.log("G = %s!"%G)
+
+        X = NormalModel(L, pAdicValuation(K.constant_base_field()))
+        L = M
+        R.<t> = M[]
+        zeta = (t^4-2*t^2-1/3).any_root()
+        radius = 1
+        with observer.report("BLOWUP with center %s and radius %s!"%(zeta,radius)):
+            X_ = X.change_ring(L)
+            Y_ = X_.blowup(zeta,radius).normalization()
+            if not Y_.is_special_fiber_reduced():
+                M, to_M = Y_.make_special_fiber_reduced()
+                M, (zeta,) = impl(M, to_M(zeta))
+                try:
+                    X_ = X_.change_ring(M)
+                except:
+                    X_ = X.change_ring(M)
+                Y_ = X_.blowup(zeta,radius).normalization()
+            return Y_
+
+def obus2(prec=40):
+    with observer.report("OBUS 2"):
+        K.<x> = FunctionField(Qp(2,prec))
+        R.<t> = K[]
+        G = t^4 - x*(x^2-1)
+        L.<y> = K.extension(G)
+        observer.log("G = %s!"%G)
+
+        X = NormalModel(L, pAdicValuation(K.constant_base_field()))
+        K = X.base()
+        R.<si> = K[]
+        L.<si> = K.extension(si^8+1)
+        L,(si,) = impl(L,si)
+
+        R.<t> = L[]
+        zeta = (t^2 - (1/3 + 4*si/9)).any_root()
+        radius = 7/4
+        with observer.report("BLOWUP with center %s and radius %s!"%(zeta,radius)):
+            X_ = X.change_ring(L)
+            Y_ = X_.blowup(zeta,radius).normalization()
+            if not Y_.is_special_fiber_reduced():
+                M, to_M = Y_.make_special_fiber_reduced()
+                M, (zeta,) = impl(M, to_M(zeta))
+                try:
+                    X_ = X_.change_ring(M)
+                except:
+                    X_ = X.change_ring(M)
+                Y_ = X_.blowup(zeta,radius).normalization()
+            return Y_
+
+def obus2_(Y):
+    X_ = Y._modelP1
+    X = X_._model
+
+    assert len(Y.valuations()) == 2
+    w=Y.valuations()[1]
+    G= X._G
+    w=w.mac_lane_step(G)[0]
+    w=w.mac_lane_step(G)[0]
+    w=w.mac_lane_step(G)[0]
+    w=w.mac_lane_step(G)[0]
+    w=w.mac_lane_step(G)[0]
+    w=w.mac_lane_step(G)[0]
+
+    return epp(w.phi(), w.constant_valuation())
+
+def obus2__(M,prec=40):
+    with observer.report("OBUS 2__"):
+        K.<x> = FunctionField(Qp(2,prec))
+        R.<t> = K[]
+        G = t^4 - x*(x^2-1)
+        L.<y> = K.extension(G)
+        observer.log("G = %s!"%G)
+
+        X = NormalModel(L, pAdicValuation(K.constant_base_field()))
+        X = X.change_ring(M)
+        R.<t> = M[]
+        si = (t^8+1).any_root()
+        zeta = (t^2 - (1/3 + 4*si/9)).any_root()
+        radius = 7/4
+        L = M
+        with observer.report("BLOWUP with center %s and radius %s!"%(zeta,radius)):
+            X_ = X.change_ring(L)
+            Y_ = X_.blowup(zeta,radius).normalization()
+            if not Y_.is_special_fiber_reduced():
+                M, to_M = Y_.make_special_fiber_reduced()
+                M, (zeta,) = impl(M, to_M(zeta))
+                try:
+                    X_ = X_.change_ring(M)
+                except:
+                    X_ = X.change_ring(M)
+                Y_ = X_.blowup(zeta,radius).normalization()
+            return Y_
+
+#L.<si> = K.extension(t^8+1)
+#L,(si,) = impl(L,si)
+#assert si^8 == -1
+
+#R.<t> = L[]
+#s2nb = (t^2-8).any_root()
+
+#zeta = 1/3 + s2nb*si/9
+
+#R.<t> = L[]
+#L.<zeta> = L.extension(t^2 - zeta)
+#L,(zeta,) = impl(L, zeta)
+        
+#        X = NormalModel(L, pAdicValuation(K.constant_base_field()))
+#
+#        K = X.base()
+#        R.<t> = K[]
+#        L.<si> = K.extension(t^8+1)
+#        L,(si,) = impl(L,si)
+#        assert si^8 == -1
+#
+#        R.<t> = L[]
+#        s2nb = t^2 - 2^n*b
+#        s2nb = s2nb.any_root()
+#
+#        s = n - b.valuation(2)
+#        if radius is None:
+#            radius = n - s/2 + 1/2
+#        zeta = a/(a+b) + (s2nb*si)/((a+b)^2)
+#        with observer.report("BLOWUP with center %s and radius %s!"%(zeta,radius)):
+#            X_ = X.change_ring(L)
+#            Y_ = X_.blowup(zeta,radius).normalization()
+#            if not Y_.is_special_fiber_reduced():
+#                M, to_M = Y_.make_special_fiber_reduced()
+#                M, (zeta,) = impl(M, to_M(zeta))
+#                try:
+#                    X_ = X_.change_ring(M)
+#                except:
+#                    X_ = X.change_ring(M)
+#                Y_ = X_.blowup(zeta,radius).normalization()
+#            return Y_
+
+
+#def obus(a,b,n,prec=40,radius=None):
+#    with observer.report("OBUS a=%s b=%s n=%s"%(a,b,n)):
+#        K.<x> = FunctionField(Qp(2,prec))
+#        R.<t> = K[]
+#        G = t^(2^n) - x^a*(x-1)^b
+#        L.<y> = K.extension(G)
+#        observer.log("G = %s!"%G)
+#        
+#        X = NormalModel(L, pAdicValuation(K.constant_base_field()))
+#
+#        K = X.base()
+#        R.<t> = K[]
+#        L.<si> = K.extension(t^8+1)
+#        L,(si,) = impl(L,si)
+#        assert si^8 == -1
+#
+#        R.<t> = L[]
+#        s2nb = t^2 - 2^n*b
+#        s2nb = s2nb.any_root()
+#
+#        s = n - b.valuation(2)
+#        if radius is None:
+#            radius = n - s/2 + 1/2
+#        zeta = a/(a+b) + (s2nb*si)/((a+b)^2)
+#        with observer.report("BLOWUP with center %s and radius %s!"%(zeta,radius)):
+#            X_ = X.change_ring(L)
+#            Y_ = X_.blowup(zeta,radius).normalization()
+#            if not Y_.is_special_fiber_reduced():
+#                M, to_M = Y_.make_special_fiber_reduced()
+#                M, (zeta,) = impl(M, to_M(zeta))
+#                try:
+#                    X_ = X_.change_ring(M)
+#                except:
+#                    X_ = X.change_ring(M)
+#                Y_ = X_.blowup(zeta,radius).normalization()
+#            return Y_
+#
+#def obus1():
+#    with observer.report("A SECOND EXAMPLE!"):
+#        K.<x> = FunctionField(Qp(2,20))
+#        R.<t> = K[]
+#        G = t^2 - x*(x^2-1)
+#        L.<y> = K.extension(G)
+#        observer.log("G = %s!"%G)
+#        
+#        X = NormalModel(L, pAdicValuation(K.constant_base_field()))
+#
+#        radius = QQ(1)
+#        with observer.report("BLOWUP with center zeta and radius %s!"%radius):
+#            K = X.base()
+#            R.<zeta> = K[]
+#            Delta = Delta_f(G[0].element().numerator(), 2)
+#            Delta = Delta.parent()(Delta.monic().list()[:Delta.degree()+1])
+#            L.<zeta> = K.extension(Delta)
+#            with observer.report("Normalizing %s"%L):
+#                L,(zeta,) = impl(L,zeta)
+#            X_ = X.change_ring(L)
+#            radius_L = radius*L.valuation()(2)
+#            if radius_L.denominator() != 1:
+#                L, to_L = L.totally_ramified_extension(radius_L.denominator())
+#                zeta = to_L(zeta)
+#            try:
+#                X_ = X.change_ring(L)
+#            except:
+#                X_ = X_.change_ring(L)
+#            Y_ = X_.blowup(zeta,radius).normalization()
+#            if not Y_.is_special_fiber_reduced():
+#                M, to_M = Y_.make_special_fiber_reduced()
+#                try:
+#                    X_ = X_.change_ring(M)
+#                except:
+#                    X_ = X.change_ring(M)
+#                zeta = to_M(zeta)
+#                Y_ = X_.blowup(zeta,radius).normalization()
+#            return Y_
 
 def afirstexample():
     with observer.report("A FIRST EXAMPLE!"):
@@ -207,8 +364,8 @@ class NormalModelComponent(object):
                 if len(C.irreducible_components())>1:
                     is_smooth.answer("it is not irreducible.")
                 else:
-                    is_smooth.answer(C.irreducible_components()[0].is_smooth())
-
+                    if is_smooth.answer(C.irreducible_components()[0].is_smooth()):
+                        return
 
             observer.log("the variables on the special fiber are reductions of (starting with x,z0,...):\n %s"%self.gens())
 
@@ -400,28 +557,6 @@ def liu10439():
     L.<pi> = K.extension(pi^8-2)
     ssred(G, L, 0, 0)
 
-def liu10438():
-    K.<x> = FunctionField(QQ)
-    R.<t> = K[]
-    G = t^2 - x^8 + 5*x^6 - 10*x^4 + 10*x^2 - 5
-    observer.log("EXAMPLE: G = %s"%G)
-    Delta = Delta_f(G[0].element().numerator(), 3)
-    Delta = Delta.factor()[1][0]
-    K = Qp(2)
-    R.<pi> = K[]
-    L.<pi> = K.extension(pi^2-2)
-    R.<t> = K[]
-    Delta = Delta(t/pi)*pi^20
-    R.<psi> = L[]
-    L.<psi> = L.extension(Delta)
-    return L
-    L = Qp(2,10)
-    R.<pi> = L[]
-    L.<pi> = L.extension(pi^4-2)
-    ssred(G, L, 0, 0)
-
-    #ssred(G, L, 1/2, 0)
-
 
 def kai3():
     K.<x> = FunctionField(QQ)
@@ -584,6 +719,7 @@ def normalization_gauss(L, vK, assume_smooth=False):
     R = Kx.maximal_order()._ring
     v0 = GaussValuation(R, vK)
     vx = RationalFunctionFieldValuation(Kx,v0)
+    W = vx.mac_lane_approximants(G)
 
     S.<x,t> = vK.domain()[]
     if not all([c.denominator().is_one() for c in G.coefficients()]):
@@ -598,8 +734,17 @@ def normalization_gauss(L, vK, assume_smooth=False):
 
     with observer.report("Computing generators of the normalization."):
         global B,B_
-        B = [L.gen()]
-        B_ = [None]
+        B=[]
+        for w in W:
+            if w._mu is infinity:
+                w = w._base_valuation
+            k = w.residue_field()
+            while True:
+                B.append(w.lift(w.residue_ring()(k.gen()))(L.gen()))
+                if k.base() != k:
+                    k = k.base()
+                else: break
+        B_ = [None for b in B]
         extra = []
         while True:
             with observer.ask("Does B=%s generate the normalization?"%(B,)) as generates:
@@ -616,6 +761,7 @@ def normalization_gauss(L, vK, assume_smooth=False):
                             B_[i] = B_[i].map_coefficients(vK.reduce,vK.residue_field())(R_.gen(0),R_.gen(i+ 1))
                             observer.log("in reduction this is %s"%(B_[i],))
                 I = R_.ideal(B_+extra)
+                print I
                 J = I.radical()
                 for i,g in enumerate(J.gens()):
                     if g not in I:
@@ -623,13 +769,15 @@ def normalization_gauss(L, vK, assume_smooth=False):
                         generates.answer(False)
                         z = g.map_coefficients(lambda c:vK.lift(c), K)([x]+B[:len(names)])
                         w = z
-                        w = w/vK.uniformizer()^(vx(w.norm())//w.parent().degree())
+                        if use_norm:
+                            w = w/vK.uniformizer()^(vx(w.norm())//w.parent().degree())
+                        else:
+                            w = w/vK.uniformizer()
                         observer.log("%s is another generator"%w)
-                        assert w not in B 
-                        if B_[-1] is not None:
+                        if w not in B:
                             B.append(w)
                             B_.append(None)
-                            extra.append(g)
+                        extra.append(g)
                 if all(B_):
                     generates.answer(True)
                     return J, [L(Kx.gen())]+B
@@ -768,7 +916,7 @@ def impl(L, *args):
         L,args = impl1(L,*args)
     return L,args
 
-def ppprint(f, variables=['x'], delimiters = [','], substitutions=[('pi','π'),('zeta_2','ζ₂'),('zeta','ζ')]):
+def ppprint(f, variables=['t','x'], delimiters = [','], substitutions=[('pi','π'),('zeta_2','ζ₂'),('zeta','ζ')]):
     f = repr(f)
     for var in variables:
         substitutions.append((var,"\x1b[31;1m"+var+"\x1b[0m"))
@@ -805,6 +953,7 @@ def ppprint(f, variables=['x'], delimiters = [','], substitutions=[('pi','π'),(
 # Ψ, ψ        Psi (ψῖ)    psi (ψι)    ps  [ps]    ps  [ps]
 # Ω, ω        Omega (ὦ μέγα)  oméga (ωμέγα)   ō   [ɔː]    o   [ɔ]
 def epp(G, vx):
+    print "EPP for %s"%G
     if not G.parent().base() is vx.domain():
         raise ValueError
 
@@ -814,14 +963,27 @@ def epp(G, vx):
     t = G.parent().gen()
     p = vx.residue_field().characteristic()
     M = G.degree()
-    if M != p:
-        raise NotImplementedError()
     v0 = GaussValuation(R,vx)
 
     W = vx.mac_lane_approximants(G)
+    if len(W) > 1:
+        raise NotImplementedError
     E = lcm([w.value_group().denominator().gen(0) for w in W])
+    print "E=",E
     if not p.divides(E):
         return K.totally_ramified_extension(E)
+    if not M.divides(E):
+        raise NotImplementedError("not totally ramified")
+    if W[0].phi().degree() != 1:
+        print "replace generator to make minpoly totally ramified"
+        w=W[0]
+        print "Generating extension"
+        L.<z> = Kx.extension(G)
+        print "generator"
+        gen = w.phi()(z)
+        print "char/minpoly"
+        poly = gen.charpoly('T')
+        return epp(poly, vx)
 
     f0 = -G[0]
 
@@ -830,8 +992,10 @@ def epp(G, vx):
 
     if not vx.reduce(f0).is_nth_power(p):
         raise ValueError("no ramification here")
+    if not vx.reduce(f0).is_nth_power(M):
+        raise NotImplementedError
 
-    h = vx.lift(vx.reduce(f0).nth_root(p))
+    h = vx.lift(vx.reduce(f0).nth_root(M))
     v1 = v0.extension(t-h, infinity)
 
     def nred(g=None):
@@ -842,18 +1006,21 @@ def epp(G, vx):
         return vx.reduce(vx.shift(g,-vx(g)))
 
     def is_a():
-        for i in range(1,p):
+        for i in range(1,M):
             if vx(g0()) >= M/(M-i)*vx(gi(i)):
                 return True
         return False
 
     def is_b(g=None):
         if g is None: g = g0()
-        return not nred(g).is_nth_power(p)
+        if not nred(g).is_nth_power(p):
+            return True
+        if not nred(g).is_nth_power(M):
+            raise NotImplementedError
 
     def is_633(g=None):
         if g is None: g = g0()
-        return is_a() or is_b(g) or (vx(g)/p not in ZZ)
+        return is_a() or is_b(g) or (vx(g)/M not in ZZ)
 
     def gi(i):
         return list(v1.coefficients(G))[i]
@@ -866,22 +1033,24 @@ def epp(G, vx):
 
     # LEMMA 6.33
     while not is_633():
-        alpha = vx.lift(nred().nth_root(p))
+        alpha = vx.lift(nred().nth_root(M))
         s = vx(g0())
-        assert p.divides(s)
-        v1 = v1._base_valuation.extension(v1.phi()+vx.shift(alpha,s//p),infinity)
+        assert M.divides(s)
+        v1 = v1._base_valuation.extension(v1.phi()+vx.shift(alpha,s//M),infinity)
     if is_a():
         raise ValueError("any totally ramified extension works")
     if is_b():
-        return K.totally_ramified_extension(p)
-    assert vx(g0())/p not in ZZ
+        return K.totally_ramified_extension(M)
+    assert vx(g0())/M not in ZZ
+    if vx(g0())/p in ZZ:
+        raise NotImplementedError
 
     if nred().is_constant():
         vx_,v0_,v1_,G_ = vx,v0,v1,G
 
         vK = vx._base_valuation.constant_valuation()
         S.<Phi> = K[]
-        F = Phi^p + vK.shift(vK.lift(nred().element().numerator()[0]), vx(g0()))
+        F = Phi^M + vK.shift(vK.lift(nred().element().numerator()[0]), vx(g0()))
 
         vx1 = vx._base_valuation
         if vx1.phi().degree()!=1:
@@ -894,7 +1063,7 @@ def epp(G, vx):
                 L.<phi> = K.extension(F)
                 Lx_ = PolynomialRing(L,names=Kx.variable_names())
                 wx0 = GaussValuation(Lx_)
-                wx1 = wx0.extension(vx1.phi().change_ring(L), vx1._mu*p)
+                wx1 = wx0.extension(vx1.phi().change_ring(L), vx1._mu*M)
                 Lx = FunctionField(L,names=Kx.variable_names())
                 wx = RationalFunctionFieldValuation(Lx,wx1)
 
@@ -920,7 +1089,7 @@ def epp(G, vx):
                     return L, K.hom(L)
                 if is_b():
                     return L, K.hom(L)
-                i = vg0%p
+                i = vg0%M
                 if i == 0:
                     delta += L.uniformizer()^(vg0//M)*wx.lift(bi.nth_root(M))
                     print delta
@@ -931,7 +1100,7 @@ def epp(G, vx):
                         break
                     else:
                         bi = g0()/(phi**i)
-                        r = wx(bi)/p
+                        r = wx(bi)/M
                         assert r in ZZ
                         r = ZZ(r)
                         beta0 = wx.reduce(bi/K.uniformizer()**r)
@@ -1061,4 +1230,43 @@ def h_g_decomposition(f,p):
 
         
         
+
+def liu10438():
+    with observer.report("LIU 10.4.38"):
+        K.<x> = FunctionField(Qp(2,20))
+        R.<t> = K[]
+        G = t^2 - x^8 + 5*x^6 - 10*x^4 + 10*x^2 - 5
+        L.<y> = K.extension(G)
+        observer.log("EXAMPLE: G = %s"%G)
+
+        X = NormalModel(L, pAdicValuation(K.constant_base_field()))
+
+        radius = QQ(0)
+        with observer.report("BLOWUP with center zeta and radius %s!"%radius):
+            K = X.base()
+            R.<zeta> = K[]
+            # D = (51200) * (x - 1) * (x + 1) * (x^10 - 5*x^8 + 10*x^6 - 10*x^4 + 5*x^2 - 5) * (x^38 - 225/8*x^36 + 1365/4*x^34 - 19365/8*x^32 + 11215*x^30 - 139745/4*x^28 + 67815*x^26 - 155475/4*x^24 - 244900*x^22 + 8323675/8*x^20 - 9543425/4*x^18 + 30232475/8*x^16 - 4334375*x^14 + 3570750*x^12 - 2004625*x^10 + 660125*x^8 - 52500*x^6 - 45000*x^4 + 15000*x^2 - 1250)
+            Delta = zeta^10 - 5*zeta^8 + 10*zeta^6 - 10*zeta^4 + 5*zeta^2 - 5
+            L.<zeta> = K.extension(Delta)
+            with observer.report("Normalizing %s"%L):
+                L,(zeta,) = impl(L,zeta)
+            X_ = X.change_ring(L)
+            radius_L = radius*L.valuation()(2)
+            if radius_L.denominator() != 1:
+                L, to_L = L.totally_ramified_extension(radius_L.denominator())
+                zeta = to_L(zeta)
+            try:
+                X_ = X.change_ring(L)
+            except:
+                X_ = X_.change_ring(L)
+            Y_ = X_.blowup(zeta,radius).normalization()
+            if not Y_.is_special_fiber_reduced():
+                M, to_M = Y_.make_special_fiber_reduced()
+                try:
+                    X_ = X_.change_ring(M)
+                except:
+                    X_ = X.change_ring(M)
+                zeta = to_M(zeta)
+                Y_ = X_.blowup(zeta,radius).normalization()
+            return Y_
 

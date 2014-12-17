@@ -784,7 +784,7 @@ class GeneralExtensionGeneric(pAdicExtensionGeneric):
         assert unram_degree != 1
         unram_name = "u%s"%unram_degree
         from sage.rings.all import GF, ZZ
-        unramified_modulus = GF(len(base.residue_field())**v.F()).modulus().change_ring(ZZ).change_ring(base).factor()
+        unramified_modulus = GF(len(base.residue_field())**v.F(),conway=True,prefix='q').modulus().change_ring(ZZ).change_ring(base).factor()
         assert all([e==1 and f.degree()==unram_degree for f,e in unramified_modulus])
         unramified_modulus = unramified_modulus[0][0]
         unramified_modulus.change_variable_name(unram_name)

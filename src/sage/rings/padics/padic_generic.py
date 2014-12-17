@@ -191,7 +191,10 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
     def totally_ramified_extension(self, degree):
         if not self.is_eisenstein():
-            raise NotImplementedError()
+            print "expensive totally ramified extension :( [implement me]"
+            R = self.modulus().parent().change_ring(self)
+            ret = self.extension(R.gen()**degree - self.uniformizer(), names=self.variable_name()+"_"+str(degree))
+            return ret, self.hom(ret)
 
         ret = self.base().extension(self.modulus()(self.modulus().parent().gen()**degree), names="%s_%s"%(self.variable_name(),degree))
         self_to_ret = self.hom([ret.gen()**degree])
