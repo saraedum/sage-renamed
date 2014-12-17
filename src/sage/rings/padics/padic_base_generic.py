@@ -55,7 +55,8 @@ class pAdicBaseGeneric(pAdicGeneric):
     def totally_ramified_extension(self, degree, names='pi'):
         from sage.rings.all import PolynomialRing
         R = PolynomialRing(self, names=names)
-        return self.extension(R.gen()**degree - self.uniformizer(), names=names)
+        ret = self.extension(R.gen()**degree - self.uniformizer(), names=names)
+        return ret, self.hom(ret)
 
     def hom(self, im_gens, base=None):
         if base is not None:

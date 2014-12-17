@@ -1,3 +1,4 @@
+raise NotImplementedError("DEPRECATED")
 def epp(G, vx):
     if not G.parent().base() is vx.domain():
         raise ValueError
@@ -100,9 +101,9 @@ def epp(G, vx):
                 bi = nred()
                 print bi,vg0
                 if is_a():
-                    return L
+                    return L, K.hom(L)
                 if is_b():
-                    return L
+                    return L, K.hom(L)
                 i = vg0%p
                 if i == 0:
                     raise NotImplementedError
