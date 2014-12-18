@@ -373,6 +373,10 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         sage: x*y + 1/x^3
         x*y + 1/x^3
     """
+    def is_constant(self):
+        e = self.element()
+        return e==0 or (e.degree()==0 and e[0].is_constant())
+
     def __init__(self, parent, x, reduce=True):
         r"""
         EXAMPLES::

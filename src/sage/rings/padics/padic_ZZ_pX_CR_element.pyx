@@ -476,7 +476,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
                         rprec = _x.relprec
                     self._set(&_x.unit, _x.ordp, rprec)
             else:
-                raise NotImplementedError, "Conversion from different p-adic extensions not yet supported"
+                raise NotImplementedError, "Conversion from different p-adic extensions not yet supported (%s and %s)"%(x.parent(),parent)
         else:
             try:
                 x = list(x)
