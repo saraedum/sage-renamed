@@ -799,17 +799,18 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         if hasattr(x,'reduce'):
             x.reduce()
 
-#    def map_coefficients(self, f, ring=None):
-#        if hasattr(f,'codomain'):
-#            ring = f.codomain()
-#        from sage.categories.fields import Fields
-#        if f in Fields():
-#            ring = f
-#        if ring is None:
-#            ring = self.constant_base_field()
-#
-#        parent = RationalFunctionField(ring, names=self.parent().variable_names())
-#        return parent(self.element().numerator().map_coefficients(f), self.element().denominator().map_coefficients(f))
+    def map_coefficients(self, f, ring=None):
+        if hasattr(f,'codomain'):
+            ring = f.codomain()
+        from sage.categories.fields import Fields
+        if f in Fields():
+            ring = f
+        if ring is None:
+            ring = self.parent().constant_base_field()
+
+        from constructor import FunctionField
+        parent = FunctionField(ring, names=self.parent().variable_names())
+        return parent._field(self.element().numerator().map_coefficients(f, ring), self.element().denominator().map_coefficients(f, ring))
 
     def is_constant(self):
         r"""

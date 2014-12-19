@@ -26,8 +26,10 @@ def Y2(radius=3/2,prec=40,M=None,n=2,center=None):
         if center is None:
             R.<t> = M[]
             M, si = any_root(t^4+1,'si')
+            print M
             R.<t> = M[]
             M, zeta = any_root(t^2 - (1/3 + 4/9*si),'zeta')
+            print M
             center = zeta
 
         X = X.change_ring(M)
@@ -65,6 +67,7 @@ def obus1(prec=40,radius=1, M=None):
         with observer.report("BLOWUP with center %s and radius %s!"%(zeta,radius)):
             X_ = X.change_ring(L)
             Y_ = X_.blowup(zeta,radius).normalization()
+            return Y_
             if not Y_.is_special_fiber_reduced():
                 M, to_M = Y_.make_special_fiber_reduced()
                 M, (zeta,) = impl(M, to_M(zeta))
@@ -342,9 +345,7 @@ def afirstexample():
             with observer.ask("Is the special fiber reduced?", False) as question:
                 question.answer(B.is_special_fiber_reduced())
             with observer.report("Eliminating ramification."):
-                L, to_L = B.make_special_fiber_reduced()
-                Y = X.change_ring(L)
-                B = Y.blowup(0,0).normalization()
+                B = B.make_special_fiber_reduced()
             with observer.ask("Is the special fiber reduced?", True) as question:
                 question.answer(B.is_special_fiber_reduced())
             with observer.report("Computing the special fiber."):
@@ -361,10 +362,7 @@ def afirstexample():
             B = Y.blowup(zeta, 1/12).normalization()
             with observer.ask("Is the special fiber reduced?", False) as question:
                 question.answer(B.is_special_fiber_reduced())
-            M, to_M = B.make_special_fiber_reduced()
-            Mzeta = to_M(zeta)
-            Y = X.change_ring(M)
-            B = Y.blowup(Mzeta,1/12).normalization()
+            B = B.make_special_fiber_reduced()
             with observer.ask("Is the special fiber reduced?", True) as question:
                 question.answer(B.is_special_fiber_reduced())
             with observer.report("Computing the special fiber."):
@@ -380,10 +378,7 @@ def afirstexample():
             B = Y.blowup(Mzeta,1/8).normalization()
             with observer.ask("Is the special fiber reduced?", False) as question:
                 question.answer(B.is_special_fiber_reduced())
-            N, to_N = B.make_special_fiber_reduced()
-            observer.log(N)
-            Z = Y.change_ring(N)
-            B = Z.blowup(Mzeta,1/8).normalization()
+            B = B.make_special_fiber_reduced()
             with observer.ask("Is the special fiber reduced?", True) as question:
                 question.answer(B.is_special_fiber_reduced())
             with observer.report("Computing the special fiber."):
@@ -434,7 +429,9 @@ class NormalModelComponent(object):
             return self
         M, to_M = epp(self._G(), self._modelP1.valuation())
         center = to_M(self._modelP1._center)
-        M, (center,) = impl(M,center)
+        ouniformizer = M.uniformizer()
+        M, (center,uniformizer) = impl(M,center,ouniformizer)
+        observer.log("FIELD COLLAPSED: old uniformizer %s \n is now %s!"%(ouniformizer.polynomial(),uniformizer))
         radius = self._modelP1._radius
         X = self._modelP1._model.change_ring(M)
         return X.blowup(center, radius).normalization()
@@ -691,83 +688,6 @@ class P1NotReducedError(Exception): pass
 class NormalizationNotReducedError(Exception): pass
 class SingularitiesNotRational(Exception): pass
 
-def ssred(G, L, mu, delta):
-    try:
-        with observer.report("Now working with radius=%s and center=%s over %s"%(mu, delta, L)):
-            Kx,Rt,vx = SmartRationalFunctionFieldValuation(L, L.prime(), mu*L(L.prime()).valuation(), delta)
-            observer.log("model of P¹ is given by %s"%vx)
-
-            with observer.ask("Is the special fiber of the model of P¹ reduced?") as question:
-                if not question.answer(vx.value_group() == vx._base_valuation.constant_valuation().value_group()):
-                    raise P1NotReducedError
-
-            G = G.map_coefficients(Kx,Kx)
-
-            with observer.ask("Is the special fiber of the normalization reduced?") as question:
-                with observer.report("Computing valuations of normalization."):
-                    W = vx.mac_lane_approximants(G)
-                    observer.log("special fiber has %s irreducible components"%len(W))
-                if not question.answer(vx.value_group() == prod([v.value_group() for v in W])):
-                    raise NormalizationNotReducedError
-
-            with observer.report("Computing the special fiber of the normalization."):
-                observer.log("the components of the special fiber have genus %s"%[w.residue_field().genus() for w in W])
-                I,gens = normalization(vx, Kx.extension(G), assume_smooth=True)
-
-            C = AffineSpace(I.ring()).subscheme(I)
-            observer.log("special fiber is %s"%C)
-
-            with observer.ask("Is the special fiber smooth?") as is_smooth:
-                assert( len(C.irreducible_components()) == len(W) )
-                if is_smooth.answer(C.is_smooth()):
-                    return
-
-            [c.element().reduce() for g in gens for c in g.coefficients()]
-            observer.log("the variables on the special fiber are reductions of (starting with x,z0,...):\n %s"%gens)
-
-            with observer.report("Computing singularities."):
-                J = C.Jacobian()
-                D = AffineSpace(I.ring()).subscheme(J)
-                singularities = rational_points(D)
-                if not singularities:
-                    observer.log("The base field is too small to see the singularities.")
-                    raise SingularitiesNotRational
-
-            observer.log("singularities are at %s"%singularities)
-
-            for CC in C.irreducible_components():
-                with observer.report("Invariants of singularities on %s"%C):
-                    with observer.ask("Is this component smooth?") as is_smooth:
-                        if is_smooth.answer(CC.is_smooth()): continue
-                    for singularity in rational_points(AffineSpace(I.ring()).subscheme(CC.Jacobian())):
-                        # shift singularity to O
-                        equations = [p([g+s for g,s in zip(CC.ambient_space().coordinate_ring().gens(),singularity)]) for p in CC.defining_polynomials()]
-                        with observer.ask("Is %s obviously a singularity of a plane curve?"%singularity) as is_plane:
-                            nontrivials = [e for e in equations if e.degree()!=1]
-                            assert nontrivials
-                            if len(nontrivials) >= 2:
-                                is_plane.answer(False)
-                                continue
-                            if len(nontrivials[0].variables()) >= 3:
-                                is_plane.answer(False)
-                                continue
-                            is_plane.answer(True)
-                        # for a plane curve this is easy (CurveBook)
-                        equation = nontrivials[0]
-                        X,Y = equation.variables()
-                        m = min([sum(e) for e in equation.exponents()])
-                        assert m >= 2
-                        Fm = sum([c*mon for (c,mon) in list(equation) if mon.degree()==m])
-                        FM = Fm.factor()
-                        ordinary = all([e==1 for (_,e) in FM])
-                        if m == 2: multiplicity = "double point"
-                        elif m == 3: multiplicity = "triple point"
-                        else: multiplicity = "point with multiplicity %s"%m
-                        observer.log("%s is an %s %s."%(singularity, "ordinary" if ordinary else "non-ordinary", multiplicity))
-                     
-    finally:
-        globals().update(locals())
-
 def normal_form(G):
     if not G.is_monic():
         raise NotImplementedError
@@ -811,6 +731,7 @@ def rational_points(C, F=None):
 def normalization_pre_gauss(L, vK, assume_smooth=False):
     K = vK.domain()
     Kx = L.base()
+    assert Kx.base() is Kx
     G = L.polynomial()
     R = Kx.maximal_order()._ring
     v0 = GaussValuation(R, vK)
@@ -825,6 +746,7 @@ def normalization_pre_gauss(L, vK, assume_smooth=False):
         global B,B_
         B=[]
         gens = []
+        good_gens = []
         for w in W:
             bw = w._base_valuation if w._mu is infinity else w
             k = w.residue_field()
@@ -837,84 +759,91 @@ def normalization_pre_gauss(L, vK, assume_smooth=False):
             gens.append(Gen)
             assert w(Gen.element())==0
             if all([ww(Gen.element())>=0 for ww in W]):
-                observer.log("found one: %s"%Gen)
-                GG = Gen.charpoly()
-                ret,gens = normalization_gauss(Kx.extension(GG,names='q'), vK, assume_smooth=assume_smooth)
-                return ret,[gens[0],Gen]
-        if gens:
-            Gen = sum(gens)
-            if all([ww(Gen.element())>=0 for ww in W]):
-                observer.log("found one which is not too bad.")
-                GG = Gen.charpoly()
-                assert GG.degree() == G.degree()
-                ret,gens = normalization_gauss(Kx.extension(GG,names='q'), vK, assume_smooth=assume_smooth)
-                return ret,[]
-        return normalization_gauss(L, vK, assume_smooth=assume_smooth)
+                good_gens.append(Gen)
+                #observer.log("found one: %s"%Gen)
+                #GG = Gen.charpoly('T').map_coefficients(lambda c:c.map_coefficients(lambda d:d.lift_to_precision()))
+                #print GG
+                #assert GG.is_squarefree()
+                #print "ok"
+                #ret,gens = normalization_gauss(Kx.extension(GG,names='q'), vK, assume_smooth=assume_smooth)
+                #return ret,[gens[0],Gen]
+        return normalization_gauss(L, vK, gens=(gens if gens else None), assume_smooth=assume_smooth)
 
 # compute the normalization of the component (minus one point) corresponding to the Gauss valuation in L
 # the missing point is x=infinity
-def normalization_gauss(L, vK, assume_smooth=False):
+def normalization_gauss(L, vK, assume_smooth=False, gens=None):
     K = vK.domain()
+    k = vK.residue_field()
     Kx = L.base()
     G = L.polynomial()
     R = Kx.maximal_order()._ring
     v0 = GaussValuation(R, vK)
-    vx = RationalFunctionFieldValuation(Kx,v0)
-    W = vx.mac_lane_approximants(G)
+    vx = RationalFunctionFieldValuation(Kx,GaussValuation(R, vK))
+    S = R.change_ring(Kx)
+    w0 = GaussValuation(S, vx)
 
-    S.<x,t> = vK.domain()[]
     if not all([c.denominator().is_one() for c in G.coefficients()]):
         raise ValueError
-    F = G.map_coefficients(lambda c:c.numerator(), R)(t)
-    with observer.ask("Does F=%s define a smooth curve?"%F, True) as F_smooth:
-        if not assume_smooth:
-            F_smooth.answer(F_smooth, AffineSpace(S).subscheme(F).is_smooth())
-        else:
-            observer.log("WARNING: I have not checked.",color="red")
-            F_smooth.answer(True)
+
+    if gens is None:
+        gens = [Kx.gen(), L.gen()]
+    else:
+        gens = [Kx.gen()] + gens
+    rels = [None]*len(gens)
+    extra = []
 
     with observer.report("Computing generators of the normalization."):
-        global B,B_
-        B=[L.gen()]
-        B_ = [None for b in B]
-        extra = []
         while True:
-            with observer.ask("Does B=%s generate the normalization?"%(B,)) as generates:
-                names = ['z%s'%i for i in range(len(B))]
-                R_ = PolynomialRing(vK.residue_field(), [Kx.variable_name()] + names)
-                for i,b in enumerate(B):
-                    if B_[i] is None:
-                        with observer.report("Determining equation for %s in reduction."%b):
-                            B_[i] = B[i].charpoly(names[i])
-                            B_[i].map_coefficients(lambda c:c.element().reduce())
-                            assert(all([vx(c)>=0 for c in B_[i].coefficients()]))
-                            assert(all([c.denominator().is_one() for c in B_[i].coefficients()]))
-                            B_[i] = B_[i].map_coefficients(lambda c:c.numerator(),R)(S.gen(1))
-                            observer.log("the element satisfies %s"%(B_[i],))
-                            B_[i] = B_[i].map_coefficients(vK.reduce,vK.residue_field())(R_.gen(0),R_.gen(i+ 1))
-                            observer.log("in reduction this is %s"%(B_[i],))
-                I = R_.ideal(B_+extra)
+            with observer.ask("Does gens=%s generate the normalization?"%(gens,)) as generates:
+                names = ['z%s'%i for i in range(len(gens))]
+                R_ = PolynomialRing(vK.residue_field(), names)
+                for i,gen in enumerate(gens):
+                    if rels[i] is None:
+                        if i==0:
+                            rels[i] = R_.zero()
+                            continue
+                        with observer.report("Determining equation for %s in reduction."%gen):
+                            charpoly = gen.charpoly(L.variable_name())
+                            charpoly.map_coefficients(lambda c:c.element().reduce())
+                            charpoly = charpoly.map_coefficients(lambda c:c.map_coefficients(lambda d:d.lift_to_precision()))
+                            assert w0(charpoly) == 0
+                            coeffs = charpoly.coeffs()
+                            coeffs = [vx.domain().zero() if vx(c)>0 else c for c in coeffs]
+                            coeffs = [c.map_coefficients(vK.reduce, k) for c in coeffs]
+                            assert all([c.denominator().is_one() for c in coeffs])
+                            coeffs = [c.numerator() for c in coeffs]
+                            R0.<a> = k[]
+                            coeffs = [c(a) for c in coeffs]
+                            R1.<b> = R0[]
+                            rel = R1(coeffs)
+                            R01.<a,b> = k[]
+                            rel = R01(rel)
+                            rels[i] = rel(R_.gen(0), R_.gen(i))
+                I = R_.ideal(rels[1:]+extra)
                 print I
                 J = I.radical()
+                print J
                 for i,g in enumerate(J.gens()):
                     if g not in I:
                         observer.log("%s is only in the radical."%g)
                         generates.answer(False)
-                        z = g.map_coefficients(lambda c:vK.lift(c), K)([x]+B[:len(names)])
+                        z = g.map_coefficients(lambda c:vK.lift(c), K)(gens[:len(names)])
                         w = z
                         if use_norm:
                             w = w/vK.uniformizer()^(vx(w.norm())//w.parent().degree())
                         else:
                             w = w/vK.uniformizer()
+                        w = w.parent()(w.element().map_coefficients(lambda c: c.map_coefficients(lambda d:d.lift_to_precision())))
+                        assert w != z
                         assert vx(w.norm()) >= 0
                         observer.log("%s is another generator"%w)
-                        if w not in B:
-                            B.append(w)
-                            B_.append(None)
+                        if w not in gens:
+                            gens.append(w)
+                            rels.append(None)
                         extra.append(g)
-                if all(B_):
+                if all(rels[1:]):
                     generates.answer(True)
-                    return J, [L(Kx.gen())]+B
+                    return J, gens
 
 # compute the normalization of the component (minus one point) corresponding to v in L
 def normalization(v, L, assume_smooth=False):
@@ -929,18 +858,22 @@ def normalization(v, L, assume_smooth=False):
         raise ValueError("v must be geometrically irreducible")
     # v1(x+delta) = v(pi)
     delta = v1.phi()[0]
-    pi = v1.element_with_valuation(v1(v1.phi()))
+    pi = vK.domain()(v1.element_with_valuation(v1(v1.phi())))
     # y = (x+delta)/pi
     # → x = y*pi-delta
     G = L.polynomial()
+    if not all([c==0 or i in [G.degree(),0] for i,c in enumerate(G.coeffs())]):
+        raise NotImplementedError
     to_ = Kx.hom([Kx.gen()*pi-delta])
     H = G.map_coefficients(to_)
     observer.log("shifted defining polynomial is %s"%H)
+    assert all([c==0 or i in [G.degree(),0] for i,c in enumerate(G.coeffs())])
+
     LH = Kx.extension(H)
-    J,gens = normalization_pre_gauss(LH, vK, assume_smooth)
+    J,gens = normalization_gauss(LH, vK, assume_smooth)
     # substitute back
     from_ = Kx.hom([(Kx.gen()+delta)/pi])
-    gens = [g.element().map_coefficients(from_) for g in gens]
+    #gens = [g.element().map_coefficients(from_) for g in gens]
     return J,gens
 
 """
@@ -1087,210 +1020,237 @@ def ppprint(f, variables=['t','x'], delimiters = [','], substitutions=[('pi','π
 # Ψ, ψ        Psi (ψῖ)    psi (ψι)    ps  [ps]    ps  [ps]
 # Ω, ω        Omega (ὦ μέγα)  oméga (ωμέγα)   ō   [ɔː]    o   [ɔ]
 def epp(G, vx):
-    print "EPP for %s"%G
-    if not G.parent().base() is vx.domain():
-        raise ValueError
+    with observer.report("EPP for %s!"%G):
+        if not G.parent().base() is vx.domain():
+            raise ValueError
 
-    R = G.parent()
-    K = R.base().constant_base_field()
-    Kx = R.base()
-    t = G.parent().gen()
-    p = vx.residue_field().characteristic()
-    M = G.degree()
-    v0 = GaussValuation(R,vx)
+        R = G.parent()
+        K = R.base().constant_base_field()
+        Kx = R.base()
+        t = G.parent().gen()
+        p = vx.residue_field().characteristic()
+        M = G.degree()
+        v0 = GaussValuation(R,vx)
 
-    W = vx.mac_lane_approximants(G)
-    if len(W) > 1:
-        raise NotImplementedError
-    E = lcm([w.value_group().denominator().gen(0) for w in W])
-    print "E=",E
-    if not p.divides(E):
-        return K.totally_ramified_extension(E)
-    if not M.divides(E):
-        if W[0](t) != 0:
-            L.<Pi> = Kx.extension(G)
+        W = vx.mac_lane_approximants(G)
+        if len(W) > 1:
+            raise NotImplementedError
+        E = lcm([w.value_group().denominator().gen(0) for w in W])
+        print "E=",E
+        if not p.divides(E):
+            observer.log("CHEAP CASE!")
+            return K.totally_ramified_extension(E)
+        if not M.divides(E):
+            observer.log("DEGREE DOES NOT DIVIDE THE RAMIFICATION INDEX - THE REDUCTION CASE!")
+            if W[0](t) != 0:
+                observer.log("the generator of the field extension does not generate the residue field.")
+                L.<Pi> = Kx.extension(G)
+                w = W[0]
+                gen = w.lift(w.residue_ring()(w.residue_field().gen()))(Pi)
+                H = gen.minpoly()
+                #print "H=%s"%H
+                return epp(H, vx)
             w = W[0]
-            gen = w.lift(w.residue_ring()(w.residue_field().gen()))(Pi)
-            H = gen.minpoly()
-            print "H=%s"%H
-            return epp(H, vx)
-        w = W[0]
-        PSI = w.phi()
-        wPSI = v0.extension(PSI,infinity)
-        KPSI.<s> = Kx.extension(PSI)
-        wPSI = FunctionFieldPolymodValuation(KPSI, wPSI)
-        S.<T> = KPSI[]
-        GPSI = S([c(s) for c in w.coefficients(G)])
-        return epp(GPSI,wPSI)
-    if W[0].phi().degree() != 1:
-        print "replace generator to make minpoly totally ramified"
-        w=W[0]
-        print "Generating extension"
-        L.<z> = Kx.extension(G)
-        print "generator"
-        gen = w.phi()(z)
-        print "char/minpoly"
-        poly = gen.charpoly('T')
-        return epp(poly, vx)
+            PSI = w.phi()
+            wPSI = v0.extension(PSI,infinity)
+            KPSI.<s> = Kx.extension(PSI)
+            observer.log("considering intermediate field %s"%KPSI)
+            wPSI = FunctionFieldPolymodValuation(KPSI, wPSI)
+            S.<T> = KPSI[]
+            GPSI = S([c(s) for c in w.coefficients(G)])
+            return epp(GPSI,wPSI)
+        if W[0].phi().degree() != 1:
+            print "replace generator to make minpoly totally ramified"
+            w=W[0]
+            print "Generating extension"
+            L.<z> = Kx.extension(G)
+            print "generator"
+            gen = w.phi()(z)
+            print "char/minpoly"
+            poly = gen.charpoly('T')
+            return epp(poly, vx)
 
-    f0 = -G[0]
+        f0 = -G[0]
 
-    if vx(f0) != 0:
-        return epp(G(G.parent().gen()+1),vx)
+        if vx(f0) != 0:
+            print f0
+            observer.log("valuation of constant is nonzero - restarting with a differen generator")
+            return epp(G(G.parent().gen()+1),vx)
 
-    if not vx.reduce(f0).is_nth_power(p):
-        raise ValueError("no ramification here")
-    if not vx.reduce(f0).is_nth_power(M):
-        raise NotImplementedError
-
-    h = vx.lift(vx.reduce(f0).nth_root(M))
-    v1 = v0.extension(t-h, infinity)
-
-    def nred(g=None):
-        if g is None: g = g0()
-        if g.parent() is R:
-            assert g.degree() <= 0
-            g = g[0]
-        return vx.reduce(vx.shift(g,-vx(g)))
-
-    def is_a():
-        for i in range(1,M):
-            if vx(g0()) >= M/(M-i)*vx(gi(i)):
-                return True
-        return False
-
-    def is_b(g=None):
-        if g is None: g = g0()
-        if not nred(g).is_nth_power(p):
-            return True
-        if not nred(g).is_nth_power(M):
+        if not vx.reduce(f0).is_nth_power(p):
+            raise ValueError("no ramification here")
+        if not vx.reduce(f0).is_nth_power(M):
             raise NotImplementedError
 
-    def is_633(g=None):
-        if g is None: g = g0()
-        return is_a() or is_b(g) or (vx(g)/M not in ZZ)
+        h = vx.lift(vx.reduce(f0).nth_root(M))
+        v1 = v0.extension(t-h, infinity)
 
-    def gi(i):
-        return list(v1.coefficients(G))[i]
+        def nred(g=None):
+            if g is None: g = g0()
+            if g.parent() is R:
+                assert g.degree() <= 0
+                g = g[0]
+            return vx.reduce(vx.shift(g,-vx(g)))
 
-    def g0():
-        return v1.coefficients(G).next()[0]
+        def is_a():
+            for i in range(1,M):
+                if vx(g0()) >= M/(M-i)*vx(gi(i)):
+                    return True
+            return False
 
-    def h():
-        return -v1.phi()[0]
+        def is_b(g=None):
+            if g is None: g = g0()
+            if not nred(g).is_nth_power(p):
+                return True
+            if not nred(g).is_nth_power(M):
+                raise NotImplementedError
 
-    # LEMMA 6.33
-    while not is_633():
-        alpha = vx.lift(nred().nth_root(M))
-        s = vx(g0())
-        assert M.divides(s)
-        v1 = v1._base_valuation.extension(v1.phi()+vx.shift(alpha,s//M),infinity)
-    if is_a():
-        raise ValueError("any totally ramified extension works")
-    if is_b():
-        return K.totally_ramified_extension(M)
-    assert vx(g0())/M not in ZZ
-    if vx(g0())/p in ZZ:
-        raise NotImplementedError
+        def is_633(g=None):
+            if g is None: g = g0()
+            return is_a() or is_b(g) or (vx(g)/M not in ZZ)
 
-    if nred().is_constant():
-        vx_,v0_,v1_,G_ = vx,v0,v1,G
+        def gi(i):
+            return list(v1.coefficients(G))[i]
 
-        vK = vx
-        while vK.domain() is not K:
-            vK = vK._base_valuation.constant_valuation()
-        S.<Phi> = K[]
-        polymod = False
-        if str(nred().parent()) == "Function field in u1 defined by x^2 + x + x":
-            polymod = True
-            F = Phi^M + vK.shift(vK.lift(nred().element()[0].numerator()[0]), vx(g0()))
-        else:
-            F = Phi^M + vK.shift(vK.lift(nred().element().numerator()[0]), vx(g0()))
+        def g0():
+            return v1.coefficients(G).next()[0]
 
-        keep = False
-        while True:
-            if not keep:
-                L.<phi> = K.extension(F)
-                if polymod:
-                    KPSI = Kx
-                    KX = KPSI.base()
-                    wpsi = vx._base_valuation
-                    vX1 = wpsi._base_valuation._base_valuation._base_valuation
-                    Lx_ = PolynomialRing(L,names=KX.variable_names())
-                    wx0 = GaussValuation(Lx_)
-                    wx1 = wx0.extension(vX1.phi().change_ring(L), vX1._mu*M)
-                    Lx = FunctionField(L,names=KX.variable_names())
-                    wx = RationalFunctionFieldValuation(Lx, wx1)
-                    
-                    Lx_ = PolynomialRing(Lx, names=KPSI.variable_names())
-                    wx0 = GaussValuation(Lx_,wx)
-                    wx1 = wx0.extension(KPSI.polynomial().change_ring(Lx).change_variable_name(Lx_.variable_name()), infinity)
-                    Lx = Lx.extension(wx1.phi(), names=KPSI.variable_names())
-                    wx = FunctionFieldPolymodValuation(Lx, wx1)
-                    
-                else:
-                    vx1 = vx._base_valuation
-                    Lx_ = PolynomialRing(L,names=Kx.variable_names())
-                    wx0 = GaussValuation(Lx_)
-                    wx1 = wx0.extension(vx1.phi().change_ring(L), vx1._mu*M)
-                    Lx = FunctionField(L,names=Kx.variable_names())
-                    wx = RationalFunctionFieldValuation(Lx,wx1)
+        def h():
+            return -v1.phi()[0]
 
-                if polymod:
-                    if not all([c.denominator().is_one() for c in h().element().coeffs()]):
-                        raise NotImplementedError
-                else:
-                    if not h().denominator().is_one():
-                        raise NotImplementedError
-                delta = Lx.zero()
-            keep = False
-            if polymod:
-                hh = Lx(h().element().map_coefficients(Lx.base(),Lx.base())) + phi + delta
+        # LEMMA 6.33
+        while not is_633():
+            alpha = vx.lift(nred().nth_root(M))
+            s = vx(g0())
+            assert M.divides(s)
+            v1 = v1._base_valuation.extension(v1.phi()+vx.shift(alpha,s//M),infinity)
+        if is_a():
+            raise ValueError("any totally ramified extension works")
+        if is_b():
+            observer.log("THE REDUCTION IS NOT AN M-TH POWER ANY TR EXTENSION WILL DO!")
+            return K.totally_ramified_extension(M)
+        assert vx(g0())/M not in ZZ
+        if vx(g0())/p in ZZ:
+            raise NotImplementedError
+
+        observer.log("checking whether the conditions of the proposition are satisfied.")
+        vf = [vx(c) for c in list(G)]
+        print vf
+        if vx(g0())/M in ZZ:
+            print "v(g0)=",vx(g0())
+            print "leo failed."
+        if vx(g0())/p in ZZ:
+            print "extra condition failed."
+        if min(vf[1:-1]) < min([v for i,v in enumerate(vf) if not p.divides(i)]):
+            print "cancer failed."
+        for j in range(1,M):
+            vff = [vx(binomial(i,j))+vf[i] for i in range(j,M+1)]
+            mins = [v for v in vff if v==min(vff)]
+            if len(mins)!=1:
+                print "gemini failed for j=%s"%j
+                print vff
+                break
+
+        if nred().is_constant():
+            observer.log("THE HARD CASE - THE REDUCTION IS A CONSTANT!")
+            vx_,v0_,v1_,G_ = vx,v0,v1,G
+
+            vK = vx
+            while vK.domain() is not K:
+                vK = vK._base_valuation.constant_valuation()
+            S.<Phi> = K[]
+            polymod = False
+            if str(nred().parent()) in ["Function field in u1 defined by x^2 + x + x", "Function field in u1 defined by x^2 + x"]:
+                polymod = True
+                F = Phi^M + vK.shift(vK.lift(nred().element()[0].numerator()[0]), vx(g0()))
             else:
-                hh = Lx(h().numerator().map_coefficients(L,L)) + phi + delta
+                F = Phi^M + vK.shift(vK.lift(nred().element().numerator()[0]), vx(g0()))
 
-            wR = R.change_ring(Lx)
-            w0 = GaussValuation(wR, wx)
-            w1 = w0.extension(wR.gen() - hh, infinity)
-            wG = G.change_ring(Lx)
-
-            ppprint(list(w1.coefficients(wG)))
-
-            vx,v0,v1,G = wx,w0,w1,wG
-            try:
-                vg0 = ZZ(vx(g0()))
-                bi = nred()
-                print bi,vg0
-                if is_a():
-                    return L, K.hom(L)
-                if is_b():
-                    return L, K.hom(L)
-                i = vg0%M
-                if i == 0:
-                    delta += L.uniformizer()^(vg0//M)*wx.lift(bi.nth_root(M))
-                    print delta
-                    keep = True
-                    continue
-                else:
-                    if not bi.is_constant():
-                        break
+            keep = False
+            while True:
+                if not keep:
+                    L.<phi> = K.extension(F)
+                    observer.log("NOW TRYING THE EXTENSION DEFINED BY %s!"%F)
+                    if polymod:
+                        KPSI = Kx
+                        KX = KPSI.base()
+                        wpsi = vx._base_valuation
+                        vX1 = wpsi._base_valuation._base_valuation._base_valuation
+                        Lx_ = PolynomialRing(L,names=KX.variable_names())
+                        wx0 = GaussValuation(Lx_)
+                        wx1 = wx0.extension(vX1.phi().change_ring(L), vX1._mu*M)
+                        Lx = FunctionField(L,names=KX.variable_names())
+                        wx = RationalFunctionFieldValuation(Lx, wx1)
+                        
+                        Lx_ = PolynomialRing(Lx, names=KPSI.variable_names())
+                        wx0 = GaussValuation(Lx_,wx)
+                        wx1 = wx0.extension(KPSI.polynomial().change_ring(Lx).change_variable_name(Lx_.variable_name()), infinity)
+                        Lx = Lx.extension(wx1.phi(), names=KPSI.variable_names())
+                        wx = FunctionFieldPolymodValuation(Lx, wx1)
+                        
                     else:
-                        bi = g0()/(phi**i)
-                        r = wx(bi)/M
-                        assert r in ZZ
-                        r = ZZ(r)
-                        beta0 = wx.reduce(bi/K.uniformizer()**r)
-                        assert beta0.is_constant()
-                        if polymod:
-                            beta0 = beta0.element()[0].numerator()[0]
-                        else:
-                            beta0 = beta0.numerator()[0]
-                        beta0 = vK.lift(beta0)
-                        F += vK.shift(beta0,r)*F.parent().gen()**i
-            finally:
-                vx,v0,v1,G = vx_,v0_,v1_,G_
+                        vx1 = vx._base_valuation
+                        Lx_ = PolynomialRing(L,names=Kx.variable_names())
+                        wx0 = GaussValuation(Lx_)
+                        wx1 = wx0.extension(vx1.phi().change_ring(L), vx1._mu*M)
+                        Lx = FunctionField(L,names=Kx.variable_names())
+                        wx = RationalFunctionFieldValuation(Lx,wx1)
 
-    raise NotImplementedError
+                    if polymod:
+                        if not all([c.denominator().is_one() for c in h().element().coeffs()]):
+                            raise NotImplementedError
+                    else:
+                        if not h().denominator().is_one():
+                            raise NotImplementedError
+                    delta = Lx.zero()
+                keep = False
+                if polymod:
+                    hh = Lx(h().element().map_coefficients(Lx.base(),Lx.base())) + phi + delta
+                else:
+                    hh = Lx(h().numerator().map_coefficients(L,L)) + phi + delta
+
+                wR = R.change_ring(Lx)
+                w0 = GaussValuation(wR, wx)
+                w1 = w0.extension(wR.gen() - hh, infinity)
+                wG = G.change_ring(Lx)
+
+                vx,v0,v1,G = wx,w0,w1,wG
+                try:
+                    vg0 = ZZ(vx(g0()))
+                    bi = nred()
+                    observer.log("The reduction of b_i is %s, the vaulation of b_i is %s"%(bi,vg0))
+                    if is_a():
+                        observer.log("THE HARD CASE - THE NEWTON POLYGON NOW TOUCHES!")
+                        return L, K.hom(L)
+                    if is_b():
+                        observer.log("THE HARD CASE - THE REDUCTION IS NOW NOT AN M-TH POWER ANYMORE!")
+                        return L, K.hom(L)
+                    i = vg0%M
+                    if i == 0:
+                        delta += L.uniformizer()^(vg0//M)*wx.lift(bi.nth_root(M))
+                        observer.log("modifying delta")
+                        keep = True
+                        continue
+                    else:
+                        if not bi.is_constant():
+                            break
+                        else:
+                            bi = g0()/(phi**i)
+                            r = wx(bi)/M
+                            assert r in ZZ
+                            r = ZZ(r)
+                            beta0 = wx.reduce(bi/K.uniformizer()**r)
+                            assert beta0.is_constant()
+                            if polymod:
+                                beta0 = beta0.element()[0].numerator()[0]
+                            else:
+                                beta0 = beta0.numerator()[0]
+                            beta0 = vK.lift(beta0)
+                            F += vK.shift(beta0,r)*F.parent().gen()**i
+                finally:
+                    vx,v0,v1,G = vx_,v0_,v1_,G_
+
+        raise NotImplementedError
 
 def stars(vx,L,p):
     g = L.random_element().minpoly()
