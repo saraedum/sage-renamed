@@ -13,6 +13,8 @@ cdef extern from "flint/fmpz_poly.h":
 
     void fmpz_poly_clear(fmpz_poly_t)
 
+    void _fmpz_poly_set_length(fmpz_poly_t, long)
+
     # Polynomial parameters
     slong fmpz_poly_length(const fmpz_poly_t)
     slong fmpz_poly_degree(const fmpz_poly_t)
@@ -128,6 +130,7 @@ cdef extern from "flint/fmpz_poly.h":
             fmpz_poly_t, const fmpz_poly_t, const fmpz_poly_t, slong)
 
     # Squaring
+    void fmpz_poly_sqr(fmpz_poly_t, const fmpz_poly_t)
     void fmpz_poly_sqr_classical(fmpz_poly_t, const fmpz_poly_t)
     void fmpz_poly_sqrlow_classical(fmpz_poly_t, const fmpz_poly_t, slong)
 

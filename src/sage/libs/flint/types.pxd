@@ -24,12 +24,6 @@ cdef extern from "flint/fmpq.h":
 
     ctypedef fmpq fmpq_t[1]
 
-cdef extern from "flint/fmpq_poly.h":
-    ctypedef struct fmpq_poly_struct:
-        pass
-
-    ctypedef fmpq_poly_struct fmpq_poly_t[1]
-
 cdef extern from "flint/fmpz.h":
     ctypedef slong fmpz
     ctypedef fmpz fmpz_t[1]
@@ -41,6 +35,12 @@ cdef extern from "flint/fmpz.h":
 
     ctypedef fmpz_preinvn_struct[1] fmpz_preinvn_t
 
+cdef extern from "flint/fmpq_poly.h":
+    ctypedef struct fmpq_poly_struct:
+        pass
+
+    ctypedef fmpq_poly_struct fmpq_poly_t[1]
+
 cdef extern from "flint/fmpz_mat.h":
     ctypedef struct fmpz_mat_struct:
         pass
@@ -49,7 +49,7 @@ cdef extern from "flint/fmpz_mat.h":
 
 cdef extern from "flint/fmpz_poly.h":
     ctypedef struct fmpz_poly_struct:
-        pass
+        fmpz *coeffs
 
     ctypedef fmpz_poly_struct fmpz_poly_t[1]
 

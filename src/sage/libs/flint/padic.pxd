@@ -9,6 +9,7 @@
 #*****************************************************************************
 from sage.libs.flint.fmpq_poly cimport fmpq_t
 from sage.libs.flint.fmpz cimport *
+from sage.libs.flint.flint cimport flint_rand_t
 
 cdef extern from "flint/padic.h":
     ctypedef struct padic_struct:
