@@ -328,9 +328,7 @@ class GeneralExtensionGeneric(pAdicExtensionGeneric):
         g = modulus.map_coefficients(lambda c:c.polynomial(), univariate_over_unramified)(bivariate_ring.gen(1))
         if self.base().residue_field().characteristic().divides(modulus.degree()) or True:
             import time
-            print "START",time.clock()
             epoly = f.sylvester_matrix(g, bivariate_ring.gen(0))(epoly_ring.zero(), epoly_ring.gen()).det()
-            print "END",time.clock()
             assert all([c.is_zero() for c in epoly.list()[modulus.degree()*base.modulus().degree()+1:]]), "epoly has too few leading zeros"
             epoly = epoly_ring(epoly.list()[:modulus.degree()*base.modulus().degree()+1])
         else:

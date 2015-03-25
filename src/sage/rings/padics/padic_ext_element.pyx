@@ -360,6 +360,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
 
         An error will be raised if the parent of self is a ramified extension::
 
+            sage: R.<x> = Qp(5)[]
             sage: K.<a> = Qp(5).extension(x^2 - 5)
             sage: a.frobenius()
             Traceback (most recent call last):
