@@ -36,7 +36,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
     __hash__ = None
 
     def _cache_key(self):
-        return self.parent(), tuple(self.coeffs())
+        return self.parent(), tuple(self.coefficients(sparse=False))
 
     def __init__(self, parent, x=None, check=True, is_gen=False, construct = False, absprec = infinity, relprec = infinity):
         """

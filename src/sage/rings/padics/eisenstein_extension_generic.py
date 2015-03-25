@@ -54,7 +54,7 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
         from sage.symbolic.expression import is_Expression
         if is_Expression(premodulus):
             # Here we assume that the output of coeffs is sorted in increasing order by exponent:
-            coeffs = premodulus.coeffs()
+            coeffs = premodulus.coefficients(sparse=False)
             preseed = premodulus / coeffs[-1][0]
             preseed -= preseed.variables()[0]**coeffs[-1][1]
             preseed /= base.prime() # here we assume that the base is unramified over Qp
