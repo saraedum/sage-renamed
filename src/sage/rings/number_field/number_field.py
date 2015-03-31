@@ -1875,7 +1875,7 @@ class NumberField_generic(number_field_base.NumberField):
         return not self.is_absolute()
 
     @cached_method
-    def absolute_field(self, names):
+    def absolute_field(self, names, maximize_at_primes=None):
         """
         Returns self as an absolute extension over QQ.
 
@@ -1896,7 +1896,7 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.absolute_field('a')
             Number Field in a with defining polynomial x^4 + x^3 + x^2 + x + 1
         """
-        return NumberField(self.defining_polynomial(), names, check=False, structure=structure.NameChange(self))
+        return NumberField(self.defining_polynomial(), names, check=False, structure=structure.NameChange(self), maximize_at_primes=maximize_at_primes)
 
     def is_isomorphic(self, other):
         """

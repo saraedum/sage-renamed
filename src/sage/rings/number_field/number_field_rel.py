@@ -1702,7 +1702,7 @@ class NumberField_relative(NumberField_generic):
             return self.__abs_gen
 
     @cached_method
-    def absolute_field(self, names):
+    def absolute_field(self, names, maximize_at_primes=None):
         r"""
         Return an absolute number field `K` that is isomorphic to this
         field along with a field-theoretic bijection from self to `K`
@@ -1747,7 +1747,7 @@ class NumberField_relative(NumberField_generic):
             sage: to_L(b)^2
             -2
         """
-        return NumberField(self.absolute_polynomial(), names, structure=structure.AbsoluteFromRelative(self))
+        return NumberField(self.absolute_polynomial(), names, structure=structure.AbsoluteFromRelative(self), maximize_at_primes=maximize_at_primes)
 
     def absolute_polynomial_ntl(self):
         """
