@@ -1023,7 +1023,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         from sage.rings.arith import gcd, lcm
         return gcd(nums) / lcm(denoms)
 
-    def valuation(self, p):
+    def valuation(self, p, check=None):
         r"""
         Return the power of ``p`` in the factorization of self.
 
