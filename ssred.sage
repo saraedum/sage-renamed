@@ -1,5 +1,22 @@
 # coding=utf-8
 
+# KAI (local)
+"""
+sage: %attach ssred.sage
+sage: K = Qp(3)
+sage: v = pAdicValuation(K)
+sage: K.<x> = FunctionField(K)
+sage: R.<t> = K[]
+sage: G = t^3 - 1 - 3*x^3 - 3*x^5
+sage: L.<y> = K.extension(G)
+
+sage: X = NormalModel(L,v)
+sage: Y = X.blowup(0,0).normalization()
+sage: Y.is_special_fiber_reduced()
+False
+sage: Y = Y.make_special_fiber_reduced()
+"""
+
 use_norm = True
 
 def any_root(F,name):
