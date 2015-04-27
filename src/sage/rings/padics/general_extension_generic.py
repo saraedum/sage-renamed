@@ -498,8 +498,8 @@ class GeneralExtensionGeneric(pAdicExtensionGeneric):
         v = pAdicValuation(base)
         is_totally_ramified, ramification_steps = v.is_totally_ramified(modulus, include_steps=True, assume_squarefree=True)
         assert is_totally_ramified, "MacLane approximants terminated at: %s"%ramification_steps
-        #TODO: why is this true
-        assert any([v(v.phi()).denominator() == modulus.degree() for v in ramification_steps])
+        #TODO: why is this true (it is NOT!)
+        #assert any([v(v.phi()).denominator() == modulus.degree() for v in ramification_steps])
 
         # find a product of keys which gives a uniformizer
         slopes = [v(v.phi()) for v in ramification_steps]
