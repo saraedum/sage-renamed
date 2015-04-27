@@ -2599,7 +2599,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         ctx = self.prime_pow.get_context_capdiv(self.relprec + pi_shift)
         ctx.restore_c()
         cdef pAdicZZpXCRElement dummy = PY_NEW(pAdicZZpXCRElement)
-        dummy.unit = self.unit
+        ZZ_pX_conv_modulus(dummy.unit, self.unit, self.prime_pow.get_context_capdiv(self.relprec + pi_shift).x)
         dummy.prime_pow = self.prime_pow
         dummy.ordp = self.ordp
 
