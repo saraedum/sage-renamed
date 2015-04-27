@@ -15,6 +15,18 @@ sage: Y = X.blowup(0,0).normalization()
 sage: Y.is_special_fiber_reduced()
 False
 sage: Y = Y.make_special_fiber_reduced()
+sage: Y.special_fiber()
+Affine Space Curve over Finite Field of size 3 defined by z1 - 1, z0^5 + z0^3 - z2^3
+
+sage: K = Y.base()
+sage: R.<T> = K[]
+sage: m = 145*T^12 + 342*T^10 + 189*T^8 + 180*T^7 + 198*T^5 + 18*T^3 + 30*T^2 + 3
+sage: L.<zeta> = K.extension(m.monic())
+sage: X = X.change_ring(L.base()).change_ring(L)
+sage: Y = X.blowup(zeta, 1/12).normalization()
+sage: Y.is_special_fiber_reduced()
+
+
 """
 
 use_norm = True
