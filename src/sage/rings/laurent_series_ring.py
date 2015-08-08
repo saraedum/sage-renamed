@@ -25,7 +25,7 @@ import power_series_ring
 import polynomial
 import commutative_ring
 import integral_domain
-import field
+import ring
 
 from sage.structure.parent_gens import ParentWithGens
 from sage.libs.pari.all import pari_gen
@@ -84,12 +84,17 @@ class LaurentSeriesRing_factory(UniqueFactory):
 
     TESTS:
 
-    Check if changing global series precision does it right::
+    Check if changing global series precision does it right (and
+    that :trac:`17955` is fixed)::
 
         sage: set_series_precision(3)
         sage: R.<x> = LaurentSeriesRing(ZZ)
         sage: 1/(1 - 2*x)
         1 + 2*x + 4*x^2 + O(x^3)
+        sage: set_series_precision(5)
+        sage: R.<x> = LaurentSeriesRing(ZZ)
+        sage: 1/(1 - 2*x)
+        1 + 2*x + 4*x^2 + 8*x^3 + 16*x^4 + O(x^5)
         sage: set_series_precision(20)
     """
     def create_key(self, base_ring, name=None, names=None, default_prec=20, sparse=False):
@@ -129,7 +134,8 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
 
     EXAMPLES::
 
-        sage: K, q = LaurentSeriesRing(CC, 'q').objgen(); K
+        sage: K = LaurentSeriesRing(CC, 'q')
+        sage: K
         Laurent Series Ring in q over Complex Field with 53 bits of precision
         sage: loads(K.dumps()) == K
         True
@@ -320,19 +326,19 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
             See http://trac.sagemath.org/16201 for details.
             sage: L(pari('1/x'))
             q^-1
-            sage: L(pari('poltchebi(5)'))
+            sage: L(pari('polchebyshev(5)'))
             5*q - 20*q^3 + 16*q^5
-            sage: L(pari('poltchebi(5) - 1/x^4'))
+            sage: L(pari('polchebyshev(5) - 1/x^4'))
             -q^-4 + 5*q - 20*q^3 + 16*q^5
-            sage: L(pari('1/poltchebi(5)'))
+            sage: L(pari('1/polchebyshev(5)'))
             1/5*q^-1 + 4/5*q + 64/25*q^3 + 192/25*q^5 + 2816/125*q^7 + O(q^9)
-            sage: L(pari('poltchebi(5) + O(x^40)'))
+            sage: L(pari('polchebyshev(5) + O(x^40)'))
             5*q - 20*q^3 + 16*q^5 + O(q^40)
-            sage: L(pari('poltchebi(5) - 1/x^4 + O(x^40)'))
+            sage: L(pari('polchebyshev(5) - 1/x^4 + O(x^40)'))
             -q^-4 + 5*q - 20*q^3 + 16*q^5 + O(q^40)
-            sage: L(pari('1/poltchebi(5) + O(x^10)'))
+            sage: L(pari('1/polchebyshev(5) + O(x^10)'))
             1/5*q^-1 + 4/5*q + 64/25*q^3 + 192/25*q^5 + 2816/125*q^7 + 8192/125*q^9 + O(q^10)
-            sage: L(pari('1/poltchebi(5) + O(x^10)'), -10)  # Multiply by q^-10
+            sage: L(pari('1/polchebyshev(5) + O(x^10)'), -10)  # Multiply by q^-10
             1/5*q^-11 + 4/5*q^-9 + 64/25*q^-7 + 192/25*q^-5 + 2816/125*q^-3 + 8192/125*q^-1 + O(1)
             sage: L(pari('O(x^-10)'))
             O(q^-10)
@@ -669,7 +675,7 @@ class LaurentSeriesRing_domain(LaurentSeriesRing_generic, integral_domain.Integr
         """
         LaurentSeriesRing_generic.__init__(self, base_ring, name, default_prec, sparse)
 
-class LaurentSeriesRing_field(LaurentSeriesRing_generic, field.Field):
+class LaurentSeriesRing_field(LaurentSeriesRing_generic, ring.Field):
     _default_category = CompleteDiscreteValuationFields()
 
     def __init__(self, base_ring, name=None, default_prec=None, sparse=False):

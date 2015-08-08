@@ -177,17 +177,16 @@ Animation of the solutions::
     sage: from sage.combinat.tiling import Polyomino, TilingSolver
     sage: Y = Polyomino([(0,0),(1,0),(2,0),(3,0),(2,1)], color='yellow')
     sage: T = TilingSolver([Y], box=(15,15), reusable=True, reflection=True)
-    sage: a = T.animate(stop=40)            # long time
-    sage: a                                 # long time
+    sage: a = T.animate(stop=40)            # long time  # optional -- ImageMagick
+    sage: a                                 # long time  # optional -- ImageMagick
     Animation with 40 frames
-    sage: a.show()                          # not tested  - requires convert command
 
 Incremental animation of the solutions (one piece is removed/added at a time)::
 
-    sage: a = T.animate('incremental', stop=40)   # long time
-    sage: a                                       # long time
+    sage: a = T.animate('incremental', stop=40)   # long time  # optional -- ImageMagick
+    sage: a                                       # long time  # optional -- ImageMagick
     Animation with 40 frames
-    sage: a.show(delay=50, iterations=1)     # not tested  - requires convert command
+    sage: a.show(delay=50, iterations=1)          # long time  # optional -- ImageMagick
 
 5d Easy Example
 ---------------
@@ -662,7 +661,7 @@ class Polyomino(SageObject):
             [[0, 0, 0], [1, 2, 1]]
         """
         zipped_coords = zip(*self)
-        return [map(min, zipped_coords), map(max, zipped_coords)]
+        return [[min(_) for _ in zipped_coords], [max(_) for _ in zipped_coords]]
 
     def translated(self, box):
         r"""
@@ -1077,17 +1076,6 @@ class TilingSolver(SageObject):
         If these conditions are not verified, then the problem is not suitable
         in the sense that there are no solution.
 
-        .. NOTE::
-
-            The DLX solver throws a Segmentation Fault when the
-            number of rows is zero::
-
-                sage: from sage.combinat.matrices.dancing_links import dlx_solver
-                sage: rows = []
-                sage: x = dlx_solver(rows)
-                sage: x.search()        # not tested
-                BOOM !!!
-
         EXAMPLES::
 
             sage: from sage.combinat.tiling import TilingSolver, Polyomino
@@ -1321,7 +1309,7 @@ class TilingSolver(SageObject):
             sage: T = TilingSolver([p,q,r], box=(1,1,6))
             sage: x = T.dlx_solver()
             sage: x
-            <sage.combinat.matrices.dancing_links.dancing_linksWrapper object at ...>
+            Dancing links solver for 9 columns and 15 rows
         """
         from sage.combinat.matrices.dancing_links import dlx_solver
         rows = self.rows()
@@ -1650,20 +1638,20 @@ class TilingSolver(SageObject):
             sage: y = Polyomino([(0,0),(1,0),(2,0),(3,0),(2,1)], color='cyan')
             sage: T = TilingSolver([y], box=(5,10), reusable=True, reflection=True)
             sage: a = T.animate()
-            sage: a
+            sage: a             # optional -- ImageMagick
             Animation with 10 frames
 
         Include partial solutions (common prefix between two consecutive
         solutions)::
 
             sage: a = T.animate('common_prefix')
-            sage: a
+            sage: a             # optional -- ImageMagick
             Animation with 19 frames
 
         Incremental solutions (one piece removed or added at a time)::
 
             sage: a = T.animate('incremental')      # long time (2s)
-            sage: a                                 # long time (2s)
+            sage: a                                 # long time (2s)  # optional -- ImageMagick
             Animation with 123 frames
 
         ::
@@ -1675,7 +1663,7 @@ class TilingSolver(SageObject):
         the number of iterations (default value 0, which means to iterate
         forever). To iterate 4 times with half a second between each frame::
 
-            sage: a.show(delay=50, iterations=4) # optional
+            sage: a.show(delay=50, iterations=4)  # optional -- ImageMagick
 
         Limit the number of frames::
 

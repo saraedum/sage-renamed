@@ -29,10 +29,13 @@ AUTHORS:
 from cpython.int cimport *
 from cpython.tuple cimport *
 from cpython.list cimport *
+from sage.ext.stdsage cimport PY_NEW
+from sage.libs.gmp.all cimport *
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
 import sage.rings.finite_rings.integer_mod
+from sage.libs.pari.types cimport *
 from sage.libs.pari.gen cimport gen as pari_gen
 from sage.rings.infinity import infinity
 
@@ -92,11 +95,11 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
                 n = n / p
         else:
             return get_ordp(Integer(x), prime_pow)
-    elif PY_TYPE_CHECK(x, Integer):
+    elif isinstance(x, Integer):
         if mpz_sgn((<Integer>x).value) == 0:
             return maxordp
         k = mpz_remove(tmp.value, (<Integer>x).value, prime_pow.prime.value)
-    elif PY_TYPE_CHECK(x, Rational):
+    elif isinstance(x, Rational):
         if mpq_sgn((<Rational>x).value) == 0:
             return maxordp
         k = mpz_remove(tmp.value, mpq_numref((<Rational>x).value), prime_pow.prime.value)
@@ -124,11 +127,13 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
             if e != 1: shift += 1
         # We don't want to multiply by e again.
         return k
-    elif PY_TYPE_CHECK(x, pAdicGenericElement):
+    elif isinstance(x, pAdicGenericElement):
         k = (<pAdicGenericElement>x).valuation_c()
         if not (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
             return k
-    elif PY_TYPE_CHECK(x, pari_gen):
+    elif isinstance(x, pAdicGenericElement) and (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
+        k = (<pAdicGenericElement>x).valuation_c()
+    elif isinstance(x, pari_gen):
         pari_tmp = (<pari_gen>x).g
         if typ(pari_tmp) == t_PADIC:
             k = valp(pari_tmp)
@@ -177,7 +182,7 @@ cdef long get_preccap(x, PowComputer_class prime_pow) except? -10000:
     cdef long k, shift, e = prime_pow.e
     cdef Integer prec
     cdef GEN pari_tmp
-    if PyInt_Check(x) or PY_TYPE_CHECK(x, Integer) or PY_TYPE_CHECK(x, Rational):
+    if PyInt_Check(x) or isinstance(x, Integer) or isinstance(x, Rational):
         return maxordp
     elif PyList_Check(x) or PyTuple_Check(x):
         k = maxordp
@@ -193,14 +198,12 @@ cdef long get_preccap(x, PowComputer_class prime_pow) except? -10000:
             if e != 1: shift += 1
         # We don't want to multiply by e again.
         return k
-    elif PY_TYPE_CHECK(x, pAdicGenericElement):
+    elif isinstance(x, pAdicGenericElement) and (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
         if (<pAdicGenericElement>x)._is_exact_zero():
             return maxordp
         prec = <Integer>x.precision_absolute()
         k = mpz_get_si(prec.value)
-        if not (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
-            return k
-    elif PY_TYPE_CHECK(x, pari_gen):
+    elif isinstance(x, pari_gen):
         pari_tmp = (<pari_gen>x).g
         # since get_ordp has been called typ(x.g) == t_PADIC
         k = valp(pari_tmp) + precp(pari_tmp)
@@ -225,7 +228,7 @@ cdef long comb_prec(iprec, long prec) except? -10000:
     """
     if iprec is infinity: return prec
     cdef Integer intprec
-    if PY_TYPE_CHECK(iprec, Integer):
+    if isinstance(iprec, Integer):
         intprec = <Integer>iprec
         if mpz_cmp_si(intprec.value, prec) >= 0:
             return prec
@@ -385,11 +388,11 @@ cdef inline int cconv_shared(mpz_t out, x, long prec, long valshift, PowComputer
     """
     if PyInt_Check(x):
         x = Integer(x)
-    elif PY_TYPE_CHECK(x, pari_gen):
+    elif isinstance(x, pari_gen):
         x = x.sage()
-    if PY_TYPE_CHECK(x, pAdicGenericElement) or sage.rings.finite_rings.integer_mod.is_IntegerMod(x):
+    if isinstance(x, pAdicGenericElement) or sage.rings.finite_rings.integer_mod.is_IntegerMod(x):
         x = x.lift()
-    if PY_TYPE_CHECK(x, Integer):
+    if isinstance(x, Integer):
         if valshift > 0:
             mpz_divexact(out, (<Integer>x).value, prime_pow.pow_mpz_t_tmp(valshift))
             mpz_mod(out, out, prime_pow.pow_mpz_t_tmp(prec))
@@ -397,7 +400,7 @@ cdef inline int cconv_shared(mpz_t out, x, long prec, long valshift, PowComputer
             raise RuntimeError("Integer should not have negative valuation")
         else:
             mpz_mod(out, (<Integer>x).value, prime_pow.pow_mpz_t_tmp(prec))
-    elif PY_TYPE_CHECK(x, Rational):
+    elif isinstance(x, Rational):
         if valshift == 0:
             mpz_invert(out, mpq_denref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(prec))
             mpz_mul(out, out, mpq_numref((<Rational>x).value))
@@ -410,7 +413,7 @@ cdef inline int cconv_shared(mpz_t out, x, long prec, long valshift, PowComputer
             mpz_divexact(tmp.value, mpq_numref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(valshift))
             mpz_mul(out, out, tmp.value)
         mpz_mod(out, out, prime_pow.pow_mpz_t_tmp(prec))
-    elif PY_TYPE_CHECK(x, list):
+    elif isinstance(x, list):
         if valshift == 0:
             if len(x) == 0:
                 cconv_shared(out, Integer(0), prec, valshift, prime_pow)

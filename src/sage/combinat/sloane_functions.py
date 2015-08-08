@@ -47,16 +47,14 @@ TESTS::
     sage: a == loads(dumps(a))
     True
 
-    We agree with the online database::
+We agree with the online database::
 
-    sage: for t in sloane.trait_names():    # long time; optional -- internet
+    sage: for t in sloane.trait_names():    # long time; optional -- internet; known bug
     ....:     online_list = list(oeis(t).first_terms())
     ....:     L = max(2, len(online_list) // 2)
     ....:     sage_list = sloane.__getattribute__(t).list(L)
     ....:     if online_list[:L] != sage_list:
     ....:         print t, 'seems wrong'
-
-
 
 .. SEEALSO::
 
@@ -344,7 +342,7 @@ class A000001(SloaneSequence):
             2
             sage: a.list(16) #optional database_gap
             [1, 1, 1, 2, 1, 2, 1, 5, 2, 2, 1, 5, 1, 2, 1, 14]
-            sage: a(60)     # optional
+            sage: a(60)  # optional - database_gap
             13
 
         AUTHORS:
@@ -2390,7 +2388,8 @@ class A000225(SloaneSequence):
 class A000015(SloaneSequence):
     def __init__(self):
         r"""
-        Smallest prime power `\geq n`.
+        Smallest prime power `\geq n` (where `1` is considered a prime
+        power).
 
         INPUT:
 
@@ -2447,7 +2446,7 @@ class A000015(SloaneSequence):
             sage: [sloane.A000015._eval(n) for n in range(1,11)]
             [1, 2, 3, 4, 5, 7, 7, 8, 9, 11]
         """
-        if arith.is_prime_power(n):
+        if n == 1 or arith.is_prime_power(n):
             return n
         else:
             return arith.next_prime_power(n)

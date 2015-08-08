@@ -51,8 +51,8 @@ cdef class Polynomial_GF2X(Polynomial_template):
             0
         """
         try:
-            if (PY_TYPE_CHECK(x, int)
-                or PY_TYPE_CHECK(x, Integer)):
+            if (isinstance(x, int)
+                or isinstance(x, Integer)):
                 x = int(x % 2)
             elif (x.parent() is parent.base_ring()
                 or x.parent() == parent.base_ring()):
@@ -89,7 +89,7 @@ cdef class Polynomial_GF2X(Polynomial_template):
             x = (<Polynomial_template>self)._parent.gen()
             v = [self[t] for t from start <= t < stop]
 
-            t = self.__class__
+            t = type(self)
             r = <Polynomial_template>t.__new__(t)
             Polynomial_template.__init__(r, (<Polynomial_template>self)._parent, v)
             return r << start

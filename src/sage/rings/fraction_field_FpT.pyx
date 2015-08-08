@@ -1,10 +1,9 @@
-
+"Univariate rational functions over prime fields"
 
 import sys
 
 include "sage/ext/cdefs.pxi"
 include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
 
 from sage.rings.all import GF
 from sage.libs.flint.nmod_poly cimport *
@@ -354,7 +353,7 @@ cdef class FpTElement(RingElement):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(self, Element other) except -2:
+    cpdef int _cmp_(self, Element other) except -2:
         """
         Compares this with another element.  The ordering is arbitrary,
         but it is an ordering, and it is consistent between runs.  It has
@@ -975,31 +974,28 @@ cdef class FpT_iter:
             sage: L[-1]
             (4*t^3 + 4*t^2 + 4*t + 4)/(t^3 + 4*t^2 + 4*t + 4)
         """
-        cdef FpTElement next
+        cdef FpTElement next_
         if self.cur is None:
             self.cur = self.parent(0)
         elif self.degree == -2:
-            self.cur = self.cur.next()
+            self.cur = next(self.cur)
         else:
-            next = self.cur._copy_c()
+            next_ = self.cur._copy_c()
             sig_on()
             while True:
-                nmod_poly_inc(next._numer, False)
-                if nmod_poly_degree(next._numer) > self.degree:
-                    nmod_poly_inc(next._denom, True)
-                    if nmod_poly_degree(next._denom) > self.degree:
+                nmod_poly_inc(next_._numer, False)
+                if nmod_poly_degree(next_._numer) > self.degree:
+                    nmod_poly_inc(next_._denom, True)
+                    if nmod_poly_degree(next_._denom) > self.degree:
                         sig_off()
                         raise StopIteration
-                    nmod_poly_zero(next._numer)
-                    nmod_poly_set_coeff_ui(next._numer, 0, 1)
-                nmod_poly_gcd(self.g, next._numer, next._denom)
+                    nmod_poly_zero(next_._numer)
+                    nmod_poly_set_coeff_ui(next_._numer, 0, 1)
+                nmod_poly_gcd(self.g, next_._numer, next_._denom)
                 if nmod_poly_is_one(self.g):
                     break
             sig_off()
-            self.cur = next
-#            self.cur = self.cur.next()
-#            if nmod_poly_degree(self.cur._numer) > self.degree:
-#                raise StopIteration
+            self.cur = next_
         return self.cur
 
 cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
@@ -1142,12 +1138,12 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
             nmod_poly_set_coeff_ui(ans._denom, 0, 1)  # No need to normalize
         elif len(args) == 1:
             y = args[0]
-            if PY_TYPE_CHECK(y, Integer):
+            if isinstance(y, Integer):
                 r = mpz_fdiv_ui((<Integer>y).value, self.p)
                 nmod_poly_set_coeff_ui(ans._denom, 0, r)
             else:
                 # could use the coerce keyword being set to False to not check this...
-                if not (PY_TYPE_CHECK(y, Element) and y.parent() is self.domain()):
+                if not (isinstance(y, Element) and y.parent() is self.domain()):
                     # We could special case integers and GF(p) elements here.
                     y = self.domain()(y)
                 nmod_poly_set(ans._denom, &((<Polynomial_zmod_flint?>y).x))
@@ -1416,7 +1412,7 @@ cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
             nmod_poly_set_coeff_ui(ans._denom, 0, 1)
         if len(args) == 1:
             y = args[0]
-            if PY_TYPE_CHECK(y, Integer):
+            if isinstance(y, Integer):
                 r = mpz_fdiv_ui((<Integer>y).value, self.p)
                 if r == 0:
                     raise ZeroDivisionError
@@ -1424,7 +1420,7 @@ cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
             else:
                 R = ans._parent.ring_of_integers()
                 # could use the coerce keyword being set to False to not check this...
-                if not (PY_TYPE_CHECK(y, Element) and y.parent() is R):
+                if not (isinstance(y, Element) and y.parent() is R):
                     # We could special case integers and GF(p) elements here.
                     y = R(y)
                 nmod_poly_set(ans._denom, &((<Polynomial_zmod_flint?>y).x))
@@ -1719,7 +1715,7 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
             nmod_poly_set_coeff_ui(ans._denom, 0, 1)
         if len(args) == 1:
             y = args[0]
-            if PY_TYPE_CHECK(y, Integer):
+            if isinstance(y, Integer):
                 r = mpz_fdiv_ui((<Integer>y).value, self.p)
                 if r == 0:
                     raise ZeroDivisionError
@@ -1727,7 +1723,7 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
             else:
                 R = ans._parent.ring_of_integers()
                 # could use the coerce keyword being set to False to not check this...
-                if not (PY_TYPE_CHECK(y, Element) and y.parent() is R):
+                if not (isinstance(y, Element) and y.parent() is R):
                     # We could special case integers and GF(p) elements here.
                     y = R(y)
                 nmod_poly_set(ans._denom, &((<Polynomial_zmod_flint?>y).x))

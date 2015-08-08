@@ -43,7 +43,7 @@ AUTHORS:
 #*****************************************************************************
 
 include "sage/ext/stdsage.pxi"
-include 'sage/ext/cdefs.pxi'
+from libc.string cimport memcpy
 from cpython.dict cimport *
 
 import copy
@@ -135,7 +135,7 @@ cdef class PolyDict:
 
         for m in left:
             try:
-                n = right.next()
+                n = next(right)
             except StopIteration:
                 return 1 # left has terms, right doesn't
             ret =  fn(m,n)
@@ -147,7 +147,7 @@ cdef class PolyDict:
             #try next pair
 
         try:
-            n = right.next()
+            n = next(right)
         except StopIteration:
             return 0 # both have no terms
 
@@ -936,12 +936,12 @@ cdef class ETuple:
             return
         cdef size_t ind
         cdef int v
-        if PY_TYPE_CHECK(data,ETuple):
+        if isinstance(data, ETuple):
             self._length = (<ETuple>data)._length
             self._nonzero = (<ETuple>data)._nonzero
             self._data = <int*>sage_malloc(sizeof(int)*self._nonzero*2)
             memcpy(self._data,(<ETuple>data)._data,sizeof(int)*self._nonzero*2)
-        elif PY_TYPE_CHECK(data,dict) and PY_TYPE_CHECK(length,int):
+        elif isinstance(data, dict) and isinstance(length, int):
             self._length = length
             self._nonzero = len(data)
             self._data = <int*>sage_malloc(sizeof(int)*self._nonzero*2)
@@ -951,7 +951,7 @@ cdef class ETuple:
                 self._data[2*ind] = index
                 self._data[2*ind+1] = exp
                 ind += 1
-        elif PY_TYPE_CHECK(data,list) or PY_TYPE_CHECK(data,tuple):
+        elif isinstance(data, list) or isinstance(data, tuple):
             self._length = len(data)
             self._nonzero = 0
             for v in data:

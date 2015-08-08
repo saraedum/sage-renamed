@@ -20,8 +20,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+
+from .paridecl cimport *
+from .paripriv cimport *
 include "sage/ext/interrupt.pxi"
-include "decl.pxi"
 
 from cpython cimport PyErr_Occurred
 from pari_instance cimport pari_instance
@@ -43,7 +45,7 @@ class PariError(RuntimeError):
             ....:     pari('1/0')
             ....: except PariError as err:
             ....:     print err.errnum()
-            30
+            31
         """
         return self.args[0]
 

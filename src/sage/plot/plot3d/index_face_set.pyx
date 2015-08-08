@@ -873,10 +873,10 @@ cdef class IndexFaceSet(PrimitiveObject):
             return ["{vertices:%s,faces:%s,color:%s}" %
                     (vertices_str, faces_str, color_str)]
         else:
-            color_str = "[{}]".format(",".join(["'#{}'".format(
+            color_str = "[{}]".format(",".join(["'{}'".format(
                     Color(self._faces[i].color.r,
                           self._faces[i].color.g,
-                          self._faces[i].color.b).__hex__())
+                          self._faces[i].color.b).html_color())
                                             for i from 0 <= i < self.fcount]))
             return ["{vertices:%s,faces:%s,face_colors:%s}" %
                     (vertices_str, faces_str, color_str)]
@@ -1048,10 +1048,10 @@ cdef class IndexFaceSet(PrimitiveObject):
             if face.n == 0: # skip unused vertices
                 continue
             face.vertices = &dual.face_indices[ix]
-            ff, next = dd.itervalues().next()
+            ff, next_ = next(dd.itervalues())
             face.vertices[0] = ff
             for j from 1 <= j < face.n:
-                ff, next = dd[next]
+                ff, next_ = dd[next_]
                 face.vertices[j] = ff
             i += 1
             ix += face.n

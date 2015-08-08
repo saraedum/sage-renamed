@@ -520,8 +520,7 @@ class FunctionField_polymod(FunctionField):
             sage: M('x')
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert string
-
+            TypeError: unable to evaluate 'x' in Fraction Field of Univariate Polynomial Ring in t over Rational Field
         """
         from sage.rings.polynomial.polynomial_element import is_Polynomial
         if polynomial.parent().ngens()>1 or not is_Polynomial(polynomial):
@@ -2055,7 +2054,7 @@ class RationalFunctionField(FunctionField):
             return FunctionFieldElement_rational(self, self._field(x._x))
         try:
             x = self._field(x)
-        except TypeError, Err:
+        except TypeError as Err:
             try:
                 if x.parent() is self.polynomial_ring():
                     return x[0]

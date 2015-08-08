@@ -27,10 +27,10 @@ max_print = 10
 
 
 # Imports
+from libc.string cimport memcpy
 from sage.rings.integer import Integer
 from sage.finance.time_series cimport TimeSeries
 include "sage/ext/stdsage.pxi"
-include "sage/ext/cdefs.pxi"
 include "sage/ext/interrupt.pxi"
 from cpython.slice cimport PySlice_Check
 from cpython.string cimport *
@@ -94,7 +94,7 @@ cdef class IntList:
         if isinstance(values, (int,long,Integer)):
             self._length = values
             values = None
-        elif PY_TYPE_CHECK(values, TimeSeries):
+        elif isinstance(values, TimeSeries):
             T = values
             self._length = T._length
         else:
@@ -107,7 +107,7 @@ cdef class IntList:
         if values is None:
             for i in range(self._length):
                 self._values[i] = 0
-        elif PY_TYPE_CHECK(values, TimeSeries):
+        elif isinstance(values, TimeSeries):
             for i in range(self._length):
                 self._values[i] = <int> T._values[i]
         else:
