@@ -1,3 +1,5 @@
+include "sage/ext/interrupt.pxi"
+
 from sage.libs.flint.padic cimport *
 from sage.libs.flint.fmpz_poly cimport *
 from sage.libs.flint.nmod_vec cimport *

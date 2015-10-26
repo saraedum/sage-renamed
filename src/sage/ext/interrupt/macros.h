@@ -99,11 +99,14 @@ extern "C" {
  */
 #define _sig_on_(message) ( unlikely(_sig_on_prejmp(message, __FILE__, __LINE__)) || _sig_on_postjmp(sigsetjmp(_signals.env,0)) )
 
+
 /*
  * Set message, return 0 if we need to sigsetjmp(), return 1 otherwise.
  */
 static inline int _sig_on_prejmp(const char* message, const char* file, int line)
 {
+    // If this line causes a SIGSEGV, then your .pyx file is most likely missing
+    // the include "sage/ext/interrupt.pxi"
     _signals.s = message;
 #if ENABLE_DEBUG_INTERRUPT
     if (_signals.debug_level >= 4)
@@ -231,6 +234,8 @@ static inline void sig_block(void)
         print_backtrace();
     }
 #endif
+    // If this line causes a SIGSEGV, then your .pyx file is most likely missing
+    // the include "sage/ext/interrupt.pxi"
     _signals.block_sigint = 1;
 }
 
