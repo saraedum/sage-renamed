@@ -1,5 +1,6 @@
 include "sage/ext/cdefs.pxi"
 include "sage/ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
 
 from sage.libs.flint.padic cimport padic_ctx_t
 from sage.libs.flint.fmpz cimport fmpz_t
