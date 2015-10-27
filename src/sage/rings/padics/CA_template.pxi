@@ -379,7 +379,7 @@ cdef class CAElement(pAdicTemplateElement):
         cdef long relprec, val, rval
         cdef mpz_t tmp
         cdef Integer right
-        cdef CAElement base, pright, ans
+        cdef CAElement pright, ans
         cdef bint exact_exp
         if isinstance(_right, Integer) or isinstance(_right, (int, long)) \
                                           or isinstance(_right, Rational):
@@ -1348,12 +1348,12 @@ cdef class pAdicCoercion_CA_frac_field(RingHomomorphism_coercion):
 
     EXAMPLES::
 
-        sage: R.<a> = ZqCA(27)
+        sage: R.<a> = ZqCA(27, implementation='FLINT')
         sage: K = R.fraction_field()
         sage: K.coerce_map_from(R)
         Ring Coercion morphism:
-          From: Unramified Extension in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20)) of 3-adic Ring with capped absolute precision 20
-          To:   Unramified Extension in a defined by (1 + O(3^20))*x^3 + (2 + O(3^20))*x + 1 + O(3^20) of 3-adic Field with capped relative precision 20
+          From: Unramified Extension of 3-adic Ring with capped absolute precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
+          To:   Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
     """
     def __init__(self, R, K):
         """
@@ -1361,7 +1361,7 @@ cdef class pAdicCoercion_CA_frac_field(RingHomomorphism_coercion):
 
         EXAMPLES::
 
-            sage: R.<a> = ZqCA(27)
+            sage: R.<a> = ZqCA(27, implementation='FLINT')
             sage: K = R.fraction_field()
             sage: f = K.coerce_map_from(R); type(f)
             <type 'sage.rings.padics.qadic_flint_CA.pAdicCoercion_CA_frac_field'>
@@ -1376,7 +1376,7 @@ cdef class pAdicCoercion_CA_frac_field(RingHomomorphism_coercion):
 
         EXAMPLES::
 
-            sage: R.<a> = ZqCA(27)
+            sage: R.<a> = ZqCA(27, implementation='FLINT')
             sage: K = R.fraction_field()
             sage: f = K.coerce_map_from(R)
             sage: f(a)
@@ -1398,7 +1398,7 @@ cdef class pAdicCoercion_CA_frac_field(RingHomomorphism_coercion):
 
         EXAMPLES::
 
-            sage: R.<a> = ZqCA(27)
+            sage: R.<a> = ZqCA(27, implementation='FLINT')
             sage: K = R.fraction_field()
             sage: f = K.coerce_map_from(R)
             sage: f(a, 3)
@@ -1447,7 +1447,7 @@ cdef class pAdicCoercion_CA_frac_field(RingHomomorphism_coercion):
 
         EXAMPLES::
 
-            sage: R.<a> = ZqCA(27)
+            sage: R.<a> = ZqCA(27, implementation='FLINT')
             sage: K = R.fraction_field()
             sage: f = K.coerce_map_from(R)
             sage: f(K.gen())
@@ -1456,15 +1456,60 @@ cdef class pAdicCoercion_CA_frac_field(RingHomomorphism_coercion):
         return self._section
 
     cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        TESTS::
+
+            sage: R.<a> = ZqCA(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(R)
+            sage: g = copy(f)   # indirect doctest
+            sage: g
+            Ring Coercion morphism:
+              From: Unramified Extension of 3-adic Ring with capped absolute precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
+              To:   Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
+            sage: g == f
+            True
+            sage: g is f
+            False
+            sage: g(a)
+            a + O(3^20)
+            sage: g(a) == f(a)
+            True
+
+        """
         _slots['_zero'] = self._zero
         _slots['_section'] = self._section
-        return Morphism._extra_slots(self, _slots)
+        return RingHomomorphism_coercion._extra_slots(self, _slots)
 
     cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        TESTS::
+
+            sage: R.<a> = ZqCA(9, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(R)
+            sage: g = copy(f)   # indirect doctest
+            sage: g
+            Ring Coercion morphism:
+              From: Unramified Extension of 3-adic Ring with capped absolute precision 20 in a defined by (1 + O(3^20))*x^2 + (2 + O(3^20))*x + (2 + O(3^20))
+              To:   Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^2 + (2 + O(3^20))*x + (2 + O(3^20))
+            sage: g == f
+            True
+            sage: g is f
+            False
+            sage: g(a)
+            a + O(3^20)
+            sage: g(a) == f(a)
+            True
+
+        """
         self._zero = _slots['_zero']
         self._section = _slots['_section']
-        Morphism._update_slots(self, _slots)
-
+        RingHomomorphism_coercion._update_slots(self, _slots)
 
 cdef class pAdicConvert_CA_frac_field(Morphism):
     """
@@ -1472,12 +1517,12 @@ cdef class pAdicConvert_CA_frac_field(Morphism):
 
     EXAMPLES::
 
-        sage: R.<a> = ZqCA(27)
+        sage: R.<a> = ZqCA(27, implementation='FLINT')
         sage: K = R.fraction_field()
         sage: f = R.convert_map_from(K); f
         Generic morphism:
-          From: Unramified Extension in a defined by (1 + O(3^20))*x^3 + (2 + O(3^20))*x + 1 + O(3^20) of 3-adic Field with capped relative precision 20
-          To:   Unramified Extension in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20)) of 3-adic Ring with capped absolute precision 20
+          From: Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
+          To:   Unramified Extension of 3-adic Ring with capped absolute precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
     """
     def __init__(self, K, R):
         """
@@ -1485,7 +1530,7 @@ cdef class pAdicConvert_CA_frac_field(Morphism):
 
         EXAMPLES::
 
-            sage: R.<a> = ZqCA(27)
+            sage: R.<a> = ZqCA(27, implementation='FLINT')
             sage: K = R.fraction_field()
             sage: f = R.convert_map_from(K); type(f)
             <type 'sage.rings.padics.qadic_flint_CA.pAdicConvert_CA_frac_field'>
@@ -1499,7 +1544,7 @@ cdef class pAdicConvert_CA_frac_field(Morphism):
 
         EXAMPLES::
 
-            sage: R.<a> = ZqCA(27)
+            sage: R.<a> = ZqCA(27, implementation='FLINT')
             sage: K = R.fraction_field()
             sage: f = R.convert_map_from(K)
             sage: f(K.gen())
@@ -1529,7 +1574,7 @@ cdef class pAdicConvert_CA_frac_field(Morphism):
 
         EXAMPLES::
 
-            sage: R.<a> = ZqCA(27)
+            sage: R.<a> = ZqCA(27, implementation='FLINT')
             sage: K = R.fraction_field()
             sage: f = R.convert_map_from(K); a = K(a)
             sage: f(a, 3)
@@ -1572,10 +1617,58 @@ cdef class pAdicConvert_CA_frac_field(Morphism):
         return ans
 
     cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        TESTS::
+
+            sage: R.<a> = ZqCA(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = R.convert_map_from(K)
+            sage: a = K(a)
+            sage: g = copy(f)   # indirect doctest
+            sage: g
+            Generic morphism:
+              From: Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
+              To:   Unramified Extension of 3-adic Ring with capped absolute precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
+            sage: g == f
+            True
+            sage: g is f
+            False
+            sage: g(a)
+            a + O(3^20)
+            sage: g(a) == f(a)
+            True
+
+        """
         _slots['_zero'] = self._zero
         return Morphism._extra_slots(self, _slots)
 
     cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        TESTS::
+
+            sage: R.<a> = ZqCA(9, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = R.convert_map_from(K)
+            sage: a = f(a)
+            sage: g = copy(f)   # indirect doctest
+            sage: g
+            Generic morphism:
+              From: Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^2 + (2 + O(3^20))*x + (2 + O(3^20))
+              To:   Unramified Extension of 3-adic Ring with capped absolute precision 20 in a defined by (1 + O(3^20))*x^2 + (2 + O(3^20))*x + (2 + O(3^20))
+            sage: g == f
+            True
+            sage: g is f
+            False
+            sage: g(a)
+            a + O(3^20)
+            sage: g(a) == f(a)
+            True
+
+        """
         self._zero = _slots['_zero']
         Morphism._update_slots(self, _slots)
 
@@ -1605,7 +1698,7 @@ def unpickle_cae_v2(cls, parent, value, absprec):
     """
     cdef CAElement ans = cls.__new__(cls)
     ans._parent = parent
-    ans.prime_pow = <PowComputer_class?>parent.prime_pow
+    ans.prime_pow = <PowComputer_?>parent.prime_pow
     cconstruct(ans.value, ans.prime_pow)
     cunpickle(ans.value, value, ans.prime_pow)
     ans.absprec = absprec

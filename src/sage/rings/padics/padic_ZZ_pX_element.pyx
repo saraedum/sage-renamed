@@ -611,7 +611,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
 
         EXAMPLES::
 
-            sage: QQ(Qq(125,names='a',implementation="NTL")(-1/5)) #indirect doctest, known bug: I somehow broke this
+            sage: QQ(Qq(125,names='a')(-1/5)) #indirect doctest
             -1/5
         """
         if self.valuation() < 0:
@@ -685,6 +685,27 @@ def _test_preprocess_list(R, L):
     - ``ctx`` -- An ``ntl_ZZ_p_Context`` giving the power of `p`
       modulo which the elements in ``LL`` are defined.  If ``None``,
       then the elements of ``LL`` are ``ntl_ZZs``.
+
+    EXAMPLES::
+
+        sage: from sage.rings.padics.padic_ZZ_pX_element import _test_preprocess_list
+        sage: from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZ_p as ntl_ZZ_p
+        sage: _test_preprocess_list(Zq(25,names='a',implementation="NTL"), [1,2,3])
+        ([1, 2, 3], 0, None)
+        sage: _test_preprocess_list(Zq(25,names='a',implementation="NTL"), [10,20,30])
+        ([10, 20, 30], 0, None)
+        sage: _test_preprocess_list(Zq(25,names='a',implementation="NTL"), [1/5,2/5,3])
+        ([1, 2, 15], -1, NTL modulus 95367431640625)
+        sage: _test_preprocess_list(Zq(25,names='a',implementation="NTL"), [1/5,mod(2,625),3])
+        ([1, 10, 15], -1, NTL modulus 3125)
+        sage: _test_preprocess_list(Zq(25,names='a',implementation="NTL"), [1/5,mod(2,625),ntl_ZZ_p(3,25)])
+        ([1, 10, 15], -1, NTL modulus 125)
+        sage: _test_preprocess_list(Zq(25,names='a',implementation="NTL"), [1/5,mod(2,625),Zp(5)(5,3)])
+        ([1, 10, 1], -1, NTL modulus 625)
+        sage: _test_preprocess_list(Zq(25,names='a',implementation="NTL"), [1/5,mod(2,625),Zp(5)(5,3),0])
+        ([1, 10, 1, 0], -1, NTL modulus 625)
+        sage: _test_preprocess_list(Zq(25,names='a',implementation="NTL"), [1/5,mod(2,625),Zp(5)(5,3),mod(0,3125)])
+        ([1, 10, 1, 0], -1, NTL modulus 625)
     """
     return preprocess_list(R(0), L)
 
@@ -799,9 +820,9 @@ def _find_val_aprec_test(R, L):
         (1, 340282366920938463463374607431768211457, 2)
         sage: _find_val_aprec_test(Zq(25,names='a',implementation="NTL"), [5, int(25), 7/25])
         (-2, 340282366920938463463374607431768211457, 1)
-        sage: _find_val_aprec_test(Zq(25,names='a',implementation="NTL"), [mod(4,125), Zp(5,implementation="NTL")(5,5), ntl_ZZ_p(16,625), 4/125])
+        sage: _find_val_aprec_test(Zq(25,names='a',implementation="NTL"), [mod(4,125), Zp(5)(5,5), ntl_ZZ_p(16,625), 4/125])
         (-3, 3, 0)
-        sage: _find_val_aprec_test(Zq(25,names='a',implementation="NTL"), [mod(25,125), Zp(5,implementation="NTL")(5,5), ntl_ZZ_p(15,625)])
+        sage: _find_val_aprec_test(Zq(25,names='a',implementation="NTL"), [mod(25,125), Zp(5)(5,5), ntl_ZZ_p(15,625)])
         (0, 3, 0)
     """
     return find_val_aprec(R.prime_pow, L)
@@ -880,9 +901,9 @@ def _test_get_val_prec(R, a):
         (1, 340282366920938463463374607431768211457, 2)
         sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), 1/15)
         (-1, 340282366920938463463374607431768211457, 1)
-        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), Zp(5,implementation="NTL")(15,4))
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), Zp(5)(15,4))
         (0, 4, 0)
-        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), Qp(5,implementation="NTL")(1/15,4))
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), Qp(5)(1/15,4))
         (-1, 4, 0)
         sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), mod(15,625))
         (0, 4, 0)
@@ -899,11 +920,11 @@ def _test_get_val_prec(R, a):
         (340282366920938463463374607431768211457, 340282366920938463463374607431768211457, 2)
         sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), 0/1)
         (340282366920938463463374607431768211457, 340282366920938463463374607431768211457, 1)
-        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), Zp(5,implementation="NTL")(25,4))
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), Zp(5)(25,4))
         (0, 4, 0)
-        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), Qp(5,implementation="NTL")(1/25,4))
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), Qp(5)(1/25,4))
         (-2, 4, 0)
-        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), Zp(5,implementation="NTL")(0))
+        sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), Zp(5)(0))
         (340282366920938463463374607431768211457, 340282366920938463463374607431768211457, 1)
         sage: _test_get_val_prec(Zq(25,names='a',implementation="NTL"), mod(0,625))
         (0, 4, 0)

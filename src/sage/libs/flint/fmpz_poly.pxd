@@ -4,6 +4,7 @@ from sage.libs.flint.types cimport *
 
 cdef extern from "flint/fmpz_poly.h":
     # Memory management
+    void _fmpz_poly_set_length(fmpz_poly_t, slong)
     void fmpz_poly_init(fmpz_poly_t)
     void fmpz_poly_init2(fmpz_poly_t, slong)
 

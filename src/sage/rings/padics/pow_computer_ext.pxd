@@ -8,6 +8,7 @@ cdef class PowComputer_ext(PowComputer_class):
     cdef ZZ_c* small_powers
     cdef ZZ_c top_power
     cdef ZZ_c temp_z
+    cdef long _initialized
     cdef mpz_t temp_m2
 
     # the following are for unpickling

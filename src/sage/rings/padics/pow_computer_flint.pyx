@@ -40,13 +40,17 @@ cdef class PowComputer_flint(PowComputer_class):
         fmpz_init(self.tfmpz)
 
         sig_on()
-        mpz_init(self.top_power)
         try:
-           padic_ctx_init(self.ctx, self.fprime, 0, prec_cap, PADIC_SERIES)
-        except:
-            mpz_clear(self.top_power)
-            raise
-        sig_off()
+            mpz_init(self.top_power)
+            try:
+                padic_ctx_init(self.ctx, self.fprime, 0, prec_cap, PADIC_SERIES)
+            except:
+                mpz_clear(self.top_power)
+                raise
+        finally:
+            sig_off()
+
+        self.__allocated = 4
 
     def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly=None, shift_seed=None):
         """
@@ -74,12 +78,13 @@ cdef class PowComputer_flint(PowComputer_class):
             sage: A = PowComputer_flint(5, 20, 20, 20, False)
             sage: del A
         """
-        fmpz_clear(self.fprime)
-        fmpz_clear(self.half_prime)
-        fmpz_clear(self._fpow_variable)
-        fmpz_clear(self.tfmpz)
-        mpz_clear(self.top_power)
-        padic_ctx_clear(self.ctx)
+        if self.__allocated >= 4:
+            fmpz_clear(self.fprime)
+            fmpz_clear(self.half_prime)
+            fmpz_clear(self._fpow_variable)
+            fmpz_clear(self.tfmpz)
+            mpz_clear(self.top_power)
+            padic_ctx_clear(self.ctx)
 
     def __reduce__(self):
         """
@@ -95,7 +100,7 @@ cdef class PowComputer_flint(PowComputer_class):
         """
         return PowComputer_flint_maker, (self.prime, self.cache_limit, self.prec_cap, self.ram_prec_cap, self.in_field, self.polynomial(), self._prec_type)
 
-    def __repr__(self):
+    def _repr_(self):
         """
         String representation of this powcomputer.
 
@@ -124,7 +129,7 @@ cdef class PowComputer_flint(PowComputer_class):
             fmpz_pow_ui(self._fpow_variable, self.fprime, n)
             return &self._fpow_variable
 
-    cdef mpz_srcptr pow_mpz_t_tmp(self, long n):
+    cdef mpz_srcptr pow_mpz_t_tmp(self, unsigned long n):
         """
         Returns a pointer to an ``mpz_t`` holding `p^n`.
 
@@ -202,28 +207,32 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
         fmpz_init(self.q)
 
         sig_on()
-        self._moduli = <fmpz_poly_t*>sage_malloc(sizeof(fmpz_poly_t) * (cache_limit + 2))
-        if self._moduli == NULL:
-            raise MemoryError
         try:
-            fmpz_poly_init2(self.modulus, length)
+            self._moduli = <fmpz_poly_t*>sage_malloc(sizeof(fmpz_poly_t) * (cache_limit + 2))
+            if self._moduli == NULL:
+                raise MemoryError
             try:
-                for i from 1 <= i <= cache_limit + 1:
-                    try:
-                        fmpz_poly_init2(self._moduli[i], length)
-                    except:
-                        i-=1
-                        while i:
-                            fmpz_poly_clear(self._moduli[i])
+                fmpz_poly_init2(self.modulus, length)
+                try:
+                    for i in range(1,cache_limit+2):
+                        try:
+                            fmpz_poly_init2(self._moduli[i], length)
+                        except BaseException:
                             i-=1
-                        raise
-            except:
-                fmpz_poly_clear(self.modulus)
+                            while i:
+                                fmpz_poly_clear(self._moduli[i])
+                                i-=1
+                            raise
+                except BaseException:
+                    fmpz_poly_clear(self.modulus)
+                    raise
+            except BaseException:
+                sage_free(self._moduli)
                 raise
-        except:
-           sage_free(self._moduli)
-           raise
-        sig_off()
+        finally:
+            sig_off()
+
+        self.__allocated = 8
 
     def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, _poly, shift_seed=None):
         """
@@ -248,7 +257,7 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
         cdef Py_ssize_t i
         cdef fmpz* coeffs = (<fmpz_poly_struct*>self.modulus)[0].coeffs
         fmpz_one(self.tfmpz)
-        for i from 1 <= i <= cache_limit:
+        for i in range(1,cache_limit+1):
             fmpz_mul(self.tfmpz, self.tfmpz, self.fprime)
             _fmpz_vec_scalar_mod_fmpz((<fmpz_poly_struct*>self._moduli[i])[0].coeffs, coeffs, length, self.tfmpz)
             _fmpz_poly_set_length(self._moduli[i], length)
@@ -268,13 +277,14 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
         """
         cdef Py_ssize_t i
 
-        fmpz_clear(self.q)
-        fmpz_poly_clear(self.modulus)
-        for i from 1 <= i <= self.cache_limit + 1:
-            fmpz_poly_clear(self._moduli[i])
-        sage_free(self._moduli)
+        if self.__allocated >= 8:
+            fmpz_clear(self.q)
+            fmpz_poly_clear(self.modulus)
+            for i in range(1, self.cache_limit + 1):
+                fmpz_poly_clear(self._moduli[i])
+            sage_free(self._moduli)
 
-    def __repr__(self):
+    def _repr_(self):
         """
         String representation of this powcomputer.
 
@@ -318,14 +328,14 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
         """
         cdef long c
         if k <= self.cache_limit:
-            return self._moduli + k
+            return &(self._moduli[k])
         else:
             c = self.cache_limit+1
             _fmpz_vec_scalar_mod_fmpz((<fmpz_poly_struct*>self._moduli[c])[0].coeffs,
                                       (<fmpz_poly_struct*>self.modulus)[0].coeffs,
                                       self.deg + 1,
                                       self.pow_fmpz_t_tmp(k)[0])
-            return self._moduli + c
+            return &(self._moduli[c])
 
     cdef fmpz_poly_t* get_modulus_capdiv(self, unsigned long k):
         """
@@ -422,63 +432,27 @@ cdef class PowComputer_flint_unram(PowComputer_flint_1step):
         fmpz_init(self.fmpz_ctm)
         fmpz_init(self.fmpz_cconv)
 
+        # While the following allocations have the potential to leak
+        # small amounts of memory when interrupted or when one of the
+        # init methods raises a MemoryError, the only leak-free
+        # solution we could devise used 11-nested try blocks.  We
+        # choose readable code in this case.
         sig_on()
         fmpz_poly_init(self.poly_cconv)
-        try:
-            fmpz_poly_init(self.poly_ctm)
-            try:
-                fmpz_poly_init(self.poly_ccmp)
-                try:
-                    fmpz_poly_init(self.poly_cinv)
-                    try:
-                        fmpz_poly_init(self.poly_cisunit)
-                        try:
-                            fmpz_poly_init(self.poly_cinv2)
-                            try:
-                                fmpz_poly_init(self.poly_flint_rep)
-                                try:
-                                    fmpz_poly_init(self.poly_matmod)
-                                    try:
-                                        mpz_init(self.mpz_cpow)
-                                        try:
-                                            mpz_init(self.mpz_ctm)
-                                            try:
-                                                mpz_init(self.mpz_cconv)
-                                                try:
-                                                    mpz_init(self.mpz_matmod)
-                                                except:
-                                                    mpz_clear(self.mpz_cconv)
-                                                    raise
-                                            except:
-                                                mpz_clear(self.mpz_ctm)
-                                                raise
-                                        except:
-                                            mpz_clear(self.mpz_cpow)
-                                            raise
-                                    except:
-                                        fmpz_poly_clear(self.poly_matmod)
-                                except:
-                                    fmpz_poly_clear(self.poly_flint_rep)
-                                    raise
-                            except:
-                                fmpz_poly_clear(self.poly_cinv2)
-                                raise
-                        except:
-                            fmpz_poly_clear(self.poly_cisunit)
-                            raise
-                    except:
-                        fmpz_poly_clear(self.poly_cinv)
-                        raise
-                except:
-                    fmpz_poly_clear(self.poly_ccmp)
-                    raise
-            except:
-                fmpz_poly_clear(self.poly_ctm)
-                raise
-        except:
-            fmpz_poly_clear(self.poly_cconv)
-            raise
+        fmpz_poly_init(self.poly_ctm)
+        fmpz_poly_init(self.poly_ccmp)
+        fmpz_poly_init(self.poly_cinv)
+        fmpz_poly_init(self.poly_cisunit)
+        fmpz_poly_init(self.poly_cinv2)
+        fmpz_poly_init(self.poly_flint_rep)
+        fmpz_poly_init(self.poly_matmod)
+        mpz_init(self.mpz_cpow)
+        mpz_init(self.mpz_ctm)
+        mpz_init(self.mpz_cconv)
+        mpz_init(self.mpz_matmod)
         sig_off()
+
+        self.__allocated = 16
 
     def __dealloc__(self):
         """
@@ -492,26 +466,27 @@ cdef class PowComputer_flint_unram(PowComputer_flint_1step):
             sage: del A
 
         """
-        fmpz_clear(self.fmpz_ccmp)
-        fmpz_clear(self.fmpz_cval)
-        fmpz_clear(self.fmpz_cinv)
-        fmpz_clear(self.fmpz_cinv2)
-        fmpz_clear(self.fmpz_clist)
-        fmpz_clear(self.fmpz_clist2)
-        fmpz_clear(self.fmpz_ctm)
-        fmpz_clear(self.fmpz_cconv)
-        mpz_clear(self.mpz_cconv)
-        mpz_clear(self.mpz_ctm)
-        mpz_clear(self.mpz_cpow)
-        mpz_clear(self.mpz_matmod)
-        fmpz_poly_clear(self.poly_cconv)
-        fmpz_poly_clear(self.poly_ctm)
-        fmpz_poly_clear(self.poly_ccmp)
-        fmpz_poly_clear(self.poly_cinv)
-        fmpz_poly_clear(self.poly_cisunit)
-        fmpz_poly_clear(self.poly_cinv2)
-        fmpz_poly_clear(self.poly_flint_rep)
-        fmpz_poly_clear(self.poly_matmod)
+        if self.__allocated >= 16:
+            fmpz_clear(self.fmpz_ccmp)
+            fmpz_clear(self.fmpz_cval)
+            fmpz_clear(self.fmpz_cinv)
+            fmpz_clear(self.fmpz_cinv2)
+            fmpz_clear(self.fmpz_clist)
+            fmpz_clear(self.fmpz_clist2)
+            fmpz_clear(self.fmpz_ctm)
+            fmpz_clear(self.fmpz_cconv)
+            mpz_clear(self.mpz_cconv)
+            mpz_clear(self.mpz_ctm)
+            mpz_clear(self.mpz_cpow)
+            mpz_clear(self.mpz_matmod)
+            fmpz_poly_clear(self.poly_cconv)
+            fmpz_poly_clear(self.poly_ctm)
+            fmpz_poly_clear(self.poly_ccmp)
+            fmpz_poly_clear(self.poly_cinv)
+            fmpz_poly_clear(self.poly_cisunit)
+            fmpz_poly_clear(self.poly_cinv2)
+            fmpz_poly_clear(self.poly_flint_rep)
+            fmpz_poly_clear(self.poly_matmod)
 
     def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly=None):
         """

@@ -41,7 +41,6 @@ from generic_nodes import pAdicCappedRelativeRingGeneric, \
 from padic_ZZ_pX_FM_element import pAdicZZpXFMElement
 from padic_ZZ_pX_CR_element import pAdicZZpXCRElement
 from padic_ZZ_pX_CA_element import pAdicZZpXCAElement
-
 from qadic_flint_CR import qAdicCappedRelativeElement
 from qadic_flint_CA import qAdicCappedAbsoluteElement
 from qadic_flint_FM import qAdicFixedModElement

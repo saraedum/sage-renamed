@@ -5,7 +5,21 @@ include "sage/libs/linkages/padics/unram_shared.pxi"
 include "CR_template.pxi"
 
 cdef class PowComputer_(PowComputer_flint_unram):
+    """
+    A PowComputer for a capped-relative unramified ring or field.
+    """
     def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly=None):
+        """
+        Initialization.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqCR(125)
+            sage: type(R.prime_pow)
+            <type 'sage.rings.padics.qadic_flint_CR.PowComputer_'>
+            sage: R.prime_pow._prec_type
+            'capped-rel'
+        """
         self._prec_type = 'capped-rel'
         PowComputer_flint_unram.__init__(self, prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly)
 
@@ -69,7 +83,7 @@ cdef class qAdicCappedRelativeElement(CRElement):
             sage: (1+a)*(41*a^2+40*a+42)
             1 + O(3^4)
         """
-        return (<PowComputer_flint_unram>self.prime_pow)._new_fmpz_poly(self.unit, var)
+        return self.prime_pow._new_fmpz_poly(self.unit, var)
 
     def _flint_rep_abs(self, var='x'):
         """
@@ -87,13 +101,39 @@ cdef class qAdicCappedRelativeElement(CRElement):
         """
         if self.ordp < 0:
             return self._flint_rep(var), Integer(self.ordp)
-        if exactzero(self.ordp):
-            assert ciszero(self.unit, self.prime_pow)
-            return self._flint_rep(var), Integer(0)
-        cshift((<PowComputer_flint_unram>self.prime_pow).poly_flint_rep, self.unit, self.ordp, self.ordp + self.relprec, self.prime_pow, False)
-        return (<PowComputer_flint_unram>self.prime_pow)._new_fmpz_poly((<PowComputer_flint_unram>self.prime_pow).poly_flint_rep, var), Integer(0)
+        cshift(self.prime_pow.poly_flint_rep, self.unit, self.ordp, self.ordp + self.relprec, self.prime_pow, False)
+        return self.prime_pow._new_fmpz_poly(self.prime_pow.poly_flint_rep, var), Integer(0)
 
-    def _vector_impl(self):
-        ret = map(self.parent().base_ring(), self._flint_rep_abs()[0].list())
-        ret.extend([self.parent().base_ring().zero()]*(self.parent().degree() - len(ret)))
-        return ret
+    def __hash__(self):
+        r"""
+        Raise a ``TypeError`` since this element is not hashable
+        (:trac:`11895`.)
+
+        TESTS::
+
+            sage: K.<a> = Qq(9)
+            sage: hash(a)
+            Traceback (most recent call last):
+            ...
+            TypeError: unhashable type: 'sage.rings.padics.qadic_flint_CR.qAdicCappedRelativeElement'
+
+        """
+        # Eventually, hashing will be disabled for all (non-fixed-mod) p-adic
+        # elements (#11895), until then, we only to this for types which did
+        # not support hashing before we switched some elements to FLINT
+        raise TypeError("unhashable type: 'sage.rings.padics.qadic_flint_CR.qAdicCappedRelativeElement'")
+
+    # Since we override __hash__ we need to override __richcmp__ as well
+    def __richcmp__(self, right, int op):
+        """
+        Compare this element to ``right`` using the comparison operator ``op``.
+
+        TESTS::
+
+            sage: K.<a> = Qq(9)
+            sage: b = K([0,1])
+            sage: a == b
+            True
+
+        """
+        return (<Element>self)._richcmp(right, op)

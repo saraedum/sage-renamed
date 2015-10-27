@@ -13,3 +13,10 @@ include "CA_template_header.pxi"
 
 cdef class qAdicCappedAbsoluteElement(CAElement):
     pass
+
+cdef class qAdicCoercion_Zq_Qq(RingHomomorphism_coercion):
+    cdef CRElement _zero
+    cdef Morphism _section
+
+cdef class qAdicConvert_Qq_Zq(Morphism):
+    cdef CAElement _zero

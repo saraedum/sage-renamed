@@ -1349,8 +1349,8 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: R.<a> = ZqCR(125,implementation="NTL"); b = 5*a + 4; c = 10*a^2 + 6; d = b + c
             sage: d._is_normalized()
             False
-            sage: d
-            (2*a^2 + a + 2)*5 + O(5^20)
+            sage: d.valuation()
+            1
             sage: d._is_normalized()
             True
         """

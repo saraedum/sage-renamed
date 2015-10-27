@@ -269,9 +269,9 @@ class pAdicExtensionGeneric(pAdicGeneric):
         #we don't want to set the print options due to the ground ring since
         #different extension fields (with different options) can share the same ground ring.
         if self.is_lazy():
-            return K.extension(self._pre_poly, prec = self.precision_cap(), halt = self.halting_parameter(), res_name = self.residue_field().variable_name(), print_mode=print_mode)
+            return K.extension(self._pre_poly, prec = self.precision_cap(), halt = self.halting_parameter(), res_name = self.residue_field().variable_name(), print_mode=print_mode, implementation=self._implementation)
         else:
-            return K.extension(self._pre_poly, prec = self.precision_cap(), res_name = self.residue_field().variable_name(), print_mode=print_mode)
+            return K.extension(self._pre_poly, prec = self.precision_cap(), res_name = self.residue_field().variable_name(), print_mode=print_mode, implementation=self._implementation)
 
     def integer_ring(self, print_mode=None):
         r"""

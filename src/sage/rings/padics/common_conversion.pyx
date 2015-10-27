@@ -38,14 +38,11 @@ import sage.rings.finite_rings.integer_mod
 from sage.libs.pari.types cimport *
 from sage.libs.pari.gen cimport gen as pari_gen
 from sage.rings.infinity import infinity
+from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
 
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
 # The following Integer is used so that the functions here don't need to initialize an mpz_t.
-cdef Integer tmp = PY_NEW(Integer)
-
-include "sage/libs/pari/decl.pxi"
-include "sage/ext/python.pxi"
-include "sage/ext/stdsage.pxi"
+cdef Integer temp = PY_NEW(Integer)
 
 cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
     """
@@ -83,29 +80,19 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
     if PyInt_Check(x):
         if x == 0:
             return maxordp
-        n = PyInt_AsLong(x)
-        if n != -1 or PyErr_Occurred() == NULL:
-            if mpz_fits_slong_p(prime_pow.prime.value) == 0:
-                # x is not divisible by p
-                return 0
-            p = mpz_get_si(prime_pow.prime.value)
-            k = 0
-            while n % p == 0:
-                k += 1
-                n = n / p
         else:
             return get_ordp(Integer(x), prime_pow)
     elif isinstance(x, Integer):
         if mpz_sgn((<Integer>x).value) == 0:
             return maxordp
-        k = mpz_remove(tmp.value, (<Integer>x).value, prime_pow.prime.value)
+        k = mpz_remove(temp.value, (<Integer>x).value, prime_pow.prime.value)
     elif isinstance(x, Rational):
         if mpq_sgn((<Rational>x).value) == 0:
             return maxordp
-        k = mpz_remove(tmp.value, mpq_numref((<Rational>x).value), prime_pow.prime.value)
+        k = mpz_remove(temp.value, mpq_numref((<Rational>x).value), prime_pow.prime.value)
         if k == 0:
-            k = -mpz_remove(tmp.value, mpq_denref((<Rational>x).value), prime_pow.prime.value)
-    elif PyList_Check(x) or PyTuple_Check(x):
+            k = -mpz_remove(temp.value, mpq_denref((<Rational>x).value), prime_pow.prime.value)
+    elif isinstance(x, list) or isinstance(x, tuple):
         f = prime_pow.f
         if (e == 1 and len(x) > f) or (e != 1 and len(x) > e):
             # could reduce modulo the defining polynomial but that isn't currently supported
@@ -113,11 +100,11 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
         k = maxordp
         shift = 0
         for a in x:
-            if PyList_Check(a) or PyTuple_Check(a):
+            if isinstance(a, list) or isinstance(a, tuple):
                 if e == 1 or f == 1:
                     raise ValueError("nested lists not allowed for unramified and eisenstein extensions")
                 for b in a:
-                    if PyList_Check(b) or PyTuple_Check(b):
+                    if isinstance(b, list) or isinstance(b, tuple):
                         raise ValueError("list nesting too deep")
                     curterm = get_ordp(b, prime_pow)
                     k = min(k, curterm + shift)
@@ -127,12 +114,10 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
             if e != 1: shift += 1
         # We don't want to multiply by e again.
         return k
-    elif isinstance(x, pAdicGenericElement):
+    elif isinstance(x, pAdicGenericElement) and (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
         k = (<pAdicGenericElement>x).valuation_c()
         if not (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
             return k
-    elif isinstance(x, pAdicGenericElement) and (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
-        k = (<pAdicGenericElement>x).valuation_c()
     elif isinstance(x, pari_gen):
         pari_tmp = (<pari_gen>x).g
         if typ(pari_tmp) == t_PADIC:
@@ -143,7 +128,7 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
         value = <Integer>x.lift()
         if mpz_sgn(value.value) == 0:
             return maxordp
-        k = mpz_remove(tmp.value, value.value, prime_pow.prime.value)
+        k = mpz_remove(temp.value, value.value, prime_pow.prime.value)
     else:
         raise TypeError("Unsupported type")
     # Should check for overflow
@@ -184,11 +169,11 @@ cdef long get_preccap(x, PowComputer_class prime_pow) except? -10000:
     cdef GEN pari_tmp
     if PyInt_Check(x) or isinstance(x, Integer) or isinstance(x, Rational):
         return maxordp
-    elif PyList_Check(x) or PyTuple_Check(x):
+    elif isinstance(x, (list, tuple)):
         k = maxordp
         shift = 0
         for a in x:
-            if PyList_Check(a) or PyTuple_Check(a):
+            if isinstance(a, (list, tuple)):
                 for b in a:
                     curterm = get_preccap(b, prime_pow)
                     k = min(k, curterm + shift)
@@ -203,13 +188,15 @@ cdef long get_preccap(x, PowComputer_class prime_pow) except? -10000:
             return maxordp
         prec = <Integer>x.precision_absolute()
         k = mpz_get_si(prec.value)
+        if not (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
+            return k
     elif isinstance(x, pari_gen):
         pari_tmp = (<pari_gen>x).g
         # since get_ordp has been called typ(x.g) == t_PADIC
         k = valp(pari_tmp) + precp(pari_tmp)
     elif sage.rings.finite_rings.integer_mod.is_IntegerMod(x):
-        k = mpz_remove(tmp.value, (<Integer>x.modulus()).value, prime_pow.prime.value)
-        if mpz_cmp_ui(tmp.value, 1) != 0:
+        k = mpz_remove(temp.value, (<Integer>x.modulus()).value, prime_pow.prime.value)
+        if mpz_cmp_ui(temp.value, 1) != 0:
             raise TypeError("cannot coerce from the given integer mod ring (not a power of the same prime)")
     else:
         raise RuntimeError
@@ -338,8 +325,8 @@ cdef inline long cconv_mpq_t_shared(mpz_t out, mpq_t x, long prec, bint absolute
         denval = mpz_remove(out, mpq_denref(x), prime_pow.prime.value)
         mpz_invert(out, out, prime_pow.pow_mpz_t_tmp(prec))
         if denval == 0:
-            numval = mpz_remove(tmp.value, mpq_numref(x), prime_pow.prime.value)
-            mpz_mul(out, out, tmp.value)
+            numval = mpz_remove(temp.value, mpq_numref(x), prime_pow.prime.value)
+            mpz_mul(out, out, temp.value)
         else:
             numval = 0
             mpz_mul(out, out, mpq_numref(x))
@@ -357,16 +344,15 @@ cdef inline int cconv_mpq_t_out_shared(mpq_t out, mpz_t x, long valshift, long p
     -` ``prec`` -- a long, the precision of ``x``, used in rational reconstruction
     - ``prime_pow`` -- a PowComputer for the ring
     """
-    raise NotImplementedError("where is mpq_rational_reconstruction declared?")
-    #mpq_rational_reconstruction(out, x, prime_pow.pow_mpz_t_tmp(prec))
+    mpq_rational_reconstruction(out, x, prime_pow.pow_mpz_t_tmp(prec))
 
-    ## if valshift is nonzero then we starte with x as a p-adic unit,
-    ## so there will be no powers of p in the numerator or denominator
-    ## and the following operations yield reduced rationals.
-    #if valshift > 0:
-    #    mpz_mul(mpq_numref(out), mpq_numref(out), prime_pow.pow_mpz_t_tmp(valshift))
-    #elif valshift < 0:
-    #    mpz_mul(mpq_denref(out), mpq_denref(out), prime_pow.pow_mpz_t_tmp(-valshift))
+    # if valshift is nonzero then we starte with x as a p-adic unit,
+    # so there will be no powers of p in the numerator or denominator
+    # and the following operations yield reduced rationals.
+    if valshift > 0:
+        mpz_mul(mpq_numref(out), mpq_numref(out), prime_pow.pow_mpz_t_tmp(valshift))
+    elif valshift < 0:
+        mpz_mul(mpq_denref(out), mpq_denref(out), prime_pow.pow_mpz_t_tmp(-valshift))
 
 cdef inline int cconv_shared(mpz_t out, x, long prec, long valshift, PowComputer_class prime_pow) except -2:
     """
@@ -410,8 +396,8 @@ cdef inline int cconv_shared(mpz_t out, x, long prec, long valshift, PowComputer
             mpz_mul(out, out, mpq_numref((<Rational>x).value))
         else:
             mpz_invert(out, mpq_denref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(prec))
-            mpz_divexact(tmp.value, mpq_numref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(valshift))
-            mpz_mul(out, out, tmp.value)
+            mpz_divexact(temp.value, mpq_numref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(valshift))
+            mpz_mul(out, out, temp.value)
         mpz_mod(out, out, prime_pow.pow_mpz_t_tmp(prec))
     elif isinstance(x, list):
         if valshift == 0:

@@ -93,7 +93,7 @@ cdef inline int ccmp(celement a, celement b, long prec, bint reduce_a, bint redu
 
     cdef long cmp
     cdef long i
-    for i from 0 <= i <= da:
+    for i in range(da+1):
         fmpz_poly_get_coeff_fmpz(prime_pow.fmpz_ccmp, prime_pow.poly_ccmp, i)
         cmp = fmpz_cmp_si(prime_pow.fmpz_ccmp, 0)
         if cmp < 0: return -1
@@ -227,7 +227,7 @@ cdef inline long cvaluation(celement a, long prec, PowComputer_ prime_pow) excep
     cdef long ret = maxordp
     cdef long val
     cdef long i
-    for i from 0 <= i <= fmpz_poly_degree(a):
+    for i in range(fmpz_poly_length(a)):
         fmpz_poly_get_coeff_fmpz(prime_pow.fmpz_cval, a, i)
         if fmpz_is_zero(prime_pow.fmpz_cval):
             continue
@@ -332,21 +332,23 @@ cdef inline int cinvert(celement out, celement a, long prec, PowComputer_ prime_
     - ``prime_pow`` -- the PowComputer for the ring.
     """
     sig_on()
-    fmpz_poly_set(prime_pow.poly_cinv, prime_pow.get_modulus(prec)[0])
-    fmpz_poly_primitive_part(prime_pow.poly_cinv, prime_pow.poly_cinv)
+    try:
+        fmpz_poly_set(prime_pow.poly_cinv, prime_pow.get_modulus(prec)[0])
+        fmpz_poly_primitive_part(prime_pow.poly_cinv, prime_pow.poly_cinv)
 
-    fmpz_poly_content(prime_pow.fmpz_cinv, a)
-    fmpz_poly_scalar_divexact_fmpz(out, a, prime_pow.fmpz_cinv)
+        fmpz_poly_content(prime_pow.fmpz_cinv, a)
+        fmpz_poly_scalar_divexact_fmpz(out, a, prime_pow.fmpz_cinv)
 
-    fmpz_poly_xgcd(prime_pow.fmpz_cinv2, out, prime_pow.poly_cinv2, out, prime_pow.poly_cinv)
-    if fmpz_is_zero(prime_pow.tfmpz): raise ValueError("polynomials are not coprime")
+        fmpz_poly_xgcd(prime_pow.fmpz_cinv2, out, prime_pow.poly_cinv2, out, prime_pow.poly_cinv)
+        if fmpz_is_zero(prime_pow.fmpz_cinv2): raise ValueError("polynomials are not coprime")
 
-    fmpz_mul(prime_pow.fmpz_cinv2, prime_pow.fmpz_cinv, prime_pow.fmpz_cinv2)
-    if not fmpz_invmod(prime_pow.fmpz_cinv2, prime_pow.fmpz_cinv2, prime_pow.pow_fmpz_t_tmp(prec)[0]): raise ValueError("content or xgcd is not a unit")
-    fmpz_poly_scalar_mul_fmpz(out, out, prime_pow.fmpz_cinv2)
+        fmpz_mul(prime_pow.fmpz_cinv2, prime_pow.fmpz_cinv, prime_pow.fmpz_cinv2)
+        if not fmpz_invmod(prime_pow.fmpz_cinv2, prime_pow.fmpz_cinv2, prime_pow.pow_fmpz_t_tmp(prec)[0]): raise ValueError("content or xgcd is not a unit")
+        fmpz_poly_scalar_mul_fmpz(out, out, prime_pow.fmpz_cinv2)
 
-    creduce(out, out, prec, prime_pow)
-    sig_off()
+        creduce(out, out, prec, prime_pow)
+    finally:
+        sig_off()
 
 cdef inline int cmul(celement out, celement a, celement b, long prec, PowComputer_ prime_pow) except -1:
     """
@@ -544,7 +546,7 @@ cdef clist(celement a, long prec, bint pos, PowComputer_ prime_pow):
     ret = []
     cdef Integer digit, zero = Integer(0)
     cdef long i,j
-    for i from 0 <= i <= fmpz_poly_degree(a):
+    for i in range(fmpz_poly_length(a)):
         fmpz_poly_get_coeff_fmpz(prime_pow.fmpz_clist, a, i)
         j = 0
         while j < prec:
@@ -632,7 +634,7 @@ cdef int cconv(celement out, x, long prec, long valshift, PowComputer_ prime_pow
     cdef long degree
 
     if PyList_Check(x):
-        for i from 0 <= i < len(x):
+        for i in range(len(x)):
             cconv(prime_pow.poly_cconv, x[i], prec, valshift, prime_pow)
             degree = fmpz_poly_degree(prime_pow.poly_cconv)
             if degree == -1: continue

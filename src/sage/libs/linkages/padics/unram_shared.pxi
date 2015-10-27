@@ -54,18 +54,6 @@ def frobenius_unram(self, arithmetic=True):
         ans += ppow * L[m]**exp
     return ans
 
-def residue_unram(self, absprec=1):
-    if absprec > self.precision_absolute():
-        from precision_error import PrecisionError
-        raise PrecisionError("not enough precision known in order to compute residue.")
-    if absprec < 0:
-        raise ValueError("cannot reduce modulo a negative power of the uniformizer.")
-    if self.valuation() < 0:
-        raise ValueError("element must have non-negative valuation in order to compute residue.")
-    if absprec != 1:
-        raise NotImplementedError("residue() not implemented in unramified extensions for absprec larger than one.")
-    return self.parent().residue_field()(self[0])
-
 def norm_unram(self, base = None):
     """
     Return the absolute or relative norm of this element.
@@ -211,4 +199,3 @@ def trace_unram(self, base = None):
     else:
         shift = -self.valuation()
         return self.parent().ground_ring()((self * self.parent().prime() ** shift).matrix_mod_pn().trace()) / self.parent().prime()**shift
-
