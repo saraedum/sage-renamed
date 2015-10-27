@@ -28,7 +28,6 @@ from cpython.int cimport *
 
 from sage.libs.gmp.all cimport *
 import sage.rings.finite_rings.integer_mod
-from sage.rings.finite_rings import element_base
 from sage.libs.pari.types cimport *
 from sage.libs.pari.gen cimport gen as pari_gen
 from sage.libs.pari.pari_instance cimport INT_to_mpz
@@ -112,6 +111,8 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
             x = x.polynomial().list()
             if absprec > 1:
                 absprec = 1
+        elif isinstance(x, (list,tuple)):
+          pass
         elif not (isinstance(x, Integer) or \
                   isinstance(x, Rational) or \
                   isinstance(x, pAdicGenericElement) or \

@@ -82,7 +82,7 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
             return maxordp
         else:
             return get_ordp(Integer(x), prime_pow)
-    elif isinstance(x, Integer):
+    if isinstance(x, Integer):
         if mpz_sgn((<Integer>x).value) == 0:
             return maxordp
         k = mpz_remove(temp.value, (<Integer>x).value, prime_pow.prime.value)
@@ -130,7 +130,7 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
             return maxordp
         k = mpz_remove(temp.value, value.value, prime_pow.prime.value)
     else:
-        raise TypeError("Unsupported type")
+        raise TypeError("Unsupported type: %s"%type(x))
     # Should check for overflow
     return k * e
 

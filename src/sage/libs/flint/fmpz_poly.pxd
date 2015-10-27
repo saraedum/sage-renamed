@@ -14,8 +14,6 @@ cdef extern from "flint/fmpz_poly.h":
 
     void fmpz_poly_clear(fmpz_poly_t)
 
-    void _fmpz_poly_set_length(fmpz_poly_t, long)
-
     # Polynomial parameters
     slong fmpz_poly_length(const fmpz_poly_t)
     slong fmpz_poly_degree(const fmpz_poly_t)
