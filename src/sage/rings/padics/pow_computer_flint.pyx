@@ -1,4 +1,5 @@
 include "sage/ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
 
 from sage.libs.flint.padic cimport *
 from sage.libs.flint.fmpz_poly cimport *
@@ -254,7 +255,7 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
         fmpz_poly_set(self.modulus, poly.__poly)
 
         cdef Py_ssize_t i
-        cdef fmpz* coeffs = (<fmpz_poly_struct*>self.modulus)[0].coeffs
+        cdef fmpz* coeffs = self.modulus.coeffs
         fmpz_one(self.tfmpz)
         for i in range(1,cache_limit+1):
             fmpz_mul(self.tfmpz, self.tfmpz, self.fprime)

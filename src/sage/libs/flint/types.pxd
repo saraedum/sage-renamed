@@ -49,7 +49,9 @@ cdef extern from "flint/fmpz_mat.h":
 
 cdef extern from "flint/fmpz_poly.h":
     ctypedef struct fmpz_poly_struct:
-        fmpz *coeffs
+        fmpz* coeffs
+        long alloc
+        long length
 
     ctypedef fmpz_poly_struct fmpz_poly_t[1]
 

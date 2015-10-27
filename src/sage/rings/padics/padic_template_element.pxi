@@ -111,13 +111,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
             x = x.polynomial().list()
             if absprec > 1:
                 absprec = 1
-        elif isinstance(x, (list,tuple)):
-          pass
-        elif not (isinstance(x, Integer) or \
-                  isinstance(x, Rational) or \
-                  isinstance(x, pAdicGenericElement) or \
-                  isinstance(x, pari_gen) or \
-                  sage.rings.finite_rings.integer_mod.is_IntegerMod(x)):
+        elif not isinstance(x, (Integer, Rational, pari_gen, list, tuple)) and not sage.rings.finite_rings.integer_mod.is_IntegerMod(x):
             x = Rational(x)
         val = get_ordp(x, self.prime_pow)
         if val < 0 and self.prime_pow.in_field == 0:

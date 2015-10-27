@@ -9,6 +9,7 @@ cdef extern from "flint/fmpz_poly.h":
     void fmpz_poly_init2(fmpz_poly_t, slong)
 
     void fmpz_poly_realloc(fmpz_poly_t, slong)
+    void _fmpz_poly_set_length(fmpz_poly_t, long)
 
     void fmpz_poly_fit_length(fmpz_poly_t, slong)
 
@@ -130,6 +131,7 @@ cdef extern from "flint/fmpz_poly.h":
 
     # Squaring
     void fmpz_poly_sqr(fmpz_poly_t, const fmpz_poly_t)
+
     void fmpz_poly_sqr_classical(fmpz_poly_t, const fmpz_poly_t)
     void fmpz_poly_sqrlow_classical(fmpz_poly_t, const fmpz_poly_t, slong)
 
