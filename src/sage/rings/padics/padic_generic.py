@@ -24,6 +24,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+
+from sage.misc.prandom import sample
+from sage.misc.misc import some_tuples
+
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from sage.categories.fields import Fields
 from sage.rings.infinity import infinity
@@ -36,12 +40,13 @@ from sage.misc.cachefunc import cached_method
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from precision_error import PrecisionError
 
+
 class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
     def __init__(self, base, p, prec, print_mode, names, element_class, category=None):
         """
         Initialization.
 
-        INPUTS::
+        INPUT:
 
             - base -- Base ring.
             - p -- prime
@@ -58,6 +63,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
                 category = Fields()
             else:
                 category = PrincipalIdealDomains()
+        category = category.Metric().Complete()
         LocalGeneric.__init__(self, base, prec, names, element_class, category)
         self._printer = pAdicPrinter(self, print_mode)
 
@@ -1134,7 +1140,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         print options but modified by the options in the dictionary
         print_mode.
 
-        INPUTS::
+        INPUT:
 
             - print_mode -- dictionary with keys in ['mode', 'pos', 'ram_name', 'unram_name', 'var_name', 'max_ram_terms', 'max_unram_terms', 'max_terse_terms', 'sep', 'alphabet']
 
@@ -1573,12 +1579,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             tester.assertEqual(y.precision_absolute(),x.precision_absolute())
             tester.assertEqual(y.precision_relative(),x.precision_relative())
 
-        from sage.combinat.cartesian_product import CartesianProduct
-        elements = CartesianProduct(elements, elements)
-        if len(elements) > tester._max_runs:
-            from random import sample
-            elements = sample(elements, tester._max_runs)
-        for x,y in elements:
+        for x,y in some_tuples(elements, 2, tester._max_runs):
             z = x + y
             tester.assertIs(z.parent(), self)
             tester.assertEqual(z.precision_absolute(), min(x.precision_absolute(), y.precision_absolute()))
@@ -1607,19 +1608,14 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         """
         tester = self._tester(**options)
 
-        elements = tester.some_elements()
+        elements = list(tester.some_elements())
         for x in elements:
             y = x - self.zero()
             tester.assertEqual(y, x)
             tester.assertEqual(y.precision_absolute(), x.precision_absolute())
             tester.assertEqual(y.precision_relative(), x.precision_relative())
 
-        from sage.combinat.cartesian_product import CartesianProduct
-        elements = CartesianProduct(elements, elements)
-        if len(elements) > tester._max_runs:
-            from random import sample
-            elements = sample(elements, tester._max_runs)
-        for x,y in elements:
+        for x,y in some_tuples(elements, 2, tester._max_runs):
             z = x - y
             tester.assertIs(z.parent(), self)
             tester.assertEqual(z.precision_absolute(), min(x.precision_absolute(), y.precision_absolute()))
@@ -1683,12 +1679,8 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         """
         tester = self._tester(**options)
 
-        from sage.combinat.cartesian_product import CartesianProduct
-        elements = CartesianProduct(tester.some_elements(), tester.some_elements())
-        if len(elements) > tester._max_runs:
-            from random import sample
-            elements = sample(elements, tester._max_runs)
-        for x,y in elements:
+        elements = list(tester.some_elements())
+        for x,y in some_tuples(elements, 2, tester._max_runs):
             z = x * y
             tester.assertIs(z.parent(), self)
             tester.assertLessEqual(z.precision_relative(), min(x.precision_relative(), y.precision_relative()))
@@ -1714,12 +1706,8 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         """
         tester = self._tester(**options)
 
-        from sage.combinat.cartesian_product import CartesianProduct
-        elements = CartesianProduct(tester.some_elements(), tester.some_elements())
-        if len(elements) > tester._max_runs:
-            from random import sample
-            elements = sample(elements, tester._max_runs)
-        for x,y in elements:
+        elements = list(tester.some_elements())
+        for x,y in some_tuples(elements, 2, tester._max_runs):
             try:
                 z = x / y
             except (ZeroDivisionError, PrecisionError, ValueError):

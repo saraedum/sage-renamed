@@ -32,7 +32,7 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
         """
         Initializes self
 
-        INPUTS::
+        INPUT:
 
             - poly -- Polynomial defining this extension.
             - prec -- The precision cap
@@ -79,7 +79,7 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
         """
         Returns the ramification index of self over the subring K.
 
-        INPUTS::
+        INPUT:
 
             - K -- a subring (or subfield) of self.  Defaults to the
               base.
@@ -100,7 +100,7 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
         """
         Returns the inertia degree of self over the subring K.
 
-        INPUTS::
+        INPUT:
 
             - K -- a subring (or subfield) of self.  Defaults to the
               base.
@@ -142,7 +142,7 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
         """
         Returns the discriminant of self over the subring K.
 
-        INPUTS::
+        INPUT:
 
             - K -- a subring/subfield (defaults to the base ring).
 
@@ -183,7 +183,7 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
 
         Every unramified extension is Galois.
 
-        INPUTS::
+        INPUT:
 
             - K -- a subring/subfield (defaults to the base ring).
 

@@ -30,8 +30,6 @@ AUTHORS:
 include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 
-import sys
-
 cimport sage.rings.padics.local_generic_element
 from sage.libs.gmp.mpz cimport mpz_set_si
 from sage.rings.padics.local_generic_element cimport LocalGenericElement
@@ -80,6 +78,42 @@ cdef class pAdicGenericElement(LocalGenericElement):
             2 + O(19^5)
             sage: b = K(3); b
             3 + O(19^5)
+            sage: a < b
+            True
+
+        ::
+
+            sage: R = Zp(5); a = R(5, 6); b = R(5 + 5^6, 8)
+            sage: a == b #indirect doctest
+            True
+
+        ::
+
+            sage: R = Zp(5)
+            sage: a = R(17)
+            sage: b = R(21)
+            sage: a == b
+            False
+            sage: a < b
+            True
+
+        ::
+
+            sage: R = ZpCA(5)
+            sage: a = R(17)
+            sage: b = R(21)
+            sage: a == b
+            False
+            sage: a < b
+            True
+
+        ::
+
+            sage: R = ZpFM(5)
+            sage: a = R(17)
+            sage: b = R(21)
+            sage: a == b
+            False
             sage: a < b
             True
         """
@@ -412,7 +446,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             The element returned is an element of the fraction field.
         """
-        return self.parent().fraction_field()(self, relprec = self.precision_relative()).__invert__()
+        return ~self.parent().fraction_field()(self, relprec = self.precision_relative())
 
     def __mod__(self, right):
         """
@@ -515,7 +549,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         """
         Returns a string representation of self.
 
-        INPUTS:
+        INPUT:
 
         - ``mode`` -- allows one to override the default print mode of
           the parent (default: ``None``).
@@ -1691,7 +1725,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         to 0 under any homomorphism to the fraction field, which is a torsion
         free group.
 
-        INPUTS:
+        INPUT:
 
         - ``p_branch`` -- an element in the base ring or its fraction
           field; the implementation will choose the branch of the

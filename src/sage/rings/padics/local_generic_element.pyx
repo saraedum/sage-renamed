@@ -57,7 +57,7 @@ cdef class LocalGenericElement(PrincipalIdealDomainElement):
             ValueError: cannot invert non-unit
         """
         # this doctest doesn't actually test the function, since it's overridden.
-        return self * right.__invert__()
+        return self * ~right
 
     def inverse_of_unit(self):
         r"""

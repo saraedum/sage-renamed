@@ -3226,7 +3226,7 @@ class FileCache:
             ((1,), (('a', 1),))
             ((1, 2), ())
         """
-        return self.keys().__iter__()
+        return iter(self.keys())
 
     def keys(self):
         """

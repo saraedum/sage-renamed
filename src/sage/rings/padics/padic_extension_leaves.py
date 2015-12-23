@@ -100,7 +100,7 @@ class UnramifiedExtensionRingCappedRelative(UnramifiedExtensionGeneric, pAdicCap
         """
         A capped relative representation of Zq.
 
-        INPUTS::
+        INPUT:
 
             - prepoly -- The original polynomial defining the
               extension.  This could be a polynomial with integer
@@ -162,7 +162,7 @@ class UnramifiedExtensionFieldCappedRelative(UnramifiedExtensionGeneric, pAdicCa
         """
         A representation of Qq.
 
-        INPUTS::
+        INPUT:
 
             - prepoly -- The original polynomial defining the
               extension.  This could be a polynomial with integer
@@ -235,7 +235,7 @@ class UnramifiedExtensionRingCappedAbsolute(UnramifiedExtensionGeneric, pAdicCap
         """
         A capped absolute representation of Zq.
 
-        INPUTS::
+        INPUT:
 
             - prepoly -- The original polynomial defining the
               extension.  This could be a polynomial with integer
@@ -299,7 +299,7 @@ class UnramifiedExtensionRingFixedMod(UnramifiedExtensionGeneric, pAdicFixedModR
         """
         A fixed modulus representation of Zq.
 
-        INPUTS::
+        INPUT:
 
             - prepoly -- The original polynomial defining the
               extension.  This could be a polynomial with integer
@@ -357,7 +357,7 @@ class EisensteinExtensionRingCappedRelative(EisensteinExtensionGeneric, pAdicCap
         """
         A capped relative representation of an eisenstein extension of Zp.
 
-        INPUTS::
+        INPUT:
 
             - prepoly -- The original polynomial defining the
               extension.  This could be a polynomial with integer
@@ -417,7 +417,7 @@ class EisensteinExtensionFieldCappedRelative(EisensteinExtensionGeneric, pAdicCa
         """
         A capped relative representation of an eisenstein extension of Qp.
 
-        INPUTS::
+        INPUT:
 
             - prepoly -- The original polynomial defining the
               extension.  This could be a polynomial with integer
@@ -477,7 +477,7 @@ class EisensteinExtensionRingCappedAbsolute(EisensteinExtensionGeneric, pAdicCap
         """
         A capped absolute representation of an eisenstein extension of Zp.
 
-        INPUTS::
+        INPUT:
 
             - prepoly -- The original polynomial defining the
               extension.  This could be a polynomial with integer
@@ -537,7 +537,7 @@ class EisensteinExtensionRingFixedMod(EisensteinExtensionGeneric, pAdicFixedModR
         """
         A fixed modulus representation of an eisenstein extension of Zp.
 
-        INPUTS::
+        INPUT:
 
             - prepoly -- The original polynomial defining the
               extension.  This could be a polynomial with integer

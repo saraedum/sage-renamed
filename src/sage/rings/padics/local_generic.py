@@ -55,6 +55,7 @@ class LocalGeneric(CommutativeRing):
             category = CompleteDiscreteValuationFields()
         else:
             category = CompleteDiscreteValuationRings()
+        category = category.Metric().Complete()
         if default_category is not None:
             category = check_default_category(default_category, category)
         if not isinstance(names, tuple): names = (names,)
