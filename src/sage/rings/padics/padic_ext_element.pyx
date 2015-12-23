@@ -400,3 +400,186 @@ cdef class pAdicExtElement(pAdicGenericElement):
 
         """
         return False
+
+    def residue(self, absprec=1):
+        r"""
+        Reduces this element modulo `\pi^\mathrm{absprec}`.
+
+        INPUT:
+
+        - ``absprec`` - a non-negative integer (default: ``1``)
+
+        OUTPUT:
+
+        This element reduced modulo `\pi^\mathrm{absprec}`.
+
+        If ``absprec`` is zero, then as an element of `\ZZ/(1)`.
+
+        If ``absprec`` is one, then as an element of the residue field.
+
+        .. NOTE::
+
+            Only implemented for ``absprec`` less than or equal to one.
+
+        AUTHORS:
+
+        - Julian Rueth (2012-10-18): intial version
+
+        EXAMPLES:
+
+        Unramified case::
+
+            sage: R = ZpCA(3,5)
+            sage: S.<a> = R[]
+            sage: W.<a> = R.extension(a^2 + 9*a + 1)
+            sage: (a + 1).residue(1)
+            a0 + 1
+            sage: a.residue(2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: residue() not implemented in extensions for absprec larger than one.
+
+        Eisenstein case::
+
+            sage: R = ZpCA(3,5)
+            sage: S.<a> = R[]
+            sage: W.<a> = R.extension(a^2 + 9*a + 3)
+            sage: (a + 1).residue(1)
+            1
+            sage: a.residue(2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: residue() not implemented in extensions for absprec larger than one.
+
+        TESTS:
+
+            sage: K = Qp(3,5)
+            sage: S.<a> = R[]
+            sage: W.<a> = R.extension(a^2 + 9*a + 1)
+            sage: (a/3).residue(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: element must have non-negative valuation in order to compute residue.
+
+            sage: R = ZpFM(3,5)
+            sage: S.<a> = R[]
+            sage: W.<a> = R.extension(a^2 + 9*a + 1)
+            sage: W.one().residue(0)
+            0
+            sage: a.residue(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot reduce modulo a negative power of the uniformizer.
+            sage: a.residue(16)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: not enough precision known in order to compute residue.
+
+        """
+        if absprec < 0:
+            raise ValueError("cannot reduce modulo a negative power of the uniformizer.")
+        if absprec > self.precision_absolute():
+            from precision_error import PrecisionError
+            raise PrecisionError("not enough precision known in order to compute residue.")
+        if self.valuation() < 0:
+            raise ValueError("element must have non-negative valuation in order to compute residue.")
+
+        if absprec == 0:
+            from sage.rings.finite_rings.integer_mod import Mod
+            return Mod(0,1)
+        elif absprec == 1:
+            return self.parent().residue_field()(self[0])
+        else:
+            raise NotImplementedError("residue() not implemented in extensions for absprec larger than one.")
+=======
+
+    def residue(self, absprec=1):
+        r"""
+        Reduces this element modulo `\pi^\mathrm{absprec}`.
+
+        INPUT:
+
+        - ``absprec`` - a non-negative integer (default: ``1``)
+
+        OUTPUT:
+
+        This element reduced modulo `\pi^\mathrm{absprec}`.
+
+        If ``absprec`` is zero, then as an element of `\ZZ/(1)`.
+
+        If ``absprec`` is one, then as an element of the residue field.
+
+        .. NOTE::
+
+            Only implemented for ``absprec`` less than or equal to one.
+
+        AUTHORS:
+
+        - Julian Rueth (2012-10-18): intial version
+
+        EXAMPLES:
+
+        Unramified case::
+
+            sage: R = ZpCA(3,5)
+            sage: S.<a> = R[]
+            sage: W.<a> = R.extension(a^2 + 9*a + 1)
+            sage: (a + 1).residue(1)
+            a0 + 1
+            sage: a.residue(2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: reduction modulo p^n with n>1.
+
+        Eisenstein case::
+
+            sage: R = ZpCA(3,5)
+            sage: S.<a> = R[]
+            sage: W.<a> = R.extension(a^2 + 9*a + 3)
+            sage: (a + 1).residue(1)
+            1
+            sage: a.residue(2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: residue() not implemented in extensions for absprec larger than one.
+
+        TESTS:
+
+            sage: K = Qp(3,5)
+            sage: S.<a> = R[]
+            sage: W.<a> = R.extension(a^2 + 9*a + 1)
+            sage: (a/3).residue(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: element must have non-negative valuation in order to compute residue.
+
+            sage: R = ZpFM(3,5)
+            sage: S.<a> = R[]
+            sage: W.<a> = R.extension(a^2 + 9*a + 1)
+            sage: W.one().residue(0)
+            0
+            sage: a.residue(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot reduce modulo a negative power of the uniformizer.
+            sage: a.residue(16)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: insufficient precision to reduce modulo p^16.
+
+        """
+        if absprec < 0:
+            raise ValueError("cannot reduce modulo a negative power of the uniformizer.")
+        if absprec > self.precision_absolute():
+            from precision_error import PrecisionError
+            raise PrecisionError("not enough precision known in order to compute residue.")
+        if self.valuation() < 0:
+            raise ValueError("element must have non-negative valuation in order to compute residue.")
+
+        if absprec == 0:
+            from sage.rings.finite_rings.integer_mod import Mod
+            return Mod(0,1)
+        elif absprec == 1:
+            return self.parent().residue_field()(self[0])
+        else:
+            raise NotImplementedError("residue() not implemented in extensions for absprec larger than one.")

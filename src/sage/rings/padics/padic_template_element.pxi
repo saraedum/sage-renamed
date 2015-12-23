@@ -90,6 +90,22 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
             sage: type(a)
             <type 'sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement'>
             sage: TestSuite(a).run()
+
+        TESTS::
+
+            sage: QQq.<zz> = Qq(25,4)
+            sage: FFp = Zp(5,5).residue_field()
+            sage: QQq(FFp.zero())
+            O(5)
+            sage: QQq(FFp.one())
+            1 + O(5)
+            sage: QQq(IntegerModRing(25)(15))
+            3*5 + O(5^2)
+            sage: QQq(IntegerModRing(9)(0))
+            Traceback (most recent call last):
+            ...
+            TypeError: p does not divide modulus 9
+
         """
         self.prime_pow = <PowComputer_?>parent.prime_pow
         pAdicGenericElement.__init__(self, parent)
@@ -107,11 +123,23 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         elif isinstance(x, pAdicGenericElement):
             if not ((<pAdicGenericElement>x)._is_base_elt(self.prime_pow.prime) or x.parent() is self.parent()):
                 raise NotImplementedError("conversion between padic extensions not implemented")
-        elif sage.rings.finite_rings.element_base.is_FiniteFieldElement(x) and x.parent() is self.parent().residue_field():
-            x = x.polynomial().list()
-            if absprec > 1:
-                absprec = 1
-        elif not isinstance(x, (Integer, Rational, pari_gen, list, tuple)) and not sage.rings.finite_rings.integer_mod.is_IntegerMod(x):
+        elif sage.rings.finite_rings.integer_mod.is_IntegerMod(x):
+            if not Integer(self.prime_pow.prime).divides(x.parent().order()):
+                raise TypeError("p does not divide modulus %s"%x.parent().order())
+        elif sage.rings.finite_rings.element_base.is_FiniteFieldElement(x):
+            k = self.parent().residue_field()
+            if not k.has_coerce_map_from(x.parent()):
+                raise NotImplementedError("conversion from finite fields which do not embed into the residue field not implemented.")
+
+            x = k(x)
+            if not k.is_prime_field():
+                x = [k.prime_subfield()(c) for c in x.polynomial().list()]
+                x = x + [k.prime_subfield().zero()] * (k.degree() - len(x))
+        elif isinstance(x, (Integer, Rational, list, tuple)):
+            pass
+        elif sage.rings.polynomial.polynomial_element.is_Polynomial(x) and x.variable_name() == self.parent().variable_name():
+            x = x.list()
+        else:
             x = Rational(x)
         val = get_ordp(x, self.prime_pow)
         if val < 0 and self.prime_pow.in_field == 0:
@@ -415,6 +443,75 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
             PowComputer for 5
         """
         return self.prime_pow
+
+    def residue(self, absprec=1):
+        r"""
+        Reduce this element modulo `p^\mathrm{absprec}`.
+
+        INPUT:
+
+        - ``absprec`` -- ``0`` or ``1``.
+
+        OUTPUT:
+
+        This element reduced modulo `p^\mathrm{absprec}` as an element of the
+        residue field or the null ring.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqFM(27, 4)
+            sage: (3 + 3*a).residue()
+            0
+            sage: (a + 1).residue()
+            a0 + 1
+
+        TESTS::
+
+            sage: a.residue(0)
+            0
+            sage: a.residue(2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: reduction modulo p^n with n>1.
+            sage: a.residue(10)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: insufficient precision to reduce modulo p^10.
+
+            sage: R.<a> = ZqCA(27, 4)
+            sage: (3 + 3*a).residue()
+            0
+            sage: (a + 1).residue()
+            a0 + 1
+
+            sage: R.<a> = Qq(27, 4)
+            sage: (3 + 3*a).residue()
+            0
+            sage: (a + 1).residue()
+            a0 + 1
+            sage: (a/3).residue()
+            Traceback (most recent call last):
+            ...
+            ValueError: element must have non-negative valuation in order to compute residue.
+            
+        """
+        if absprec < 0:
+            raise ValueError("cannot reduce modulo a negative power of the uniformizer.")
+        if self.valuation() < 0:
+            raise ValueError("element must have non-negative valuation in order to compute residue.")
+        if absprec > self.precision_absolute():
+            raise PrecisionError("insufficient precision to reduce modulo p^%s."%absprec)
+        if absprec == 0:
+            from sage.rings.all import IntegerModRing
+            return IntegerModRing(1).zero()
+        elif absprec == 1:
+            parent = self.parent().residue_field()
+            if self.valuation() > 0:
+                return parent.zero()
+            digits = self.padded_list(1)
+            return parent(digits[0])
+        else:
+            raise NotImplementedError("reduction modulo p^n with n>1.")
 
 cdef Integer exact_pow_helper(long *ansrelprec, long relprec, _right, PowComputer_ prime_pow):
     """

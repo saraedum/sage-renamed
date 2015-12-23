@@ -514,12 +514,13 @@ cdef class PowComputer_ext(PowComputer_class):
             mpz_to_ZZ(&(self.small_powers[1]), prime.value)
 
         sig_on()
-        for i from 2 <= i <= cache_limit:
+        for i in range(2, cache_limit + 1):
             ZZ_mul(self.small_powers[i], self.small_powers[i-1], self.small_powers[1])
         mpz_to_ZZ(&self.top_power, prime.value)
         ZZ_power(self.top_power, self.top_power, prec_cap)
         sig_off()
         mpz_init(self.temp_m)
+        mpz_init(self.temp_m2)
 
         self._poly = poly
         self._shift_seed = shift_seed
@@ -579,6 +580,7 @@ cdef class PowComputer_ext(PowComputer_class):
         """
         Delete_ZZ_array(self.small_powers)
         mpz_clear(self.temp_m)
+        mpz_clear(self.temp_m2)
 
     cdef mpz_srcptr pow_mpz_t_tmp(self, unsigned long n):
         """
@@ -1229,7 +1231,7 @@ cdef class PowComputer_ZZ_pX(PowComputer_ext):
             ZZ_pX_add(xnew_q, xnew_q, x[0])
             # while x != xnew:
             #     x = xnew
-            #     xnew = x + u*(x^p - x)
+            #     xnew = x + u*(x^q - x)
             while x[0] != xnew_q:
                 x[0] = xnew_q
                 ZZ_pX_PowerMod_pre(xnew_q, x[0], q, self.get_modulus(absprec)[0])
