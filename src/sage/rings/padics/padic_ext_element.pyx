@@ -491,7 +491,6 @@ cdef class pAdicExtElement(pAdicGenericElement):
             return self.parent().residue_field()(self[0])
         else:
             raise NotImplementedError("residue() not implemented in extensions for absprec larger than one.")
-=======
 
     def residue(self, absprec=1):
         r"""

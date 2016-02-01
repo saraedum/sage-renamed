@@ -29,7 +29,7 @@ import sage.rings.ring as ring
 import sage.rings.padics.padic_base_leaves as padic_base_leaves
 
 from sage.rings.integer import Integer
-from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 
 from sage.misc.cachefunc import weak_cached_function
@@ -480,9 +480,9 @@ def _get_from_cache(key):
     try:
         return _cache[key] #()
     except TypeError as msg:
-        from sage.misc.cachefunc import _cache_key
+        from sage.misc.cachefunc import cache_key
         try:
-            return _cache[_cache_key(key)]
+            return _cache[cache_key(key)]
         except KeyError:
             return None
     except KeyError:
@@ -492,15 +492,15 @@ def _save_in_cache(key, R):
     try:
          _cache[key] = R
     except TypeError as msg:
-        from sage.misc.cachefunc import _cache_key
-        _cache[_cache_key(key)] = R
+        from sage.misc.cachefunc import cache_key
+        _cache[cache_key(key)] = R
 
 def _single_variate(base_ring, name, sparse, implementation):
     import sage.rings.polynomial.polynomial_ring as m
     name = normalize_names(1, name)
     key = (base_ring, name, sparse, implementation if not sparse else None)
-    from sage.misc.cachefunc import _cache_key
-    key = _cache_key(key)
+    from sage.misc.cachefunc import cache_key
+    key = cache_key(key)
     R = _get_from_cache(key)
     if not R is None:
         return R
