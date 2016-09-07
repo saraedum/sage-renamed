@@ -97,7 +97,7 @@ class DiscretePseudoValuation(Morphism):
         raise NotImplementedError
 
     def is_equivalent(self, f, g):
-        return self(f-g)>0
+        return self(f-g)>self(f)
 
     def _value_group(self, r):
         R = PolynomialRing(QQ,'x') # hack - QQ does not support fractional ideals
