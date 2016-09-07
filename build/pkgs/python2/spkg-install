@@ -108,28 +108,19 @@ build()
     fi
 }
 
-
 build
+
+PYTHON_VERSION=$("$SAGE_LOCAL/bin/python" -c 'import sys; print("%d.%d" % sys.version_info[:2])')
 
 cd "$SAGE_LOCAL/lib"
 
-# If we are upgrading from Python-2.6, remove compiled Python files.
-# We do not care about still older Python versions, since upgrades
-# from such old Sage versions are not supported anyway.
-if [ -d python2.6 ]; then
-    rm -rf "$SAGE_ROOT"/devel/sage-*/build
-fi
-
 # Make symbolic link (after removing old link first)
 rm -f python
-ln -s python2.7 python
+ln -s python${PYTHON_VERSION} python
 if [ $? -ne 0 ]; then
     echo >&2 "Error creating symbolic link"
     exit 1
 fi
-
-# Remove previous Python installs
-rm -rf python2.6
 
 # On OS X with XCode 4, the presence of
 # $SAGE_LOCAL/lib/python/config/libpython2.7.a causes problems with
@@ -138,7 +129,10 @@ rm -rf python2.6
 # x.y.z with x >= 10).
 if [ "$UNAME" = "Darwin" ] && \
     [ `uname -r | cut '-d.' -f1` -gt 9 ]; then
-    rm -f "$SAGE_LOCAL/lib/python2.7/config/libpython2.7.a"
+    rm -f "$SAGE_LOCAL/lib/python$PYTHON_VERSION/config/libpython${PYTHON_VERSION}.a"
+elif [ "$UNAME" = "CYGWIN" ]; then
+    # See http://trac.sagemath.org/ticket/20437
+    ln -sf "python/config/libpython${PYTHON_VERSION}.dll.a" "$SAGE_LOCAL/lib/libpython${PYTHON_VERSION}.dll.a"
 fi
 
 # Make sure extension modules were built correctly.

@@ -78,7 +78,7 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
     cdef long k, n, p, curterm, shift, f, e = prime_pow.e
     cdef Integer value
     cdef GEN pari_tmp
-    if PyInt_Check(x):
+    if isinstance(x, int):
         if x == 0:
             return maxordp
         else:
@@ -176,7 +176,7 @@ cdef long get_preccap(x, PowComputer_class prime_pow) except? -10000:
     cdef long k, shift, e = prime_pow.e
     cdef Integer prec
     cdef GEN pari_tmp
-    if PyInt_Check(x) or isinstance(x, Integer) or isinstance(x, Rational):
+    if isinstance(x, int) or isinstance(x, Integer) or isinstance(x, Rational):
         return maxordp
     elif isinstance(x, (list,tuple)):
         k = maxordp
@@ -198,7 +198,8 @@ cdef long get_preccap(x, PowComputer_class prime_pow) except? -10000:
         prec = <Integer>x.precision_absolute()
         k = mpz_get_si(prec.value)
         if not (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
-            k //= x.parent().ramification_index()
+            # since x lives in a subfield, the ramification index of x's parent will divide e.
+            return k * (e // x.parent().ramification_index())
     elif isinstance(x, pari_gen):
         pari_tmp = (<pari_gen>x).g
         # since get_ordp has been called typ(x.g) == t_PADIC

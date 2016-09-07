@@ -163,7 +163,7 @@ cdef class CAElement(pAdicTemplateElement):
         """
         return unpickle_cae_v2, (self.__class__, self.parent(), cpickle(self.value, self.prime_pow), self.absprec)
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         """
         Return the additive inverse of this element.
 
@@ -180,7 +180,7 @@ cdef class CAElement(pAdicTemplateElement):
         creduce_small(ans.value, ans.value, ans.absprec, ans.prime_pow)
         return ans
 
-    cpdef ModuleElement _add_(self, ModuleElement _right):
+    cpdef _add_(self, _right):
         """
         Return the sum of this element and ``_right``.
 
@@ -202,6 +202,11 @@ cdef class CAElement(pAdicTemplateElement):
             sage: b = a>>9
             sage: a + b
             1 + O(5)
+
+        Check that :trac:`20245` is resolved::
+
+            sage: R(1,1) + R(169,3)
+            1 + O(13)
         """
         cdef CAElement right = _right
         cdef CAElement ans = self._new_c()
@@ -210,7 +215,7 @@ cdef class CAElement(pAdicTemplateElement):
         creduce(ans.value, ans.value, ans.absprec, ans.prime_pow)
         return ans
 
-    cpdef ModuleElement _sub_(self, ModuleElement _right):
+    cpdef _sub_(self, _right):
         """
         Return the difference of this element and ``_right``.
 
@@ -226,7 +231,7 @@ cdef class CAElement(pAdicTemplateElement):
         cdef CAElement ans = self._new_c()
         ans.absprec = min(self.absprec, right.absprec)
         csub(ans.value, self.value, right.value, ans.absprec, ans.prime_pow)
-        creduce_small(ans.value, ans.value, ans.absprec, ans.prime_pow)
+        creduce(ans.value, ans.value, ans.absprec, ans.prime_pow)
         return ans
 
     def __invert__(self):
@@ -252,7 +257,7 @@ cdef class CAElement(pAdicTemplateElement):
         """
         return ~self.parent().fraction_field()(self)
 
-    cpdef RingElement _mul_(self, RingElement _right):
+    cpdef _mul_(self, _right):
         """
         Return the product of this element and ``_right``.
 
@@ -275,7 +280,7 @@ cdef class CAElement(pAdicTemplateElement):
         creduce(ans.value, ans.value, ans.absprec, ans.prime_pow)
         return ans
 
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, right):
         """
         Return the quotient of this element and ``right``.
 

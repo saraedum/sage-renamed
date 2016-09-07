@@ -25,12 +25,7 @@ from sage.structure.element cimport ModuleElement, RingElement, PrincipalIdealDo
 from sage.structure.element import coerce_binop
 
 cdef class LocalGenericElement(PrincipalIdealDomainElement):
-    #cpdef ModuleElement _add_(self, ModuleElement right):
-    #    raise NotImplementedError
-
-    __hash__ = None
-
-    cpdef RingElement _div_(self, RingElement right):
+    cpdef _div_(self, right):
         r"""
         Returns the quotient of ``self`` by ``right``.
 
@@ -370,7 +365,7 @@ cdef class LocalGenericElement(PrincipalIdealDomainElement):
     #def __mod__(self, right):
     #    raise NotImplementedError
 
-    #cpdef RingElement _mul_(self, RingElement right):
+    #cpdef _mul_(self, right):
     #    raise NotImplementedError
 
     #cdef _neg_(self):
@@ -379,7 +374,7 @@ cdef class LocalGenericElement(PrincipalIdealDomainElement):
     #def __pow__(self, right):
     #    raise NotImplementedError
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef _sub_(self, right):
         r"""
         Returns the difference between ``self`` and ``right``.
 

@@ -36,8 +36,9 @@ import weakref
 from sage.rings.infinity import infinity
 from sage.libs.gmp.mpz cimport *
 
-include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
+from sage.ext.stdsage cimport PY_NEW
+include "cysignals/signals.pxi"
+include "cysignals/memory.pxi"
 
 cdef long maxpreccap = (1L << (sizeof(long) * 8 - 2)) - 1
 
@@ -178,11 +179,11 @@ cdef class PowComputer_class(SageObject):
         cdef Integer ans
         if _n < 0:
             if mpz_fits_ulong_p((<Integer>-_n).value) == 0:
-                raise ValueError, "result too big"
+                raise ValueError("result too big")
             return ~self.pow_Integer(mpz_get_ui((<Integer>-_n).value))
         else:
             if mpz_fits_ulong_p(_n.value) == 0:
-                raise ValueError, "result too big"
+                raise ValueError("result too big")
             return self.pow_Integer(mpz_get_ui(_n.value))
 
     cdef mpz_srcptr pow_mpz_t_tmp(self, unsigned long n):
@@ -210,11 +211,12 @@ cdef class PowComputer_class(SageObject):
 
             sage: PC = PowComputer(5, 5, 10)
 
-            When you cal pow_mpz_t_tmp with an input that is not stored
-            (ie n > self.cache_limit and n != self.prec_cap),
-            it stores the result in self.temp_m and returns a pointer
-            to that mpz_t.  So if you try to use the results of two
-            calls at once, things will break.
+        When you call pow_mpz_t_tmp with an input that is not stored
+        (ie n > self.cache_limit and n != self.prec_cap),
+        it stores the result in self.temp_m and returns a pointer
+        to that mpz_t.  So if you try to use the results of two
+        calls at once, things will break. ::
+
             sage: PC._pow_mpz_t_tmp_demo(6, 8) # 244140625 on some architectures and 152587890625 on others: random
             244140625
             sage: 5^6*5^8
@@ -222,9 +224,10 @@ cdef class PowComputer_class(SageObject):
             sage: 5^6*5^6
             244140625
 
-            Note that this does not occur if you try a stored value,
-            because the result of one of the calls points to that
-            stored value.
+        Note that this does not occur if you try a stored value,
+        because the result of one of the calls points to that
+        stored value. ::
+
             sage: PC._pow_mpz_t_tmp_demo(6, 10)
             152587890625
             sage: 5^6*5^10
@@ -233,7 +236,7 @@ cdef class PowComputer_class(SageObject):
         m = Integer(m)
         n = Integer(n)
         if m < 0 or n < 0:
-            raise ValueError, "m, n must be non-negative"
+            raise ValueError("m, n must be non-negative")
         cdef Integer ans = PY_NEW(Integer)
         mpz_mul(ans.value, self.pow_mpz_t_tmp(mpz_get_ui((<Integer>m).value)), self.pow_mpz_t_tmp(mpz_get_ui((<Integer>n).value)))
         return ans
@@ -407,7 +410,7 @@ cdef class PowComputer_class(SageObject):
         else:
             _n = <Integer>n
         if mpz_fits_slong_p(_n.value) == 0:
-            raise ValueError, "n too big"
+            raise ValueError("n too big")
         if _n < 0:
             return ~self.pow_Integer(-mpz_get_si(_n.value))
         else:
@@ -429,9 +432,9 @@ cdef class PowComputer_base(PowComputer_class):
 
         sig_on()
         try:
-            self.small_powers = <mpz_t *>sage_malloc(sizeof(mpz_t) * (cache_limit + 1))
+            self.small_powers = <mpz_t *>sig_malloc(sizeof(mpz_t) * (cache_limit + 1))
             if self.small_powers == NULL:
-                raise MemoryError, "out of memory allocating power storing"
+                raise MemoryError("out of memory allocating power storing")
             try:
                 mpz_init(self.top_power)
                 try:
@@ -447,7 +450,7 @@ cdef class PowComputer_base(PowComputer_class):
                     mpz_clear(self.top_power)
                     raise
             except BaseException:
-                sage_free(self.small_powers)
+                sig_free(self.small_powers)
                 raise
         finally:
             sig_off()
@@ -526,7 +529,7 @@ cdef class PowComputer_base(PowComputer_class):
                 mpz_clear(self.small_powers[i])
             mpz_clear(self.top_power)
             mpz_clear(self.temp_m)
-            sage_free(self.small_powers)
+            sig_free(self.small_powers)
 
     def __reduce__(self):
         """
@@ -582,11 +585,11 @@ cdef PowComputer_base PowComputer_c(Integer m, Integer cache_limit, Integer prec
         81
     """
     if cache_limit < 0:
-        raise ValueError, "cache_limit must be non-negative."
+        raise ValueError("cache_limit must be non-negative.")
     if prec_cap < 0:
-        raise ValueError, "prec_cap must be non-negative."
+        raise ValueError("prec_cap must be non-negative.")
     if mpz_cmp_si((<Integer>prec_cap).value, maxpreccap) >= 0:
-        raise ValueError, "cannot create p-adic parents with precision cap larger than (1 << (sizeof(long)*8 - 2))"
+        raise ValueError("cannot create p-adic parents with precision cap larger than (1 << (sizeof(long)*8 - 2))")
 
     key = (m, cache_limit, prec_cap, in_field, prec_type)
     if key in pow_comp_cache:

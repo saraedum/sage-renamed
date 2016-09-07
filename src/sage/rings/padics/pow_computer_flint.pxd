@@ -1,7 +1,4 @@
-include "sage/ext/cdefs.pxi"
-include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
-
+from sage.libs.gmp.mpz cimport mpz_t
 from sage.libs.flint.padic cimport padic_ctx_t
 from sage.libs.gmp.types cimport mpz_t, mpz_srcptr
 from sage.libs.flint.fmpz cimport fmpz_t

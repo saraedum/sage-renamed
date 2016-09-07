@@ -27,9 +27,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
-
+from sage.ext.stdsage cimport PY_NEW
 cimport sage.rings.padics.local_generic_element
 from sage.libs.gmp.mpz cimport mpz_set_si
 from sage.rings.padics.local_generic_element cimport LocalGenericElement
@@ -60,7 +58,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
     def _vector_impl(self):
         raise NotImplementedError("not implemented for `%s` which is a `%s` in `%s`"%(self,type(self),self.parent()))
 
-    cpdef int _cmp_(left, Element right) except -2:
+    cpdef int _cmp_(left, right) except -2:
         """
         First compare valuations, then compare normalized
         residue of unit part.
@@ -165,7 +163,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
     cdef int _set_inexact_zero(self, long absprec) except -1:
         raise NotImplementedError
     cdef int _set_exact_zero(self) except -1:
-        raise TypeError, "this type of p-adic does not support exact zeros"
+        raise TypeError("this type of p-adic does not support exact zeros")
 
     cpdef bint _is_exact_zero(self) except -1:
         """
@@ -324,7 +322,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
                 raise ZeroDivisionError("cannot divide by zero")
             return self._floordiv_(right)
 
-    cpdef RingElement _floordiv_(self, RingElement right):
+    cpdef _floordiv_(self, right):
         """
         Implements floor division.
 
@@ -655,7 +653,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             5 + O(5^6)
         """
         if (ground is not None) and (ground != self.parent()):
-            raise ValueError, "Ground ring not a subring"
+            raise ValueError("Ground ring not a subring")
         else:
             return self
 
@@ -1476,7 +1474,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             ValueError: Ring (5-adic Field with capped relative precision 4) residue field of the wrong characteristic.
         """
         if not p is None and p != self.parent().prime():
-            raise ValueError, 'Ring (%s) residue field of the wrong characteristic.'%self.parent()
+            raise ValueError('Ring (%s) residue field of the wrong characteristic.' % self.parent())
         cdef long v = self.valuation_c()
         if v == maxordp:
             return infinity
@@ -1758,9 +1756,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         .. TODO::
 
-        There is a soft-linear time algorith for logarithm described
-        by Dan Berstein at
-        http://cr.yp.to/lineartime/multapps-20041007.pdf
+            There is a soft-linear time algorithm for logarithm described
+            by Dan Berstein at
+            http://cr.yp.to/lineartime/multapps-20041007.pdf
 
         ALGORITHM:
 
@@ -2472,11 +2470,11 @@ cdef class pAdicGenericElement(LocalGenericElement):
             # todo: should eventually change to return an element of
             # an extension field
             if extend:
-                raise NotImplementedError, "extending using the sqrt function not yet implemented"
+                raise NotImplementedError("extending using the sqrt function not yet implemented")
             elif all:
                 return []
             else:
-                raise ValueError, "element is not a square"
+                raise ValueError("element is not a square")
 
     #def _unit_part(self):
     #    raise NotImplementedError

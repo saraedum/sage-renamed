@@ -4,7 +4,8 @@ Handle PARI documentation for Sage
 """
 
 from __future__ import unicode_literals
-import re, subprocess
+import re
+import subprocess
 from six import unichr
 
 
@@ -82,7 +83,7 @@ def raw_to_rest(doc):
     EXAMPLES::
 
         sage: from sage_setup.autogen.pari.doc import raw_to_rest
-        sage: print raw_to_rest("@[startbold]hello world@[endbold]")
+        sage: print(raw_to_rest("@[startbold]hello world@[endbold]"))
         :strong:`hello world`
 
     TESTS::
@@ -106,6 +107,7 @@ def raw_to_rest(doc):
     doc = doc.replace("@[pm]", "±")
     doc = doc.replace("@[nbrk]", unichr(0xa0))
     doc = doc.replace("@[agrave]", "à")
+    doc = doc.replace("@[aacute]", "á")
     doc = doc.replace("@[eacute]", "é")
     doc = doc.replace("@[ouml]", "ö")
     doc = doc.replace("@[uuml]", "ü")
@@ -260,13 +262,13 @@ def get_rest_doc(function):
     EXAMPLES::
 
         sage: from sage_setup.autogen.pari.doc import get_rest_doc
-        sage: print get_rest_doc("teichmuller")
+        sage: print(get_rest_doc("teichmuller"))
         Teichmüller character of the :math:`p`-adic number :math:`x`, i.e. the unique
-        :math:`(p-1)`-th root of unity congruent to :math:`x / p^{v_p(x)}` modulo :math:`p`.
+        :math:`(p-1)`-th root of unity congruent to :math:`x / p^{v_p(x)}` modulo :math:`p`...
 
     ::
 
-        sage: print get_rest_doc("weber")
+        sage: print(get_rest_doc("weber"))
         One of Weber's three :math:`f` functions.
         If :math:`flag = 0`, returns
         <BLANKLINE>
@@ -294,12 +296,15 @@ def get_rest_doc(function):
 
     ::
 
-        sage: print get_rest_doc("ellap")
-        Let :math:`E` be an :emphasis:`ell` structure as output by :literal:`ellinit`, defined over
+        sage: print(get_rest_doc("ellap"))
+        Let :math:`E` be an :literal:`ell` structure as output by :literal:`ellinit`, defined over
         :math:`\mathbb{Q}` or a finite field :math:`\mathbb{F}_q`. The argument :math:`p` is best left omitted if the
         curve is defined over a finite field, and must be a prime number otherwise.
         This function computes the trace of Frobenius :math:`t` for the elliptic curve :math:`E`,
         defined by the equation :math:`\#E(\mathbb{F}_q) = q+1 - t`.
+        <BLANKLINE>
+        When the characteristic of the finite field is large, the availability of
+        the :literal:`seadata` package will speed the computation.
         <BLANKLINE>
         If the curve is defined over :math:`\mathbb{Q}`, :math:`p` must be explicitly given and the
         function computes the trace of the reduction over :math:`\mathbb{F}_p`.
@@ -347,7 +352,7 @@ def get_rest_doc(function):
 
     ::
 
-        sage: print get_rest_doc("bitor")
+        sage: print(get_rest_doc("bitor"))
         bitwise (inclusive)
         :literal:`or` of two integers :math:`x` and :math:`y`, that is the integer
         <BLANKLINE>

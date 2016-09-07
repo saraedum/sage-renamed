@@ -204,13 +204,11 @@ We decompose a Brandt module over both `\ZZ` and `\QQ`.::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import print_function
 
 # imports
 from sage.misc.all import prod, verbose
-from sage.rings.all import Integer, ZZ, QQ, PolynomialRing, GF
-
-from sage.rings.commutative_ring import is_CommutativeRing
+from sage.rings.all import Integer, ZZ, QQ, PolynomialRing, GF, CommutativeRing
 
 from sage.algebras.quatalg.quaternion_algebra import QuaternionAlgebra, basis_for_quaternion_lattice
 from sage.algebras.quatalg.quaternion_algebra_cython import rational_matrix_from_rational_quaternions
@@ -297,7 +295,7 @@ def BrandtModule(N, M=1, weight=2, base_ring=QQ, use_cache=True):
         raise ValueError("M must be coprime to N")
     if weight < 2:
         raise ValueError("weight must be at least 2")
-    if not is_CommutativeRing(base_ring):
+    if not isinstance(base_ring, CommutativeRing):
         raise TypeError("base_ring must be a commutative ring")
     key = (N, M, weight, base_ring)
     if use_cache:
@@ -1412,7 +1410,7 @@ def quaternion_order_with_given_level(A, level):
         sage: M = maximal_order(A)
         sage: L = O.free_module()
         sage: N = M.free_module()
-        sage: print L.index_in(N) == level/5  #check that the order has the right index in the maximal order
+        sage: L.index_in(N) == level/5  #check that the order has the right index in the maximal order
         True
     """
 
@@ -1444,7 +1442,7 @@ def quaternion_order_with_given_level(A, level):
     B = O.basis()
 
     for (p, r) in fact:
-        a = int((-p/2))
+        a = int(-p) // 2
         for v in GF(p)**4:
             x = sum([int(v[i]+a)*B[i] for i in range(4)])
             D = x.reduced_trace()**2 - 4 * x.reduced_norm()
@@ -1613,7 +1611,8 @@ def benchmark_magma(levels, silent=False):
         magma.eval('HeckeOperator(BrandtModule(%s, %s),2)'%(p,M))
         tm = magma.cputime(t)
         v = ('magma', p, M, tm)
-        if not silent: print v
+        if not silent:
+            print(v)
         ans.append(v)
     return ans
 
@@ -1647,7 +1646,8 @@ def benchmark_sage(levels, silent=False):
         B = BrandtModule(p,M,use_cache=False).hecke_matrix(2)
         tm = cputime(t)
         v = ('sage', p, M, tm)
-        if not silent: print v
+        if not silent:
+            print(v)
         ans.append(v)
     return ans
 

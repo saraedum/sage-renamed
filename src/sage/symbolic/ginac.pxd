@@ -151,6 +151,7 @@ cdef extern from "sage/symbolic/ginac_wrap.h":
     bint is_a_series "is_a<pseries>" (GEx e)
     # you must ensure that is_a_series(e) is true before calling this:
     bint g_is_a_terminating_series(GEx e) except +
+    GEx g_series_var(GEx e) except +
 
     # Relations
     ctypedef enum operators "relational::operators":
@@ -602,8 +603,4 @@ cdef extern from "pynac/order.h":
     bint print_order_compare "GiNaC::print_order().compare" \
             (GEx left, GEx right) except +
     bint print_order_compare_mul "GiNaC::print_order_mul().compare" \
-            (GEx left, GEx right) except +
-    bint print_order "GiNaC::print_order()" \
-            (GEx left, GEx right) except +
-    bint print_order_mul "GiNaC::print_order_mul()" \
             (GEx left, GEx right) except +

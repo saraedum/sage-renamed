@@ -8,6 +8,7 @@ AUTHORS:
 
 - David Roe
 """
+from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2008 David Roe <roed.math@gmail.com>
@@ -23,34 +24,27 @@ AUTHORS:
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.finite_rings.integer_mod_ring import Zmod
-from pow_computer_ext import PowComputer_ext_maker
-from pow_computer_flint import PowComputer_flint_maker
+from .pow_computer_ext import PowComputer_ext_maker
+from .pow_computer_flint import PowComputer_flint_maker
 from sage.libs.ntl.ntl_ZZ_pX import ntl_ZZ_pX
 
-from unramified_extension_generic import UnramifiedExtensionGeneric
-from eisenstein_extension_generic import EisensteinExtensionGeneric
+from .unramified_extension_generic import UnramifiedExtensionGeneric
+from .eisenstein_extension_generic import EisensteinExtensionGeneric
 #from padic_general_extension_generic import pAdicGeneralExtensionGeneric
 from two_step_extension_generic import TwoStepExtensionGeneric
 from general_extension_generic import GeneralExtensionGeneric
 
-from generic_nodes import pAdicCappedRelativeRingGeneric, \
+from .generic_nodes import pAdicCappedRelativeRingGeneric, \
                           pAdicCappedRelativeFieldGeneric, \
                           pAdicCappedAbsoluteRingGeneric, \
                           pAdicFixedModRingGeneric
 
-from padic_ZZ_pX_FM_element import pAdicZZpXFMElement
-from padic_ZZ_pX_CR_element import pAdicZZpXCRElement
-from padic_ZZ_pX_CA_element import pAdicZZpXCAElement
-from qadic_flint_CR import qAdicCappedRelativeElement
-from qadic_flint_CA import qAdicCappedAbsoluteElement
-from qadic_flint_FM import qAdicFixedModElement
-
-from padic_laurent_FM_element import pAdicLaurentFMElement
-from padic_laurent_CR_element import pAdicLaurentCRElement
-from padic_laurent_CA_element import pAdicLaurentCAElement
-
-from padic_general_FM_element import pAdicGeneralFMElement
-from padic_general_CR_element import pAdicGeneralCRElement
+from .padic_ZZ_pX_FM_element import pAdicZZpXFMElement
+from .padic_ZZ_pX_CR_element import pAdicZZpXCRElement
+from .padic_ZZ_pX_CA_element import pAdicZZpXCAElement
+from .qadic_flint_CR import qAdicCappedRelativeElement
+from .qadic_flint_CA import qAdicCappedAbsoluteElement
+from .qadic_flint_FM import qAdicFixedModElement
 
 def _make_integral_poly(prepoly, p, prec):
     """
@@ -147,7 +141,7 @@ class UnramifiedExtensionRingCappedRelative(UnramifiedExtensionGeneric, pAdicCap
             raise ValueError("unknown implementation `%s`"%implementation)
         UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, element_class)
         if implementation != 'NTL':
-            from qadic_flint_CR import pAdicCoercion_ZZ_CR, pAdicConvert_QQ_CR
+            from .qadic_flint_CR import pAdicCoercion_ZZ_CR, pAdicConvert_QQ_CR
             self.register_coercion(pAdicCoercion_ZZ_CR(self))
             self.register_coercion(pAdicConvert_QQ_CR(self))
 
@@ -208,11 +202,10 @@ class UnramifiedExtensionFieldCappedRelative(UnramifiedExtensionGeneric, pAdicCa
             raise ValueError("unknown implementation `%s`"%implementation)
 
         UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, element_class)
-
         if implementation == 'FLINT':
-            from qadic_flint_CR import pAdicCoercion_ZZ_CR, pAdicCoercion_QQ_CR
+            from .qadic_flint_CR import pAdicCoercion_ZZ_CR, pAdicCoercion_QQ_CR
             self.register_coercion(pAdicCoercion_ZZ_CR(self))
-            self.register_conversion(pAdicCoercion_QQ_CR(self))
+            self.register_coercion(pAdicCoercion_QQ_CR(self))
 
 #class UnramifiedExtensionRingLazy(UnramifiedExtensionGeneric, pAdicLazyRingGeneric):
 #    def __init__(self, poly, prec, halt, print_mode, names):
@@ -284,7 +277,7 @@ class UnramifiedExtensionRingCappedAbsolute(UnramifiedExtensionGeneric, pAdicCap
 
         UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, element_class)
         if implementation != 'NTL':
-            from qadic_flint_CA import pAdicCoercion_ZZ_CA, pAdicConvert_QQ_CA
+            from .qadic_flint_CA import pAdicCoercion_ZZ_CA, pAdicConvert_QQ_CA
             self.register_coercion(pAdicCoercion_ZZ_CA(self))
             self.register_conversion(pAdicConvert_QQ_CA(self))
 
@@ -341,7 +334,7 @@ class UnramifiedExtensionRingFixedMod(UnramifiedExtensionGeneric, pAdicFixedModR
 
         UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, element_class)
         if implementation != 'NTL':
-            from qadic_flint_FM import pAdicCoercion_ZZ_FM, pAdicConvert_QQ_FM
+            from .qadic_flint_FM import pAdicCoercion_ZZ_FM, pAdicConvert_QQ_FM
             self.register_coercion(pAdicCoercion_ZZ_FM(self))
             self.register_conversion(pAdicConvert_QQ_FM(self))
 
