@@ -21,7 +21,7 @@ from sage.rings.padics.padic_ext_element cimport pAdicExtElement
 from sage.rings.infinity import infinity
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
-from sage.structure.element cimport RingElement, ModuleElement, CommutativeRingElement
+from sage.structure.element cimport CommutativeRingElement
 from sage.structure.element import is_Element
 from sage.rings.padics.precision_error import PrecisionError
 
@@ -769,7 +769,7 @@ cdef class pAdicLaurentElement(pAdicExtElement):
         ret = ret.add_bigoh(x.prec())
         return ret
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Compute the sum of ``self`` and ``right``.
 
@@ -801,7 +801,7 @@ cdef class pAdicLaurentElement(pAdicExtElement):
         ret.__set_from_laurent_series(self._series_raw() + right._series_raw())
         return ret
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         """
         Compute ``-self``.
 
@@ -915,7 +915,7 @@ cdef class pAdicLaurentElement(pAdicExtElement):
         ret.__set_from_laurent_series(~self._series_developed())
         return ret
 
-    cpdef RingElement _div_(self, RingElement other):
+    cpdef _div_(self, other):
         """
         Return the result of ``self`` divided by ``other``.
 
@@ -998,7 +998,7 @@ cdef class pAdicLaurentElement(pAdicExtElement):
         """
         return not self._is_inexact_zero() and not self._is_exact_zero()
 
-    cpdef RingElement _mul_(self, RingElement other):
+    cpdef _mul_(self, other):
         """
         Compute the multiplication of ``self`` by ``other``.
 

@@ -21,7 +21,7 @@ from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
 from sage.rings.integer import Integer
 from sage.rings.integer cimport Integer
 from sage.structure.element import is_Element
-from sage.structure.element cimport RingElement, ModuleElement, CommutativeRingElement, Element
+from sage.structure.element cimport CommutativeRingElement, Element
 from sage.rings.padics.precision_error import PrecisionError
 from sage.misc.cachefunc import cached_method
 
@@ -162,7 +162,7 @@ cdef class pAdicGeneralElement(pAdicExtElement):
         """
         return self._element.precision_absolute()
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef _add_(self, right):
         """
         Compute the sum of ``self`` and ``right``.
 
@@ -188,7 +188,7 @@ cdef class pAdicGeneralElement(pAdicExtElement):
         ret._element = self._element + right._element
         return ret
 
-    cpdef ModuleElement _neg_(self):
+    cpdef _neg_(self):
         """
         Compute ``-self``.
 
@@ -256,7 +256,7 @@ cdef class pAdicGeneralElement(pAdicExtElement):
         ret._element = ~self._element
         return ret
 
-    cpdef RingElement _div_(self, RingElement other):
+    cpdef _div_(self, other):
         """
         Return the result of ``self`` divided by ``other``.
 
@@ -309,7 +309,7 @@ cdef class pAdicGeneralElement(pAdicExtElement):
         """
         return not self._element.is_zero()
 
-    cpdef RingElement _mul_(self, RingElement other):
+    cpdef _mul_(self, other):
         """
         Compute the multiplication of ``self`` by ``other``.
 

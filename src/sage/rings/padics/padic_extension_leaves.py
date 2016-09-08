@@ -31,8 +31,8 @@ from sage.libs.ntl.ntl_ZZ_pX import ntl_ZZ_pX
 from .unramified_extension_generic import UnramifiedExtensionGeneric
 from .eisenstein_extension_generic import EisensteinExtensionGeneric
 #from padic_general_extension_generic import pAdicGeneralExtensionGeneric
-from two_step_extension_generic import TwoStepExtensionGeneric
-from general_extension_generic import GeneralExtensionGeneric
+from .two_step_extension_generic import TwoStepExtensionGeneric
+from .general_extension_generic import GeneralExtensionGeneric
 
 from .generic_nodes import pAdicCappedRelativeRingGeneric, \
                           pAdicCappedRelativeFieldGeneric, \

@@ -39,7 +39,7 @@ from sage.rings.padics.padic_printing import pAdicPrinter
 from sage.rings.padics.precision_error import PrecisionError
 from sage.misc.cachefunc import cached_method
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
-from precision_error import PrecisionError
+from .precision_error import PrecisionError
 
 
 class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
@@ -198,7 +198,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
     def totally_ramified_extension(self, degree):
         if not self.is_eisenstein():
-            print "expensive totally ramified extension :( [implement me]"
+            print("expensive totally ramified extension :( [implement me]")
             R = self.modulus().parent().change_ring(self)
             ret = self.extension(R.gen()**degree - self.uniformizer(), names=self.variable_name()+"_"+str(degree))
             return ret, self.hom(ret)
