@@ -210,6 +210,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
+from six.moves import range
 
 from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.words.word import Word
@@ -219,12 +220,10 @@ from sage.categories.sets_cat import Sets
 from sage.combinat.tableau import Tableau, Tableaux, Tableaux_size, Tableaux_all, StandardTableau,\
         StandardTableaux, StandardTableaux_size, StandardTableaux_all, StandardTableaux_shape
 from sage.groups.perm_gps.permgroup import PermutationGroup
-from sage.misc.cachefunc import cached_method
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.flatten import flatten
 from sage.misc.misc_c import prod
 from sage.misc.prandom import random
-from sage.misc.sage_unittest import TestSuite
 from sage.arith.all import factorial
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.integer import Integer
@@ -431,7 +430,7 @@ class TableauTuple(CombinatorialElement):
             sage: TableauTuple([[],[],[],[]])
             ([], [], [], [])
         """
-        return self.parent().global_options.dispatch(self,'_repr_','display')
+        return self.parent().options._dispatch(self,'_repr_','display')
 
     def _repr_list(self):
         """
@@ -469,14 +468,14 @@ class TableauTuple(CombinatorialElement):
             sage: print(TableauTuple([[[2,3]],[],[[4],[5]],[]])._repr_diagram())
               2  3     -     4     -
                              5
-            sage: TableauTuples.global_options(convention='French')
+            sage: TableauTuples.options(convention='French')
             sage: print(TableauTuple([[[2,3]],[[1]],[[4],[5]],[]])._repr_diagram())
                              5      
               2  3     1     4     -
             sage: print(TableauTuple([[[2,3]],[],[[4],[5]],[]])._repr_diagram())
                              5
               2  3     -     4     -
-            sage: TableauTuples.global_options.reset()
+            sage: TableauTuples.options._reset()
 
         TESTS:
 
@@ -489,7 +488,7 @@ class TableauTuple(CombinatorialElement):
              12345
         """
         str_tt = [T._repr_diagram().split('\n') for T in self]
-        if TableauTuples.global_options('convention') == "French":
+        if TableauTuples.options('convention') == "French":
             for T_str in str_tt:
                 T_str.reverse()
         widths = [len(T_str[0]) for T_str in str_tt]
@@ -500,7 +499,7 @@ class TableauTuple(CombinatorialElement):
                            for j,T_str in enumerate(str_tt))
                 for i in range(num_cols)]
 
-        if TableauTuples.global_options('convention') == "English":
+        if TableauTuples.options('convention') == "English":
             return '\n'.join(diag)
         else:
             return '\n'.join(diag[::-1])
@@ -533,7 +532,7 @@ class TableauTuple(CombinatorialElement):
             \lr{6}&\lr{7}\\\cline{1-2}
             \end{array}$}
             } \Bigg)
-            sage: TableauTuples.global_options(convention="french")
+            sage: TableauTuples.options(convention="french")
             sage: latex(t)    # indirect doctest
             \Bigg( {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
             \raisebox{-.6ex}{$\begin{array}[t]{*{2}c}\cline{1-1}
@@ -544,9 +543,9 @@ class TableauTuple(CombinatorialElement):
             \lr{4}&\lr{5}\\\cline{1-2}
             \end{array}$}
             } \Bigg)
-            sage: TableauTuples.global_options.reset()
+            sage: TableauTuples.options._reset()
         """
-        return self.parent().global_options.dispatch(self,'_latex_','latex')
+        return self.parent().options._dispatch(self,'_latex_','latex')
 
     _latex_list = _repr_list
 
@@ -725,13 +724,13 @@ class TableauTuple(CombinatorialElement):
               4  5        4  5  8    14
               6
               9
-            sage: TableauTuples.global_options(convention="french")
+            sage: TableauTuples.options(convention="french")
             sage: t.pp()
               9
               6
               4  5        4  5  8    14
               1  2  3     1  2  3    11 12 13
-            sage: TableauTuples.global_options.reset()
+            sage: TableauTuples.options._reset()
         """
         print(self._repr_diagram())
 
@@ -863,7 +862,7 @@ class TableauTuple(CombinatorialElement):
             sage: TableauTuple([[[1,2,3],[4]],[[6,7,8],[1,2,3]],[[1,11]]]).first_row_descent() is None
             True
         """
-        for k in xrange(len(self)):
+        for k in range(len(self)):
             cell = self[k].first_row_descent()
             if cell is not None:
                 return (k, cell[0], cell[1])
@@ -914,7 +913,7 @@ class TableauTuple(CombinatorialElement):
             sage: Tableau([[[1,2,3],[4]],[[5,6,7],[8,9]]]).first_column_descent() is None
             True
         """
-        for k in xrange(len(self)):
+        for k in range(len(self)):
             cell=self[k].first_column_descent()
             if cell is not None:
                 return (k,cell[0],cell[1])
@@ -942,8 +941,8 @@ class TableauTuple(CombinatorialElement):
             sage: TableauTuple([[[1,2],[6,7]],[[4,8], [6, 9]],[]]).is_standard()
             False
         """
-        entries=sorted(self.entries())
-        return entries==range(1,self.size()+1) and self.is_row_strict() and self.is_column_strict()
+        entries = sorted(self.entries())
+        return entries == list(range(1, self.size() + 1)) and self.is_row_strict() and self.is_column_strict()
 
     def reduced_row_word(self):
         r"""
@@ -1049,8 +1048,8 @@ class TableauTuple(CombinatorialElement):
 
         # Go through and add n+1 to the end of each of the rows
         # (We could call shape().addable_cells() but this seems more efficient)
-        for k in xrange(len(self)):
-            for row in xrange(len(self[k])):
+        for k in range(len(self)):
+            for row in range(len(self[k])):
                 if row==0 or self.shape()[k][row]<self.shape()[k][row-1]:
                     new_t=self.to_list()  # a copy
                     new_t[k][row].append(n+1)
@@ -1082,10 +1081,10 @@ class TableauTuple(CombinatorialElement):
         # Ensure that the permutations involve all elements of the
         # tableau, by including the identity permutation on the set [1..n].
         n = max(self.entries())
-        gens = [range(1,n+1)]
+        gens = [list(range(1, n + 1))]
         for t in self:
-            for i in xrange(len(t)):
-                for j in xrange(0, len(t[i])-1):
+            for i in range(len(t)):
+                for j in range(0, len(t[i])-1):
                     gens.append( (t[i][j], t[i][j+1]) )
         return PermutationGroup( gens )
 
@@ -1579,7 +1578,7 @@ class StandardTableauTuple(TableauTuple):
 
         # Finally, the more costly check that the entries are {1,2...n}
         entries=sorted(sum((s.entries() for s in t), ()))
-        if not entries==range(1,len(entries)+1):
+        if not entries == list(range(1,len(entries)+1)):
             raise ValueError( 'entries must be in bijection with {1,2,...,n}' )
 
     def inverse(self,k):
@@ -1774,7 +1773,7 @@ class StandardTableauTuple(TableauTuple):
             sage: t.dominates(s)
             False
         """
-        return all(self.restrict(m).shape().dominates(t.restrict(m).shape()) for m in xrange(1,1+self.size()))
+        return all(self.restrict(m).shape().dominates(t.restrict(m).shape()) for m in range(1,1+self.size()))
 
     def to_chain(self):
         """
@@ -1968,7 +1967,7 @@ class TableauTuples(UniqueRepresentation, Parent):
     """
     Element = TableauTuple
     level_one_parent_class = Tableaux_all  # used in element_constructor
-    global_options=Tableaux.global_options
+    options=Tableaux.options
 
     @staticmethod
     def __classcall_private__(cls, level=None, size=None):
@@ -2378,7 +2377,7 @@ class TableauTuples_size(TableauTuples):
         if self.size()==0:
             return self.element_class(self, [[],[],[]])
         else:
-            return self.element_class(self,[[],[ range(1,self.size()+1) ],[]])
+            return self.element_class(self,[[],[list(range(1,self.size()+1))],[]])
 
 class TableauTuples_level_size(TableauTuples):
     """
@@ -2769,7 +2768,7 @@ class StandardTableauTuples(TableauTuples):
         elif TableauTuples.__contains__(self, t) or isinstance(t, (list, tuple)):
             if all(s in Tableaux() for s in t):
                 flatt=sorted(sum((list(row) for s in t for row in s),[]))
-                return flatt==range(1,len(flatt)+1) and all(len(x)==0 or
+                return flatt==list(range(1,len(flatt)+1)) and all(len(x)==0 or
                   (all(row[i]<row[i+1] for row in x for i in range(len(row)-1))
                       and all(x[r][c]<x[r+1][c] for c in range(len(x[0]))
                                                 for r in range(len(x)-1) if len(x[r+1])>c)
@@ -2807,7 +2806,7 @@ class StandardTableauTuples(TableauTuples):
             sage: StandardTableauTuples().an_element()
             ([[1]], [[2, 3]], [[4, 5, 6, 7]])
         """
-        return self.element_class(self, [ [range(2**(i-1),2**i)] for i in range(1,4)])
+        return self.element_class(self, [ [list(range(2**(i-1),2**i))] for i in range(1,4)])
 
 class StandardTableauTuples_all(StandardTableauTuples):
     """
@@ -2987,7 +2986,7 @@ class StandardTableauTuples_level(StandardTableauTuples):
             sage: StandardTableauTuples(3).an_element()
             ([[1]], [[2, 3]], [[4, 5, 6, 7]])
         """
-        return self.element_class(self, [ [range(2**(i-1),2**i)] for i in range(1,self.level()+1)])
+        return self.element_class(self, [ [list(range(2**(i-1),2**i))] for i in range(1,self.level()+1)])
 
 class StandardTableauTuples_size(StandardTableauTuples):
     """
@@ -3108,7 +3107,7 @@ class StandardTableauTuples_size(StandardTableauTuples):
         elif self.size()==1:
             return self.element_class(self, [[[1]],[],[],[]])
         else:
-            return self.element_class(self, [[[1]],[range(2,self.size()+1)],[],[]])
+            return self.element_class(self, [[[1]],[list(range(2,self.size()+1))],[],[]])
 
 class StandardTableauTuples_level_size(StandardTableauTuples):
     """
@@ -3372,7 +3371,7 @@ class StandardTableauTuples_shape(StandardTableauTuples):
         # start with the tableau containing the numbers 1,2,...,n entered in order
         # along the rows of each component and then left to right along the
         # components. This corresponds to the flat list tab=[1,2,...,n].
-        tab=range(1,n+1)
+        tab = list(range(1, n + 1))
 
         # Set up two lists clen and cclen which give the "end points" of
         # the components of mu and the rows of each component, respectively, so
@@ -3858,3 +3857,6 @@ class StandardTableaux_residue_shape(StandardTableauTuples):
         except ValueError:
             return None
 
+# Deprecations from trac:18555. July 2016
+from sage.misc.superseded import deprecated_function_alias
+TableauTuples.global_options=deprecated_function_alias(18555, Tableaux.options)

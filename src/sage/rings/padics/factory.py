@@ -31,6 +31,8 @@ Eisenstein extensions::
     sage: L.<a> = K.extension(a^2 + 5); L
     Eisenstein Extension of 5-adic Field with capped relative precision 20 in a defined by (1 + O(5^20))*a^2 + 5 + O(5^21)
 
+    It fills in unspecified values and checks for contradictions in the input.  It also standardizes irrelevant options so that duplicate parents are not created.
+
 Trivial extensions::
 
     sage: K = Qp(5)
