@@ -43,6 +43,8 @@ class DiscreteValueGroup(UniqueRepresentation, Parent):
 
     TESTS::
 
+        sage: import __main__ # optional: standalone
+        sage: __main__.DiscreteValueGroup = DiscreteValueGroup # optional: standalone
         sage: TestSuite(D1).run()
         sage: TestSuite(D2).run()
         sage: TestSuite(D3).run()
@@ -71,8 +73,10 @@ class DiscreteValueGroup(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: type(DiscreteValueGroup(0))
+            sage: type(DiscreteValueGroup(0)) # optional: integrated
             <class 'sage.rings.padics.discrete_value_group.DiscreteValueGroup_with_category'>
+            sage: type(DiscreteValueGroup(0)) # optional: standalone
+            <class '__main__.DiscreteValueGroup_with_category'>
 
         """
         self._generator = generator
