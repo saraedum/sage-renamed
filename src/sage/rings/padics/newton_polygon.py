@@ -21,22 +21,36 @@ from sage.misc.cachefunc import cached_method
 
 from sage.rings.all import infinity
 
-from sage.structure.sage_object import SageObject
+from sage.categories.map import Map
 
-class NewtonPolygon(SageObject):
+class NewtonPolygon(Morphism):
     """
-    A Newton polygon given by its set of points.
+    Create a Newton polygon as the lower conver hull of a set of points.
 
     INPUT:
 
     - ``ordinates`` -- a list of rationals (or infinity) representing the
-      ordinates at `0,1,\dots`.
+      ordinates at `0,1,\dots,n`.
 
     EXAMPLES::
 
-        sage: NewtonPolygon([infinity,infinity,4,0,infinity,-8/3,-4,-4,infinity])
+        sage: N = NewtonPolygon([infinity,infinity,4,0,infinity,-8/3,-4,-4,infinity]); N
         Newton Polygon with vertices [(0, +Infinity), (2, 4), (3, 0), (6, -4), (7, -4), (8, +Infinity)]
 
+    A Newton polygon behaves like a function from `\QQ` to `\QQ\cup\{\infty\}`::
+
+        sage: N(2)
+        4
+
+    Outside of the range `[0,n]`, we extend the convex hull by the value
+    `+\infty`::
+
+        sage: N(-0.5)
+        infinity
+
+    TESTS::
+
+        sage: TestSuite(N).run()
 
     """
     def __init__(self, ordinates):
@@ -49,6 +63,9 @@ class NewtonPolygon(SageObject):
             <class 'sage.rings.padics.newton_polygon.NewtonPolygon'>
 
         """
+        from sage.rings.all import QQ
+        Morphism.__init__(self, Hom(QQ, Set(QQ).union(Set([infinity])), Sets()))
+
         self._points = list(enumerate(ordinates))
 
         if not len(self._points):
@@ -71,7 +88,7 @@ class NewtonPolygon(SageObject):
 
     def __len__(self):
         """
-        Return the highest abscissa in this Newton polygon
+        Return the number of points defining this Newton polygon.
 
         EXAMPLES::
 
@@ -86,6 +103,12 @@ class NewtonPolygon(SageObject):
         """
         Return the ordinate of the Newton polygon at ``i``.
 
+        INPUT:
+
+        - ``i`` -- an index within the abscissas used to define this Newton
+          poylgon; negative values have the usual meaning that they have when
+          indexing lists in Python.
+
         EXAMPLES::
 
             sage: NP = NewtonPolygon([infinity,infinity,4,0,infinity,-8/3,-4,-4,infinity])
@@ -98,13 +121,21 @@ class NewtonPolygon(SageObject):
             sage: NP[-2]
             -4
 
+        Use parentheses instead of indexing with brackets if you want to
+        evaluate the Newton polygon at a rational ordinate::
+
+            sage: NP[0.5]
+            sage: NP(0.5)
+            sage: NP(-2)
+
         """
         return self.ordinates()[i]
 
     @cached_method
     def ordinates(self):
         """
-        Return the ordinates of the Newton polygon.
+        Return the ordinates of this Newton polygon at the points that were
+        used to define it.
 
         EXAMPLES::
 
@@ -227,7 +258,7 @@ class NewtonPolygon(SageObject):
 
         OUTPUT:
 
-        a Newton polygon, possibly shorter than this one
+        A Newton polygon, possibly shorter than this one
 
         EXAMPLES::
 
@@ -339,7 +370,66 @@ class NewtonPolygon(SageObject):
                 ret.append((s[1][1]-s[0][1])/(s[1][0]-s[0][0]))
         return ret
 
-    def __eq__(self, other):
-        if not isinstance(other, NewtonPolygon):
-            return False
-        return self.sides() == other.sides()
+    def _cmp_(self, other):
+        r"""
+
+        """
+
+    def _richcmp_(self, other, op):
+        r"""
+        Compare two Newton polygons for equality.
+
+        We treat two Newton polygons as equal if they were defined at the same
+        abscissas and coincide at them that were used to define them.
+
+        EXAMPLES::
+
+            sage: N = NewtonPolygon([1,1,1])
+            sage: M = NewtonPolygon([1,2,1])
+            sage: N == M
+            True
+            sage: N != M
+            False
+            sage: N == M
+            True
+
+        Note the treatment of implicity infinity values:: 
+
+            sage: N = NewtonPolygon([1,infinity])
+            sage: M = NewtonPolygon([1])
+            sage: N == M
+            False
+
+        TESTS:
+
+        A degenerate case::
+
+            sage: N = NewtonPolygon([infinity, infinity])
+            sage: M = NewtonPolygon([infinity])
+            sage: N == M
+            False
+
+        """
+        if op == 2: # ==
+            return self is other or self.ordinates() == other.ordinates()
+        if op == 3: # !=
+            return not (self == other)
+        # There is no total ordering on Newton polygons
+        raise NotImplementedError("Operator not implemented for this valuation.")
+
+    def _draw_(self):
+
+    def __hash__(self):
+        r"""
+        The hash value of this Newton polygon.
+
+        We treat two Newton polygons as equal if they were defined at the same
+        abscissas and coincide at them that were used to define them.
+
+        EXAMPLES::
+
+            sage: N = NewtonPolygon([1,1,1])
+            sage: hash(N) == hash(N)
+
+        """
+        return hash(self.ordinates())
