@@ -1,3 +1,12 @@
+Fork of SageMath for the computations in [Models of Curves and
+Valuations](https://oparu.uni-ulm.de/xmlui/handle/123456789/3302).
+
+The computations in this thesis used a heavily modified version of SageMath.
+This version is archived here. Note that this version of SageMath is extremely
+outdated by now otherwise.
+
+---
+
 #  Sage: Open Source Mathematical Software
 
 >   "Creating a Viable Open Source Alternative to
